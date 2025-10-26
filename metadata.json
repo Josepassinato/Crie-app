@@ -1,0 +1,5 @@
+{
+  "name": "crie-app",
+  "description": "An AI-powered application to generate social media content, analyze profiles, and manage traffic campaigns.",
+  "requestFramePermissions": []
+}

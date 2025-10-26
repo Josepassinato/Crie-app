@@ -1,0 +1,256 @@
+import React, { useState, useCallback, useContext } from 'react';
+import { GeneratedContent, AppMode, MediaType, ContentMarketingPost, ProductPostContent } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext';
+
+interface OutputDisplayProps {
+  generatedContent: GeneratedContent | null;
+  isLoading: boolean;
+  error: string | null;
+  appMode: AppMode;
+  outputType: MediaType; // Kept for product mode spinner message
+}
+
+const Spinner: React.FC<{ message: string; subtext: string; }> = ({ message, subtext }) => (
+  <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-brand-primary"></div>
+    <p className="text-lg text-brand-subtle">{message}</p>
+    <p className="text-sm text-slate-500">{subtext}</p>
+  </div>
+);
+
+const Placeholder: React.FC<{appMode: AppMode}> = ({ appMode }) => {
+    const { t } = useContext(LanguageContext);
+    const title = appMode === 'product' ? t('productPlaceholderTitle') : t('contentPlaceholderTitle');
+    const subtitle = t('placeholderSubtitle');
+
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center text-brand-subtle">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <h3 className="text-xl font-semibold text-brand-text">{title}</h3>
+            <p className="mt-1">{subtitle}</p>
+        </div>
+    );
+}
+
+const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File | null> => {
+    try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], filename, { type: blob.type });
+    } catch (error) {
+        console.error("Error converting data URL to File:", error);
+        return null;
+    }
+};
+
+const ShareButton: React.FC<{ textToShare: string; mediaUrl: string; mediaType: MediaType; productName: string; }> = ({ textToShare, mediaUrl, mediaType, productName }) => {
+    const { t } = useContext(LanguageContext);
+    const [feedback, setFeedback] = useState('');
+
+    const showFeedback = (message: string) => {
+        setFeedback(message);
+        setTimeout(() => setFeedback(''), 2000);
+    };
+
+    const handleShare = async () => {
+        const fileExtension = mediaType === 'video' ? 'mp4' : 'png';
+        const fileName = `${productName.toLowerCase().replace(/\s+/g, '-')}.${fileExtension}`;
+        const file = await dataURLtoFile(mediaUrl, fileName);
+        
+        const shareData: ShareData = {
+            text: textToShare,
+            files: file ? [file] : [],
+        };
+
+        if (navigator.share && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                console.log('Share cancelled or failed', error);
+            }
+        } else {
+             // Fallback for browsers that don't support Web Share API
+            navigator.clipboard.writeText(textToShare).then(() => {
+                showFeedback(t('textCopied'));
+            }, () => {
+                showFeedback(t('copyFailed'));
+            });
+        }
+    };
+
+    const isShareSupported = typeof navigator.share === 'function';
+
+    return (
+        <button
+            onClick={handleShare}
+            className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors flex items-center space-x-2"
+        >
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+            </svg>
+            <span>{feedback || (isShareSupported ? t('share') : t('copyText'))}</span>
+        </button>
+    );
+};
+
+
+const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoading, error, appMode, outputType }) => {
+  const { t } = useContext(LanguageContext);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'instagram' | 'linkedin' | 'tiktok'>('instagram');
+
+  const handleDownload = useCallback(async () => {
+    if (!generatedContent) return;
+    
+    const isContentPost = 'platformTexts' in generatedContent;
+    const urlToDownload = isContentPost ? generatedContent.imageUrl : generatedContent.mediaUrl;
+    const isVideo = !isContentPost && generatedContent.mediaType === 'video';
+    const productName = !isContentPost ? generatedContent.productName : 'content';
+    const fileName = `${productName.toLowerCase().replace(/\s+/g, '-')}.${isVideo ? 'mp4' : 'png'}`;
+    
+    setIsDownloading(true);
+    try {
+        const response = await fetch(urlToDownload);
+        if (!response.ok) {
+            throw new Error(t('downloadFetchError'));
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        console.error("Download error:", err);
+        alert(t('downloadAlertError'));
+    } finally {
+        setIsDownloading(false);
+    }
+}, [generatedContent, t]);
+
+  const renderProductPost = (content: ProductPostContent) => (
+      <>
+        <div>
+            <div className="flex justify-between items-center mb-3">
+            <h3 className="text-xl font-bold text-brand-text">{t('generatedVisual')}</h3>
+            <button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
+            >
+                <div className="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>{isDownloading ? t('saving') : t('saveMedia')}</span>
+                </div>
+            </button>
+            </div>
+            {content.mediaType === 'image' ? (
+                <img src={content.mediaUrl} alt={t('generatedPromotionalAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+            ) : (
+                <video src={content.mediaUrl} controls autoPlay loop muted className="w-full rounded-lg shadow-lg border border-slate-700" >
+                {t('videoTagError')}
+                </video>
+            )}
+        </div>
+        <div>
+            <div className="flex justify-between items-center mb-3">
+            <h3 className="text-xl font-bold text-brand-text">{t('postText')}</h3>
+             <ShareButton 
+                textToShare={content.postText} 
+                mediaUrl={content.mediaUrl}
+                mediaType={content.mediaType}
+                productName={content.productName}
+             />
+            </div>
+            <div className="bg-slate-900/50 p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 font-mono">
+                {content.postText}
+            </div>
+        </div>
+    </>
+  );
+
+  const renderContentPost = (content: ContentMarketingPost) => (
+      <>
+        <div>
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xl font-bold text-brand-text">{t('generatedImage')}</h3>
+                <button
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                    className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
+                >
+                    <div className="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>{isDownloading ? t('saving') : t('saveImage')}</span>
+                    </div>
+                </button>
+            </div>
+            <img src={content.imageUrl} alt={t('generatedContentMarketingAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+        </div>
+        <div>
+            <div className="flex justify-between items-center mb-2">
+                 <h3 className="text-xl font-bold text-brand-text">{t('adaptedTexts')}</h3>
+                 <ShareButton 
+                    textToShare={content.platformTexts[activeTab]} 
+                    mediaUrl={content.imageUrl}
+                    mediaType="image"
+                    productName="content-post"
+                 />
+            </div>
+            <div className="border-b border-slate-700">
+                <nav className="-mb-px flex space-x-4" aria-label="Tabs">
+                    <button onClick={() => setActiveTab('instagram')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'instagram' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>Instagram</button>
+                    <button onClick={() => setActiveTab('linkedin')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'linkedin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>LinkedIn</button>
+                    <button onClick={() => setActiveTab('tiktok')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tiktok' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>TikTok</button>
+                </nav>
+            </div>
+            <div className="mt-4 bg-slate-900/50 p-4 rounded-b-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 border-t-0 font-mono min-h-[150px]">
+                {content.platformTexts[activeTab]}
+            </div>
+        </div>
+    </>
+  );
+
+
+  const renderContent = () => {
+    if (isLoading) {
+      const message = appMode === 'product'
+        ? (outputType === 'video' ? t('spinnerVideoMessage') : t('spinnerImageMessage'))
+        : t('spinnerContentMessage');
+      const subtext = appMode === 'product' && outputType === 'video' ? t('spinnerVideoSubtext') : t('spinnerSubtext');
+      return <Spinner message={message} subtext={subtext} />;
+    }
+    if (error) {
+      return <div className="text-center text-red-400 p-4 bg-red-900/20 border border-red-500/30 rounded-md">{error}</div>;
+    }
+    if (generatedContent) {
+      // Type guard to determine which content to render
+      const isContentPost = 'platformTexts' in generatedContent;
+      return (
+        <div className="space-y-6 animate-fade-in">
+          {isContentPost 
+            ? renderContentPost(generatedContent as ContentMarketingPost) 
+            : renderProductPost(generatedContent as ProductPostContent)}
+        </div>
+      );
+    }
+    return <Placeholder appMode={appMode} />;
+  };
+
+  return (
+    <div className="bg-brand-surface p-6 rounded-lg shadow-2xl min-h-[500px] flex flex-col justify-center border border-slate-700">
+      {renderContent()}
+    </div>
+  );
+};
+
+export default OutputDisplay;
