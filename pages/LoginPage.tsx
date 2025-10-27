@@ -3,29 +3,71 @@ import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 const LoginPage: React.FC = () => {
-  const { login } = useContext(AuthContext);
+  const { login, signup, activateTestMode } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
+  const [isLoginView, setIsLoginView] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
-  };
+    setError('');
+    setLoading(true);
 
+    if (!isLoginView && password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isLoginView) {
+        await login(email, password);
+      } else {
+        await signup(email, password);
+      }
+    } catch (err: any) {
+      let friendlyMessage = "Ocorreu um erro inesperado.";
+      switch (err.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+              friendlyMessage = "E-mail ou senha inválidos.";
+              break;
+          case 'auth/email-already-in-use':
+              friendlyMessage = "Já existe uma conta com este e-mail.";
+              break;
+          case 'auth/weak-password':
+              friendlyMessage = "A senha deve ter pelo menos 6 caracteres.";
+              break;
+           case 'auth/invalid-email':
+              friendlyMessage = "O formato do e-mail é inválido.";
+              break;
+      }
+      setError(friendlyMessage);
+    } finally {
+        setLoading(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 text-brand-text font-sans">
-      <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 max-w-sm w-full text-center">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-6">
-          crie-app
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 max-w-sm w-full">
+        <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">
+            crie-app
+            </h1>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="E-mail (e.g., user@example.com)"
+              placeholder="E-mail"
               className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
               required
             />
@@ -35,21 +77,42 @@ const LoginPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (e.g., user)"
+              placeholder="Senha"
               className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
               required
             />
           </div>
+           {!isLoginView && (
+             <div>
+                <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirmar Senha"
+                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                    required
+                />
+            </div>
+           )}
+           {error && <p className="text-red-400 text-sm text-center">{error}</p>}
           <button
             type="submit"
-            className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary focus:ring-offset-brand-bg transition-opacity"
+            disabled={loading}
+            className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary focus:ring-offset-brand-bg transition-opacity disabled:opacity-50"
           >
-            Login
+            {loading ? "Processando..." : (isLoginView ? 'Entrar' : 'Cadastrar')}
           </button>
-          <p className="text-xs text-slate-500 pt-2">
-            Use <strong>user@example.com / user</strong> or <strong>admin@example.com / admin</strong>
-          </p>
         </form>
+         <div className="text-center mt-4">
+            <button onClick={() => { setIsLoginView(!isLoginView); setError('');}} className="text-sm text-brand-subtle hover:text-brand-primary">
+                {isLoginView ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
+            </button>
+        </div>
+        <div className="mt-6 border-t border-slate-700 pt-4">
+             <button onClick={activateTestMode} className="w-full text-center text-sm text-brand-subtle hover:text-brand-primary bg-slate-700/50 hover:bg-slate-700 py-2 rounded-md transition-colors">
+                Acessar para Testes
+            </button>
+        </div>
       </div>
     </div>
   );

@@ -75,12 +75,13 @@ export interface CampaignPlan {
 }
 
 // Fix: Define an interface for the aistudio object to avoid declaration conflicts.
-export interface AIStudio {
-  hasSelectedApiKey: () => Promise<boolean>;
-  openSelectKey: () => Promise<void>;
-}
-
 declare global {
+  // Fix: Moved AIStudio interface into declare global to resolve type conflict.
+  interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  }
+
   interface Window {
     aistudio?: AIStudio;
   }

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React from 'react';
 import Header from './components/Header';
 import CreatorPage from './pages/CreatorPage';
 import AnalyzerPage from './pages/AnalyzerPage';
@@ -6,12 +6,12 @@ import TrafficManagerPage from './pages/TrafficManagerPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import BuyTokensPage from './pages/BuyTokensPage';
-import { AuthContext } from './contexts/AuthContext';
+import { AuthContext, AuthProvider } from './contexts/AuthContext';
 import { AppPage } from './types';
 
-const App: React.FC = () => {
-    const { currentUser } = useContext(AuthContext);
-    const [activePage, setActivePage] = useState<AppPage>('creator');
+const AppContent: React.FC = () => {
+    const { currentUser, loading } = React.useContext(AuthContext);
+    const [activePage, setActivePage] = React.useState<AppPage>('creator');
 
     const renderPage = () => {
         switch (activePage) {
@@ -30,6 +30,14 @@ const App: React.FC = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-brand-primary"></div>
+            </div>
+        );
+    }
+
     if (!currentUser) {
         return <LoginPage />;
     }
@@ -43,6 +51,14 @@ const App: React.FC = () => {
                 </div>
             </main>
         </div>
+    );
+};
+
+const App: React.FC = () => {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
     );
 };
 
