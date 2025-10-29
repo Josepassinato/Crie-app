@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       id: 'test-admin-id',
       email: 'admin-test@crie-app.com',
       isAdmin: true,
-      tokens: 99999,
+      tokens: 99999999,
     };
     sessionStorage.setItem('testMode', 'true');
     setCurrentUser(mockAdminUser);

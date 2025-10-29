@@ -27,6 +27,14 @@
  * 6. Performance Analysis (gemini-2.5-pro for vision):
  *   - Cost: ~$0.004 per image analysis.
  *   - Price: $0.004 * 4 = $0.016. This costs 8 tokens.
+ * 
+ * 7. Holistic Strategy (gemini-2.5-pro for complexity):
+ *   - Cost: Large context window, complex reasoning. Estimate ~$0.01.
+ *   - Price: $0.01 * 4 = $0.04. This costs 20 tokens.
+ *
+ * 8. Account Performance Analysis (gemini-2.5-pro for complexity):
+ *   - Cost: Similar to holistic strategy. Estimate ~$0.01.
+ *   - Price: $0.01 * 4 = $0.04. This costs 20 tokens.
  */
 
 export const TOKEN_COSTS = {
@@ -36,6 +44,8 @@ export const TOKEN_COSTS = {
     PROFILE_ANALYSIS: 15,
     CAMPAIGN_PLAN: 15,
     PERFORMANCE_ANALYSIS: 8,
+    STRATEGY_ANALYSIS: 20,
+    ACCOUNT_PERFORMANCE_ANALYSIS: 20,
 };
 
 export const TOKEN_PACKAGES = {

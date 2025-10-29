@@ -1,21 +1,20 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { Language, AppPage } from '../types';
+import { useAppState } from '../contexts/AppStateContext';
 
-interface HeaderProps {
-    activePage: AppPage;
-    setActivePage: (page: AppPage) => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ activePage, setActivePage }) => {
+const Header: React.FC = () => {
     const { currentUser, logout } = useContext(AuthContext);
     const { language, setLanguage, t } = useContext(LanguageContext);
+    const { activePage, setActivePage } = useAppState();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const navItems: { id: AppPage; label: string }[] = [
         { id: 'creator', label: t('creatorPage') || 'Creator' },
         { id: 'analyzer', label: t('analyzerPage') || 'Analyzer' },
         { id: 'trafficManager', label: t('trafficManagerPage') || 'Traffic Manager' },
+        { id: 'strategy', label: t('strategyPage') || 'Strategy AI' },
     ];
     if (currentUser?.isAdmin) {
         navItems.push({ id: 'admin', label: 'Admin' });
@@ -24,6 +23,12 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage }) => {
     const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setLanguage(e.target.value as Language);
     };
+    
+    const handleNavClick = (page: AppPage) => {
+        setActivePage(page);
+        setIsMenuOpen(false);
+    };
+
 
     return (
         <header className="bg-brand-surface/80 backdrop-blur-sm sticky top-0 z-40 border-b border-slate-700">
@@ -52,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage }) => {
                     </div>
 
                     {/* Right Side */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
                         <div className="hidden sm:flex items-center space-x-2">
                              <span className="text-sm font-medium text-brand-text">{currentUser?.tokens.toLocaleString()}</span>
                              <span className="text-sm text-brand-subtle">{t('tokens')}</span>
@@ -70,9 +75,56 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
+                        {/* Hamburger button */}
+                        <div className="md:hidden flex items-center">
+                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-brand-subtle hover:text-brand-text hover:bg-slate-700/50" aria-controls="mobile-menu" aria-expanded={isMenuOpen}>
+                                <span className="sr-only">Open main menu</span>
+                                {isMenuOpen ? (
+                                    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+            {/* Mobile menu, show/hide based on menu state. */}
+            {isMenuOpen && (
+                <div className="md:hidden animate-fade-in" id="mobile-menu">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                         {navItems.map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => handleNavClick(item.id)}
+                                className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                                    activePage === item.id 
+                                    ? 'bg-brand-primary/10 text-brand-primary' 
+                                    : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-text'
+                                }`}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                    {/* Token info for mobile */}
+                    <div className="sm:hidden pt-4 pb-3 border-t border-slate-700">
+                        <div className="flex items-center justify-between px-5">
+                            <div>
+                                <span className="text-base font-medium text-brand-text">{currentUser?.tokens.toLocaleString()}</span>
+                                <span className="text-sm text-brand-subtle ml-2">{t('tokens')}</span>
+                            </div>
+                            <button onClick={() => handleNavClick('buyTokens')} className="px-3 py-1 text-xs font-semibold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-full transition-colors">
+                                + {t('buyMore')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     );
 };

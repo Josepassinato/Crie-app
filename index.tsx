@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AccountsProvider } from './contexts/AccountsContext';
+import { AppStateProvider } from './contexts/AppStateContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,7 +15,13 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <LanguageProvider>
-      <App />
+      <AuthProvider>
+        <AccountsProvider>
+          <AppStateProvider>
+            <App />
+          </AppStateProvider>
+        </AccountsProvider>
+      </AuthProvider>
     </LanguageProvider>
   </React.StrictMode>
 );

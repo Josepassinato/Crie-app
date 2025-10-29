@@ -3,83 +3,70 @@ import { Schedule } from '../types';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 interface AutomationSchedulerProps {
-    schedule: Schedule;
-    setSchedule: React.Dispatch<React.SetStateAction<Schedule>>;
+    schedule?: Schedule;
+    setSchedule: (schedule: Schedule) => void;
+    isDisabled?: boolean;
 }
 
-const AutomationScheduler: React.FC<AutomationSchedulerProps> = ({ schedule, setSchedule }) => {
+const AutomationScheduler: React.FC<AutomationSchedulerProps> = ({ schedule, setSchedule, isDisabled = false }) => {
     const { t } = useContext(LanguageContext);
 
     const handleToggle = () => {
-        setSchedule(prev => ({ ...prev, isEnabled: !prev.isEnabled }));
+        if (schedule) {
+            setSchedule({ ...schedule, isEnabled: !schedule.isEnabled });
+        }
     };
 
     const handlePostsPerDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const count = parseInt(e.target.value, 10);
-        const newTimes = Array.from({ length: count }, (_, i) => schedule.times[i] || '09:00');
-        setSchedule(prev => ({ ...prev, postsPerDay: count, times: newTimes }));
+        if (schedule) {
+            const count = parseInt(e.target.value, 10);
+            const newTimes = Array.from({ length: count }, (_, i) => schedule.times[i] || '09:00');
+            setSchedule({ ...schedule, postsPerDay: count, times: newTimes });
+        }
     };
 
     const handleTimeChange = (index: number, value: string) => {
-        const newTimes = [...schedule.times];
-        newTimes[index] = value;
-        setSchedule(prev => ({ ...prev, times: newTimes }));
+        if (schedule) {
+            const newTimes = [...schedule.times];
+            newTimes[index] = value;
+            setSchedule({ ...schedule, times: newTimes });
+        }
     };
 
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isDisabled ? 'opacity-50' : ''}`}>
             <div>
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold text-brand-text">{t('automation')}</h2>
                     <button
                         onClick={handleToggle}
+                        disabled={isDisabled || !schedule}
                         className={`${
-                        schedule.isEnabled ? 'bg-brand-primary' : 'bg-slate-600'
-                        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
-                        aria-pressed={schedule.isEnabled}
+                        schedule?.isEnabled ? 'bg-brand-primary' : 'bg-slate-600'
+                        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:cursor-not-allowed`}
+                        aria-pressed={schedule?.isEnabled}
                     >
                         <span className="sr-only">{t('enableAutomation')}</span>
                         <span
                         className={`${
-                            schedule.isEnabled ? 'translate-x-6' : 'translate-x-1'
+                            schedule?.isEnabled ? 'translate-x-6' : 'translate-x-1'
                         } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                         />
                     </button>
                 </div>
-                <p className="text-brand-subtle mt-2 text-sm">
-                   {t('automationDescription')}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                   {t('automationNote')}
-                </p>
+                {isDisabled ? (
+                    <p className="text-brand-subtle mt-2 text-sm">
+                        {t('automationDisabledNote')}
+                    </p>
+                ) : (
+                    <p className="text-brand-subtle mt-2 text-sm">
+                        {t('automationDescription')}
+                    </p>
+                )}
             </div>
 
-            {schedule.isEnabled && (
+            {schedule?.isEnabled && !isDisabled && (
                 <div className="space-y-4 animate-fade-in">
-                    <div>
-                        <label className="block text-sm font-medium text-brand-subtle mb-2">
-                           {t('automationGenerationMode')}
-                        </label>
-                        <div className="flex rounded-md shadow-sm">
-                            <button onClick={() => setSchedule(prev => ({ ...prev, appMode: 'product' }))} className={`relative inline-flex items-center justify-center w-1/2 rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${schedule.appMode === 'product' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>
-                               {t('productPost')}
-                            </button>
-                            <button onClick={() => setSchedule(prev => ({ ...prev, appMode: 'content' }))} className={`relative -ml-px inline-flex items-center justify-center w-1/2 rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${schedule.appMode === 'content' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>
-                               {t('contentPost')}
-                            </button>
-                        </div>
-                    </div>
-
-                    {schedule.appMode === 'product' && (
-                        <div className="animate-fade-in">
-                            <label className="block text-sm font-medium text-brand-subtle mb-2">{t('automationOutputFormat')}</label>
-                            <div className="flex rounded-md shadow-sm">
-                                <button onClick={() => setSchedule(prev => ({ ...prev, outputType: 'image' }))} className={`relative inline-flex items-center justify-center w-1/2 rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${schedule.outputType === 'image' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>{t('image')}</button>
-                                <button onClick={() => setSchedule(prev => ({ ...prev, outputType: 'video' }))} className={`relative -ml-px inline-flex items-center justify-center w-1/2 rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${schedule.outputType === 'video' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>{t('video')}</button>
-                            </div>
-                        </div>
-                    )}
-
                     <div>
                         <label htmlFor="posts-per-day" className="block text-sm font-medium text-brand-subtle mb-2">
                             {t('postsPerDay')}

@@ -1,6 +1,6 @@
 // types.ts
 
-export type AppPage = 'creator' | 'analyzer' | 'trafficManager' | 'admin' | 'buyTokens';
+export type AppPage = 'creator' | 'analyzer' | 'trafficManager' | 'strategy' | 'admin' | 'buyTokens';
 
 export type AppMode = 'product' | 'content';
 
@@ -22,11 +22,12 @@ export interface ProductPostContent {
 }
 
 export interface ContentMarketingPost {
-  imageUrl: string;
+  imageUrls: string[];
   platformTexts: {
     instagram: string;
     linkedin: string;
     tiktok: string;
+    facebook: string;
   };
 }
 
@@ -36,8 +37,6 @@ export interface Schedule {
   isEnabled: boolean;
   postsPerDay: number;
   times: string[];
-  appMode: AppMode;
-  outputType: MediaType;
 }
 
 export interface User {
@@ -73,6 +72,73 @@ export interface CampaignPlan {
     };
     stepByStepGuide: string[];
 }
+
+export interface HolisticStrategyResult {
+    overallDiagnosis: string;
+    strategicPillars: string[];
+    actionableRecommendations: string[];
+    kpisToTrack: string[];
+}
+
+export interface PerformanceReport {
+    growthAnalysis: string;
+    engagementTrends: string;
+    campaignEffectiveness: string;
+    strategicSummary: string;
+    quantitativeSummary: {
+        reportOverview: string;
+        totalPosts: number;
+        totalCampaigns: number;
+        totalAnalyses: number;
+    };
+}
+
+
+// --- Account and History Types ---
+
+export interface ContentFormData {
+  profession: string;
+  targetAudience: string;
+  professionalContext: string;
+  postFormat: 'single' | 'carousel';
+  carouselSlides: number;
+  maskTemplate: string;
+  colorPalette: string;
+  logoImage: UploadedImage | null;
+  postExample1: string;
+  postExample2: string;
+  postExample3: string;
+  profileUrl: string; // For Analyzer
+}
+
+export interface ProductFormData {
+  productName: string;
+  productDescription: string;
+  marketingVibe: string;
+  productImage: UploadedImage | null;
+  maskTemplate: string;
+  colorPalette: string;
+  logoImage: UploadedImage | null;
+  profileUrl: string; // For Analyzer
+}
+
+export interface GeneratedHistoryItem {
+  id: string; 
+  type: 'productPost' | 'contentPost' | 'analysis' | 'campaignPlan' | 'performanceFeedback' | 'holisticStrategy' | 'performanceReport';
+  timestamp: string;
+  data: GeneratedContent | AnalysisResult | CampaignPlan | string | HolisticStrategyResult | PerformanceReport;
+  accountName: string;
+}
+
+export interface SavedAccount {
+  id: string;
+  name: string;
+  type: 'content' | 'product';
+  formData: ContentFormData | ProductFormData;
+  history: GeneratedHistoryItem[];
+  schedule: Schedule;
+}
+
 
 // Fix: Define an interface for the aistudio object to avoid declaration conflicts.
 declare global {

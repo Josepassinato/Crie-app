@@ -45,7 +45,7 @@ const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File | 
     }
 };
 
-const ShareButton: React.FC<{ textToShare: string; mediaUrl: string; mediaType: MediaType; productName: string; }> = ({ textToShare, mediaUrl, mediaType, productName }) => {
+const ShareButton: React.FC<{ textToShare: string; imageUrls: string[]; mediaType: MediaType; productName: string; }> = ({ textToShare, imageUrls, mediaType, productName }) => {
     const { t } = useContext(LanguageContext);
     const [feedback, setFeedback] = useState('');
 
@@ -55,6 +55,7 @@ const ShareButton: React.FC<{ textToShare: string; mediaUrl: string; mediaType: 
     };
 
     const handleShare = async () => {
+        const mediaUrl = imageUrls[0]; // Always share the first image
         const fileExtension = mediaType === 'video' ? 'mp4' : 'png';
         const fileName = `${productName.toLowerCase().replace(/\s+/g, '-')}.${fileExtension}`;
         const file = await dataURLtoFile(mediaUrl, fileName);
@@ -88,7 +89,7 @@ const ShareButton: React.FC<{ textToShare: string; mediaUrl: string; mediaType: 
             className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors flex items-center space-x-2"
         >
              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367 2.684z" />
             </svg>
             <span>{feedback || (isShareSupported ? t('share') : t('copyText'))}</span>
         </button>
@@ -99,32 +100,55 @@ const ShareButton: React.FC<{ textToShare: string; mediaUrl: string; mediaType: 
 const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoading, error, appMode, outputType }) => {
   const { t } = useContext(LanguageContext);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'instagram' | 'linkedin' | 'tiktok'>('instagram');
+  const [activeTab, setActiveTab] = useState<'instagram' | 'facebook' | 'linkedin' | 'tiktok'>('instagram');
 
-  const handleDownload = useCallback(async () => {
-    if (!generatedContent) return;
-    
-    const isContentPost = 'platformTexts' in generatedContent;
-    const urlToDownload = isContentPost ? generatedContent.imageUrl : generatedContent.mediaUrl;
-    const isVideo = !isContentPost && generatedContent.mediaType === 'video';
-    const productName = !isContentPost ? generatedContent.productName : 'content';
-    const fileName = `${productName.toLowerCase().replace(/\s+/g, '-')}.${isVideo ? 'mp4' : 'png'}`;
+  const downloadFile = (url: string, filename: string) => {
+    return fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      });
+  };
+
+  const handleDownloadAll = useCallback(async () => {
+      if (!generatedContent || !('imageUrls' in generatedContent)) return;
+      
+      setIsDownloading(true);
+      try {
+          for (let i = 0; i < generatedContent.imageUrls.length; i++) {
+              const url = generatedContent.imageUrls[i];
+              const fileName = `content-post-${i + 1}.png`;
+              await downloadFile(url, fileName);
+              // Small delay between downloads
+              if (i < generatedContent.imageUrls.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 300));
+              }
+          }
+      } catch (err) {
+          console.error("Download error:", err);
+          alert(t('downloadAlertError'));
+      } finally {
+          setIsDownloading(false);
+      }
+  }, [generatedContent, t]);
+
+
+  const handleDownloadSingle = useCallback(async () => {
+    if (!generatedContent || 'imageUrls' in generatedContent) return;
+
+    const urlToDownload = generatedContent.mediaUrl;
+    const isVideo = generatedContent.mediaType === 'video';
+    const fileName = `${generatedContent.productName.toLowerCase().replace(/\s+/g, '-')}.${isVideo ? 'mp4' : 'png'}`;
     
     setIsDownloading(true);
     try {
-        const response = await fetch(urlToDownload);
-        if (!response.ok) {
-            throw new Error(t('downloadFetchError'));
-        }
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+        await downloadFile(urlToDownload, fileName);
     } catch (err) {
         console.error("Download error:", err);
         alert(t('downloadAlertError'));
@@ -139,7 +163,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
             <div className="flex justify-between items-center mb-3">
             <h3 className="text-xl font-bold text-brand-text">{t('generatedVisual')}</h3>
             <button
-                onClick={handleDownload}
+                onClick={handleDownloadSingle}
                 disabled={isDownloading}
                 className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
@@ -164,7 +188,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
             <h3 className="text-xl font-bold text-brand-text">{t('postText')}</h3>
              <ShareButton 
                 textToShare={content.postText} 
-                mediaUrl={content.mediaUrl}
+                imageUrls={[content.mediaUrl]}
                 mediaType={content.mediaType}
                 productName={content.productName}
              />
@@ -176,13 +200,15 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
     </>
   );
 
-  const renderContentPost = (content: ContentMarketingPost) => (
+  const renderContentPost = (content: ContentMarketingPost) => {
+      const isCarousel = content.imageUrls.length > 1;
+      return (
       <>
         <div>
             <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xl font-bold text-brand-text">{t('generatedImage')}</h3>
+                <h3 className="text-xl font-bold text-brand-text">{isCarousel ? t('generatedCarousel') : t('generatedImage')}</h3>
                 <button
-                    onClick={handleDownload}
+                    onClick={handleDownloadAll}
                     disabled={isDownloading}
                     className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
@@ -190,35 +216,50 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        <span>{isDownloading ? t('saving') : t('saveImage')}</span>
+                        <span>{isDownloading ? t('saving') : (isCarousel ? t('downloadAll') : t('saveImage'))}</span>
                     </div>
                 </button>
             </div>
-            <img src={content.imageUrl} alt={t('generatedContentMarketingAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+            {isCarousel ? (
+                 <div className="flex overflow-x-auto space-x-4 p-2 bg-slate-900/50 rounded-lg border border-slate-700 snap-x snap-mandatory">
+                    {content.imageUrls.map((url, index) => (
+                        <div key={index} className="flex-shrink-0 w-4/5 sm:w-2/3 md:w-1/2 snap-center">
+                            <img src={url} alt={`${t('generatedContentMarketingAlt')} - ${index + 1}`} className="w-full rounded-md shadow-lg" />
+                             <p className="text-center text-xs text-brand-subtle mt-2">{t('carouselIndicator', { current: index + 1, total: content.imageUrls.length })}</p>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <img src={content.imageUrls[0]} alt={t('generatedContentMarketingAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+            )}
         </div>
         <div>
             <div className="flex justify-between items-center mb-2">
                  <h3 className="text-xl font-bold text-brand-text">{t('adaptedTexts')}</h3>
                  <ShareButton 
                     textToShare={content.platformTexts[activeTab]} 
-                    mediaUrl={content.imageUrl}
+                    imageUrls={content.imageUrls}
                     mediaType="image"
                     productName="content-post"
                  />
             </div>
             <div className="border-b border-slate-700">
-                <nav className="-mb-px flex space-x-4" aria-label="Tabs">
-                    <button onClick={() => setActiveTab('instagram')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'instagram' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>Instagram</button>
-                    <button onClick={() => setActiveTab('linkedin')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'linkedin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>LinkedIn</button>
-                    <button onClick={() => setActiveTab('tiktok')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tiktok' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>TikTok</button>
-                </nav>
+                <div className="overflow-x-auto">
+                    <nav className="-mb-px flex space-x-4" aria-label="Tabs">
+                        <button onClick={() => setActiveTab('instagram')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'instagram' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>Instagram</button>
+                        <button onClick={() => setActiveTab('facebook')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'facebook' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>Facebook</button>
+                        <button onClick={() => setActiveTab('linkedin')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'linkedin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>LinkedIn</button>
+                        <button onClick={() => setActiveTab('tiktok')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tiktok' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'}`}>TikTok</button>
+                    </nav>
+                </div>
             </div>
             <div className="mt-4 bg-slate-900/50 p-4 rounded-b-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 border-t-0 font-mono min-h-[150px]">
                 {content.platformTexts[activeTab]}
             </div>
         </div>
     </>
-  );
+    );
+  };
 
 
   const renderContent = () => {

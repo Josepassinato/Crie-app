@@ -15,7 +15,10 @@ export const generateProductPost = async (
     productDescription: string,
     marketingVibe: string,
     productImage: UploadedImage,
-    outputType: MediaType
+    outputType: MediaType,
+    maskTemplate: string,
+    colorPalette: string,
+    logoImage: UploadedImage | null,
 ): Promise<ProductPostContent> => {
     
     const ai = getGoogleAI();
@@ -35,20 +38,49 @@ export const generateProductPost = async (
     });
 
     let mediaUrl: string;
+
+    // --- Dynamic prompt construction for media ---
+    let templateInstruction = '';
+    switch (maskTemplate) {
+        case "Moderno com Círculo":
+            templateInstruction = 'The composition must prominently feature a geometric circular element or frame.';
+            break;
+        case "Grunge com Pinceladas":
+            templateInstruction = 'The style must be artistic and textured, incorporating grunge-style brushstrokes.';
+            break;
+        case "Minimalista com Linhas":
+            templateInstruction = 'The design should be clean and minimalist, using thin geometric lines.';
+            break;
+        case "minhaLogo":
+            templateInstruction = logoImage 
+                ? 'The composition must elegantly incorporate the provided user logo, placing it in a common branding location like a corner.' 
+                : 'The composition should have a clean space suitable for a logo.';
+            break;
+    }
+
+    const colorInstruction = colorPalette 
+        ? `The image's color scheme must strictly adhere to this palette: ${colorPalette}.` 
+        : '';
     
     // Step 2: Generate media (image or video)
     if (outputType === 'image') {
-        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as the main subject. The overall vibe should be "${marketingVibe}". The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image.`;
+        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as the main subject. The overall vibe should be "${marketingVibe}". ${templateInstruction} ${colorInstruction} The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image.`;
         const imageModel = 'gemini-2.5-flash-image';
+        
+        const imageParts: ({ text: string } | { inlineData: { data: string; mimeType: string; } })[] = [
+            { inlineData: { data: productImage.base64, mimeType: productImage.mimeType } },
+            { text: imagePrompt }
+        ];
+
+        if (logoImage && maskTemplate === "minhaLogo") {
+            imageParts.push({ 
+                inlineData: { data: logoImage.base64, mimeType: logoImage.mimeType } 
+            });
+        }
         
         const imageResponse = await ai.models.generateContent({
             model: imageModel,
-            contents: {
-                parts: [
-                    { inlineData: { data: productImage.base64, mimeType: productImage.mimeType } },
-                    { text: imagePrompt }
-                ],
-            },
+            contents: { parts: imageParts },
             config: {
                 responseModalities: [Modality.IMAGE],
             },
@@ -67,7 +99,7 @@ export const generateProductPost = async (
             throw new Error("Product image generation failed.");
         }
     } else { // outputType === 'video'
-        const videoPrompt = `Create a short, 5-second, energetic video ad for "${productName}". The video should start with the provided image and bring it to life with a vibe that is "${marketingVibe}". Make it eye-catching and dynamic for social media.`;
+        const videoPrompt = `Create a short, 5-second, energetic video ad for "${productName}". The video should start with the provided image and bring it to life with a vibe that is "${marketingVibe}". ${templateInstruction} ${colorInstruction} Make it eye-catching and dynamic for social media.`;
         
         const videoModel = 'veo-3.1-fast-generate-preview';
         
