@@ -8,9 +8,7 @@
  *    - Price: $0.0025 * 4 = $0.01. Let's set 1 token = ~$0.002, so this costs 5 tokens.
  * 
  * 2. Product Video (veo-3.1-fast-generate-preview):
- *    - Cost: ~$0.02 per 5 seconds of generated video.
- *    - Price: $0.02 * 4 = $0.08. This costs 40 tokens. This is high, so let's adjust the base price for UX.
- *    - Adjusted Price for UX: Let's make it more accessible. Let's say 20 tokens.
+ *    - New variable pricing model based on duration.
  * 
  * 3. Content Post (gemini-2.5-flash for text, gemini-2.5-flash-image for image):
  *    - Cost: Text (~$0.0005) + Image (~$0.0025) = ~$0.003.
@@ -39,13 +37,18 @@
 
 export const TOKEN_COSTS = {
     PRODUCT_IMAGE: 5,
-    PRODUCT_VIDEO: 20,
     CONTENT_POST: 10,
     PROFILE_ANALYSIS: 15,
     CAMPAIGN_PLAN: 15,
     PERFORMANCE_ANALYSIS: 8,
     STRATEGY_ANALYSIS: 20,
     ACCOUNT_PERFORMANCE_ANALYSIS: 20,
+};
+
+export const VIDEO_COSTS = {
+    '5s': 20,
+    '10s': 35,
+    '15s': 50,
 };
 
 export const TOKEN_PACKAGES = {

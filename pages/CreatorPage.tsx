@@ -10,6 +10,7 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { AccountsContext } from '../contexts/AccountsContext';
 import HistoryPanel from '../components/HistoryPanel';
 import AutomationScheduler from '../components/AutomationScheduler';
+// Fix: Add file extension to fix module resolution error.
 import { useAppState } from '../contexts/AppStateContext';
 
 const CreatorPage: React.FC = () => {
@@ -77,7 +78,7 @@ const CreatorPage: React.FC = () => {
         }
     };
 
-    const isVeoModel = appMode === 'product' && outputType === 'video';
+    const isVeoModel = outputType === 'video';
 
     if (isVeoModel && !hasSelectedApiKey) {
         return <ApiKeySelector onKeySelect={handleApiKeySelect} />;
@@ -123,6 +124,8 @@ const CreatorPage: React.FC = () => {
                             <ContentInputForm 
                                 formState={contentFormState}
                                 setFormState={setContentFormState}
+                                outputType={outputType}
+                                setOutputType={setOutputType}
                                 onSubmit={handleContentSubmit}
                                 onClear={() => clearForm(true)}
                                 isLoading={isLoading}

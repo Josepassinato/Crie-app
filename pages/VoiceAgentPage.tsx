@@ -1,9 +1,10 @@
 import React, { useState, useContext, useRef, useEffect, useCallback } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
+// Fix: Add file extension to fix module resolution error.
 import { useAppState } from '../contexts/AppStateContext';
 import { AccountsContext } from '../contexts/AccountsContext';
-import { GoogleGenAI, FunctionDeclaration, Type, LiveServerMessage, Modality } from '@google/genai';
-import { AppPage, SavedAccount } from '../types';
+import { GoogleGenAI, FunctionDeclaration, Type, LiveSession, LiveServerMessage, Modality } from '@google/genai';
+import { AppPage, SavedAccount, VoiceSessionTranscript, GeneratedHistoryItem, VoiceSessionData } from '../types';
 import { createBlob, decode, decodeAudioData } from '../lib/audioUtils';
 
 interface VoiceAgentPageProps {
@@ -52,6 +53,18 @@ const tools: FunctionDeclaration[] = [
                 value: { type: Type.STRING, description: "The new value for the field." },
             },
             required: ['field', 'value']
+        },
+    },
+    {
+        name: 'setCreativeParameters',
+        description: "Sets multiple creative parameters for image or video generation at once. Use this to apply visual styles.",
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                artisticStyle: { type: Type.STRING, description: "The artistic style, e.g., 'Vintage', 'Cyberpunk', 'Padrão'." },
+                aspectRatio: { type: Type.STRING, description: "The aspect ratio, e.g., '1:1', '16:9', '9:16'." },
+                negativePrompt: { type: Type.STRING, description: "A description of elements to exclude from the image." },
+            },
         },
     },
     {
@@ -124,16 +137,15 @@ const tools: FunctionDeclaration[] = [
 ];
 
 const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
-    const { t } = useContext(LanguageContext);
-    const [statusText, setStatusText] = useState('Toque no botão para começar');
+    const { t, language } = useContext(LanguageContext);
+    const appState = useAppState();
+    const { accounts, selectAccount: selectAccountById, addHistoryItem, selectedAccountId } = useContext(AccountsContext);
+
+    const [statusText, setStatusText] = useState('Conectando...');
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-    
-    const appState = useAppState();
-    const { accounts, selectAccount: selectAccountById } = useContext(AccountsContext);
-
-    const sessionPromiseRef = useRef<Promise<any> | null>(null);
+    const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
     const inputAudioContextRef = useRef<AudioContext | null>(null);
     const outputAudioContextRef = useRef<AudioContext | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -141,75 +153,140 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
     const nextStartTimeRef = useRef(0);
     const outputSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    const transcriptRef = useRef<VoiceSessionTranscript[]>([]);
+    const currentUserTranscriptionRef = useRef('');
+    const currentModelTranscriptionRef = useRef('');
+    const timeoutRef = useRef<number | null>(null);
+    const sessionWasActive = useRef(false);
 
     const executeFunctionCall = useCallback(async (name: string, args: any): Promise<string> => {
         let confirmationText = "Ok.";
-        switch (name) {
-            case 'navigateToPage':
-                appState.setActivePage(args.page as AppPage);
-                confirmationText = `Claro, navegando para a página ${args.page}.`;
-                break;
-            case 'selectAccount':
-                const accountToSelect = (Object.values(accounts) as SavedAccount[]).find(acc => acc.name.toLowerCase() === args.accountName.toLowerCase());
-                if (accountToSelect) {
-                    selectAccountById(accountToSelect.id);
-                    confirmationText = `Certo, selecionei a conta "${args.accountName}".`;
-                } else {
-                    const accountNames = (Object.values(accounts) as SavedAccount[]).map(a => a.name).join(', ');
-                    confirmationText = `Desculpe, não encontrei uma conta chamada "${args.accountName}". As contas disponíveis são: ${accountNames || 'nenhuma'}.`;
-                }
-                break;
-            case 'updateCreatorFormField':
-                appState.updateCreatorFormField(args.field, args.value);
-                confirmationText = `Ok, atualizei o campo "${args.field}".`;
-                break;
-            case 'setCreatorMode':
-                appState.setAppMode(args.mode);
-                confirmationText = `Modo do criador definido para ${args.mode}.`;
-                break;
-            case 'startCreatorGeneration':
-                confirmationText = "Tudo certo! Iniciando a geração agora...";
-                await appState.startGeneration();
-                break;
-            case 'updateAnalyzerUrl':
-                appState.setAnalyzerFormState(prev => ({...prev, profileUrl: args.url}));
-                confirmationText = "URL do analisador atualizada.";
-                break;
-            case 'startProfileAnalysis':
-                confirmationText = "Iniciando análise de perfil.";
-                await appState.handleProfileAnalysisSubmit();
-                break;
-            case 'updateCampaignPlanField':
-                appState.setTrafficPlanForm(prev => ({...prev, [args.field]: args.value}));
-                confirmationText = `Campo do plano de campanha "${args.field}" atualizado.`;
-                break;
-            case 'startCampaignPlanGeneration':
-                confirmationText = "Gerando o plano de campanha.";
-                await appState.handleCampaignPlanSubmit();
-                break;
-            case 'startCampaignPerformanceAnalysis':
-                confirmationText = "Analisando a performance da campanha. Certifique-se de que uma imagem foi enviada.";
-                await appState.handleCampaignPerformanceSubmit();
-                break;
-            case 'startHolisticStrategyGeneration':
-                confirmationText = "Iniciando a geração da estratégia holística.";
-                await appState.handleStrategySubmit();
-                break;
-             case 'startAccountPerformanceAnalysis':
-                confirmationText = "Iniciando o relatório de performance da conta.";
-                await appState.handlePerformanceReportSubmit();
-                break;
-            default:
-                confirmationText = `Função desconhecida: ${name}`;
-                break;
+        try {
+            switch (name) {
+                case 'navigateToPage':
+                    appState.setActivePage(args.page as AppPage);
+                    confirmationText = `Claro, navegando para a página ${args.page}.`;
+                    break;
+                case 'selectAccount':
+                    const accountToSelect = (Object.values(accounts) as SavedAccount[]).find(acc => acc.name.toLowerCase() === args.accountName.toLowerCase());
+                    if (accountToSelect) {
+                        selectAccountById(accountToSelect.id);
+                        confirmationText = `Certo, selecionei a conta "${args.accountName}".`;
+                    } else {
+                        const accountNames = (Object.values(accounts) as SavedAccount[]).map(a => a.name).join(', ');
+                        confirmationText = `Desculpe, não encontrei uma conta chamada "${args.accountName}". As contas disponíveis são: ${accountNames || 'nenhuma'}.`;
+                    }
+                    break;
+                case 'updateCreatorFormField':
+                    appState.updateCreatorFormField(args.field, args.value);
+                    confirmationText = `Ok, atualizei o campo "${args.field}".`;
+                    break;
+                case 'setCreativeParameters':
+                    if (args.artisticStyle) appState.updateCreatorFormField('artisticStyle', args.artisticStyle);
+                    if (args.aspectRatio) appState.updateCreatorFormField('aspectRatio', args.aspectRatio);
+                    if (args.negativePrompt) appState.updateCreatorFormField('negativePrompt', args.negativePrompt);
+                    confirmationText = "Parâmetros criativos aplicados.";
+                    break;
+                case 'setCreatorMode':
+                    appState.setAppMode(args.mode);
+                    confirmationText = `Modo do criador definido para ${args.mode}.`;
+                    break;
+                case 'startCreatorGeneration':
+                    confirmationText = "Tudo certo! Iniciando a geração agora...";
+                    onExit(); // Exit voice mode to show dashboard
+                    await appState.startGeneration();
+                    break;
+                case 'updateAnalyzerUrl':
+                    appState.setAnalyzerFormState(prev => ({...prev, profileUrl: args.url}));
+                    confirmationText = "URL do analisador atualizada.";
+                    break;
+                case 'startProfileAnalysis':
+                    confirmationText = "Iniciando análise de perfil. Você pode me enviar os prints da tela se precisar.";
+                    onExit();
+                    await appState.handleProfileAnalysisSubmit();
+                    break;
+                case 'updateCampaignPlanField':
+                    appState.setTrafficPlanForm(prev => ({...prev, [args.field]: args.value}));
+                    confirmationText = `Campo do plano de campanha "${args.field}" atualizado.`;
+                    break;
+                case 'startCampaignPlanGeneration':
+                    confirmationText = "Gerando o plano de campanha.";
+                    onExit();
+                    await appState.handleCampaignPlanSubmit();
+                    break;
+                case 'startCampaignPerformanceAnalysis':
+                    confirmationText = "Analisando a performance da campanha. Certifique-se de que uma imagem foi enviada.";
+                    onExit();
+                    await appState.handleCampaignPerformanceSubmit();
+                    break;
+                case 'startHolisticStrategyGeneration':
+                    confirmationText = "Iniciando a geração da estratégia holística.";
+                    onExit();
+                    await appState.handleStrategySubmit();
+                    break;
+                 case 'startAccountPerformanceAnalysis':
+                    confirmationText = "Iniciando o relatório de performance da conta.";
+                    onExit();
+                    await appState.handlePerformanceReportSubmit();
+                    break;
+                default:
+                    confirmationText = `Função desconhecida: ${name}`;
+                    break;
+            }
+        } catch(e: any) {
+            console.error(`Error executing function ${name}:`, e);
+            confirmationText = `Ocorreu um erro ao executar a ação: ${e.message}`;
         }
         return confirmationText;
-    }, [appState, accounts, selectAccountById]);
+    }, [appState, accounts, selectAccountById, onExit]);
+
+
+    const saveSessionHistory = useCallback(async (endedBy: 'user' | 'timeout') => {
+        if (!selectedAccountId) return;
+    
+        const finalUserText = currentUserTranscriptionRef.current.trim();
+        if (finalUserText) {
+            transcriptRef.current.push({ role: 'user', text: finalUserText });
+        }
+    
+        const finalModelText = currentModelTranscriptionRef.current.trim();
+        if (finalModelText) {
+            transcriptRef.current.push({ role: 'model', text: finalModelText });
+        }
+    
+        if (transcriptRef.current.length === 0) return;
+    
+        const sessionData: VoiceSessionData = {
+            transcript: transcriptRef.current,
+            endedBy,
+        };
+    
+        const historyItem: GeneratedHistoryItem = {
+            id: Date.now().toString(),
+            type: 'voiceSession',
+            timestamp: new Date().toISOString(),
+            data: sessionData,
+            accountName: accounts[selectedAccountId]?.name || 'Unknown',
+        };
+        
+        addHistoryItem(selectedAccountId, historyItem);
+        // Reset for next potential session
+        transcriptRef.current = [];
+        currentUserTranscriptionRef.current = '';
+        currentModelTranscriptionRef.current = '';
+    
+    }, [selectedAccountId, addHistoryItem, accounts]);
 
 
     const stopSession = useCallback(async () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        
         setIsSessionActive(false);
-        setStatusText('Toque no botão para começar');
+        sessionWasActive.current = false;
 
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
@@ -222,7 +299,7 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
         if (inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
              await inputAudioContextRef.current.close();
         }
-         if (outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
+        if (outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
              await outputAudioContextRef.current.close();
         }
         if (sessionPromiseRef.current) {
@@ -233,12 +310,36 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
             sessionPromiseRef.current = null;
         }
     }, []);
+    
+    const handleEndCall = useCallback(async () => {
+        if (sessionWasActive.current) {
+            await saveSessionHistory('user');
+        }
+        await stopSession();
+        onExit();
+    }, [saveSessionHistory, stopSession, onExit]);
+
 
     const startSession = useCallback(async () => {
+        if (isSessionActive) return;
+
+        sessionWasActive.current = true;
+        transcriptRef.current = [];
+        currentUserTranscriptionRef.current = '';
+        currentModelTranscriptionRef.current = '';
+        
         setIsSessionActive(true);
         setStatusText("Ouvindo...");
         nextStartTimeRef.current = 0;
         outputSourcesRef.current.clear();
+
+        timeoutRef.current = window.setTimeout(async () => {
+            setStatusText("Sessão expirada.");
+            await saveSessionHistory('timeout');
+            await stopSession();
+            alert(t('voiceSessionTimeoutMessage'));
+            onExit();
+        }, 5 * 60 * 1000); // 5 minutes
 
         try {
             streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -249,21 +350,29 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const accountNames = (Object.values(accounts) as SavedAccount[]).map(acc => acc.name).join(', ') || 'Nenhuma conta salva ainda.';
             const systemInstruction = `
+                CRITICAL: You must speak and respond to the user exclusively in the following language: ${language}. All your audio responses must be in this language.
+
                 Você é uma IA de marketing digital e gestora de tráfego sênior, chamada 'Cria'. Sua função é ajudar o usuário a operar esta aplicação usando apenas a voz. Você tem controle total das funções do aplicativo: navegar entre páginas, selecionar contas de clientes, preencher formulários para criação de conteúdo, análise de perfil, planejamento de campanhas e iniciar todas as tarefas de geração.
 
                 Suas capacidades, via chamadas de função, são:
                 - Navegar para qualquer página: 'Creator', 'Analyzer', 'Traffic Manager', 'Strategy'.
                 - Gerenciar contas: Você pode listar e selecionar contas existentes. Contas atuais: ${accountNames}.
-                - Preencher formulários: Você pode atualizar qualquer campo em qualquer página.
+                - Preencher formulários: Você pode atualizar qualquer campo em qualquer página, incluindo parâmetros criativos detalhados.
+                - Parâmetros criativos: Você pode definir 'artisticStyle', 'aspectRatio' (ex: '16:9'), e 'negativePrompt' (o que NÃO deve aparecer na imagem).
                 - Iniciar tarefas de IA: Gerar conteúdo, analisar perfis, criar planos de campanha e desenvolver estratégias.
                 - Lidar com imagens: O usuário pode enviar uma imagem, e você pode usá-la para análise ou inspiração.
 
                 Seu modelo de interação:
-                1.  **Conversacional e Proativo:** Não espere por comandos. Entenda o objetivo do usuário. Se ele disser "preciso de um post para um cliente nutricionista", faça perguntas para esclarecer, como "Ótimo! Qual o tema? É para Instagram, imagem única ou carrossel?" antes de preencher o formulário.
+                1.  **Conversacional e Proativo:** Não espere por comandos. Entenda o objetivo do usuário. Se ele disser "quero uma imagem 16 por 9 para o meu produto de tênis", use a função 'setCreativeParameters' e pergunte "Ok, proporção 16 por 9. Qual é a vibe da campanha? Quer excluir algo da imagem?".
                 2.  **Guie o Usuário:** Conduza o usuário pelo processo. Ex: "Ok, preenchi a profissão como 'Nutricionista' e o tema como 'benefícios da proteína'. Vou configurar como um carrossel de 5 slides. Parece bom antes de eu gerar?".
-                3.  **Dê Conselhos de Especialista:** Aja como um especialista. Ofereça sugestões. "Para uma nutricionista com foco em jovens adultos, um estilo visual vibrante funciona bem. Posso usar o template 'Moderno com Círculo'. O que acha?".
+                3.  **Dê Conselhos de Especialista:** Aja como um especialista. Ofereça sugestões. "Para uma nutricionista com foco em jovens adultos, um estilo visual vibrante funciona bem. Posso usar o estilo 'Aquarela'. O que acha?".
                 4.  **Confirme Ações:** Antes de uma ação importante que custa tokens, confirme. "Tudo pronto. Posso gerar o conteúdo?".
-                5.  **Seja Transparente:** Ao usar uma ferramenta, mencione brevemente. "Ok, selecionando a conta 'Carla Cabeleireira'." ou "Navegando para a página do Analisador."
+                5.  **Seja Transparente:** Ao usar uma ferramenta, mencione brevemente. "Ok, selecionando a conta 'Carla Cabeleireira'." ou "Aplicando o estilo 'Cyberpunk' e proporção '9:16'."
+
+                **Fluxo de Trabalho CRÍTICO:**
+                1.  **Navegue Primeiro:** Antes de executar uma ação específica de uma página (como 'startProfileAnalysis' ou 'startCreatorGeneration'), você DEVE primeiro chamar a função 'navigateToPage' para garantir que o usuário esteja na página correta. Por exemplo, se o usuário pedir para analisar um perfil, primeiro chame 'navigateToPage({ page: 'analyzer' })' e DEPOIS 'startProfileAnalysis()'.
+                2.  **Preencha e Confirme:** Preencha os campos necessários usando as funções de atualização ('updateCreatorFormField', etc.) com base na conversa. Confirme com o usuário antes de iniciar a geração.
+                3.  **Inicie a Geração:** Chame a função de início ('startCreatorGeneration', etc.). A interface de voz será fechada automaticamente e o usuário verá o resultado no painel. Sua tarefa termina ao chamar a função de geração.
 
                 Seu objetivo é fazer o usuário sentir que tem um parceiro especialista humano, permitindo que ele execute qualquer tarefa no app de forma fluida e eficiente por voz.
             `;
@@ -275,6 +384,8 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
                     systemInstruction,
                     tools: [{ functionDeclarations: tools }],
+                    inputAudioTranscription: {},
+                    outputAudioTranscription: {},
                 },
                 callbacks: {
                     onopen: () => {
@@ -300,6 +411,25 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                                 });
                             }
                         }
+                        
+                        if (message.serverContent?.inputTranscription) {
+                            currentUserTranscriptionRef.current += message.serverContent.inputTranscription.text;
+                        }
+                        if (message.serverContent?.outputTranscription) {
+                            currentModelTranscriptionRef.current += message.serverContent.outputTranscription.text;
+                        }
+
+                        if (message.serverContent?.turnComplete) {
+                            const userText = currentUserTranscriptionRef.current.trim();
+                            if (userText) transcriptRef.current.push({ role: 'user', text: userText });
+                            
+                            const modelText = currentModelTranscriptionRef.current.trim();
+                            if (modelText) transcriptRef.current.push({ role: 'model', text: modelText });
+                            
+                            currentUserTranscriptionRef.current = '';
+                            currentModelTranscriptionRef.current = '';
+                        }
+
 
                         const audioData = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
                         if (audioData && outputAudioContextRef.current) {
@@ -314,7 +444,7 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                             outputSourcesRef.current.add(source);
                             source.onended = () => {
                                 outputSourcesRef.current.delete(source);
-                                if (outputSourcesRef.current.size === 0) setStatusText("Ouvindo...");
+                                if (outputSourcesRef.current.size === 0 && isSessionActive) setStatusText("Ouvindo...");
                             };
 
                             source.start(nextStartTimeRef.current);
@@ -343,7 +473,7 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
             setStatusText(`Erro: ${error.message}`);
             await stopSession();
         }
-    }, [accounts, executeFunctionCall, stopSession, isSessionActive]);
+    }, [accounts, executeFunctionCall, stopSession, isSessionActive, t, onExit, saveSessionHistory, language]);
     
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -367,7 +497,6 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                     session.sendRealtimeInput({ media: imageBlob });
                 });
 
-                // Also update the correct form state in the context
                 if (appState.activePage === 'analyzer') {
                     appState.setAnalyzerFormState(prev => ({ ...prev, analyticsImage: { base64: base64Data, mimeType: file.type, name: file.name } }));
                 } else if (appState.activePage === 'trafficManager') {
@@ -384,19 +513,16 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
         }
     };
 
-    const handleEndCall = () => {
-        if (isSessionActive) {
-            stopSession();
-        }
-        onExit();
-    };
-
     useEffect(() => {
-        startSession(); // Start session automatically on component mount
+        startSession();
         return () => {
-            stopSession(); // Cleanup on unmount
+            if (sessionWasActive.current) {
+                saveSessionHistory('user');
+            }
+            stopSession();
         };
-    }, []); // Empty dependency array ensures it runs only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-black to-[#0f172a] text-white flex flex-col font-sans">
@@ -410,15 +536,15 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                     </svg>
                     <span className="font-semibold text-lg">Live</span>
                 </div>
-                <button onClick={onExit} aria-label="Return to dashboard">
-                     <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c.251-.146.52-.[26.793-.349L12 2.25M9.75 3.104l2.25 1.313M12 2.25c.251.146.52.26.793.349L15 4.417M12 2.25l2.25-1.313M15 4.417v5.714a2.25 2.25 0 00.659 1.591L19 14.5M15 4.417l-2.25 1.313M12 18.75a3.75 3.75 0 00-3.75-3.75H6a3.75 3.75 0 00-3.75 3.75v.035A3.75 3.75 0 006 22.5h1.125a3.75 3.75 0 003.625-3.465V18.75zM12 18.75a3.75 3.75 0 013.75-3.75h2.25a3.75 3.75 0 013.75 3.75v.035A3.75 3.75 0 0118 22.5h-1.125a3.75 3.75 0 01-3.625-3.465V18.75z" />
+                <button onClick={handleEndCall} aria-label="Return to dashboard">
+                     <svg className="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                     </svg>
                 </button>
             </header>
 
             <main className="flex-grow flex flex-col items-center justify-center p-4 relative">
-                <div className="w-24 h-24 border-4 border-blue-400 rounded-full animate-pulse"></div>
+                <div className={`w-24 h-24 border-4 ${isSessionActive && statusText === "Falando..." ? 'border-purple-400' : 'border-blue-400'} rounded-full transition-colors duration-300 ${isSessionActive && statusText === "Ouvindo..." ? 'animate-pulse' : ''}`}></div>
                 <p className="mt-6 text-lg text-slate-300">{statusText}</p>
                  {uploadedImage && (
                     <div className="absolute bottom-24 left-1/2 -translate-x-1/2 p-1.5 bg-black/40 rounded-lg backdrop-blur-sm border border-white/10 animate-fade-in">
@@ -439,14 +565,9 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
             <footer className="w-full p-4 pb-8">
                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                 <div className="max-w-md mx-auto bg-white/5 backdrop-blur-md rounded-full p-3 flex justify-around items-center border border-white/10">
-                     <button onClick={handleUploadClick} className="bg-white/10 p-4 rounded-full hover:bg-white/20 transition-colors" aria-label="Upload file">
+                     <button onClick={handleUploadClick} disabled={!isSessionActive} className="bg-white/10 p-4 rounded-full hover:bg-white/20 transition-colors disabled:opacity-50" aria-label="Upload file">
                         <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
-                    </button>
-                    <button className="bg-white/10 p-4 rounded-full hover:bg-white/20 transition-colors" aria-label="Pause session">
-                        <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
                         </svg>
                     </button>
                     <button onClick={handleEndCall} className="bg-red-500 p-4 rounded-full hover:bg-red-600 transition-colors" aria-label="End session">

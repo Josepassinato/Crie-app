@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { CampaignPlan, UploadedImage } from "../types";
+import { CampaignPlan, OrganicContentPlan, OrganicGrowthForm, TrafficPlanForm, UploadedImage } from "../types";
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -9,34 +9,29 @@ const getGoogleAI = () => {
     return new GoogleGenAI({ apiKey });
 };
 
-export const generateCampaignPlan = async (brief: {
-    productService: string;
-    targetAudience: string;
-    objective: string;
-    budget: string;
-    platform: string;
-    abTestRequest: string;
-}): Promise<CampaignPlan> => {
+export const generateCampaignPlan = async (form: TrafficPlanForm, language: string): Promise<CampaignPlan> => {
     const ai = getGoogleAI();
-    const model = 'gemini-2.5-flash';
-    
+    const model = 'gemini-2.5-pro';
+
     const prompt = `
-    Act as a senior digital marketing traffic manager. Based on the following brief, create a comprehensive and actionable advertising campaign plan.
+    CRITICAL: Your entire JSON output, including all text values inside it, must be in the following language: ${language}.
+    You are a senior traffic manager and digital marketing strategist. Based on the following information, create a comprehensive and actionable campaign plan.
 
-    Brief:
-    - Product/Service: ${brief.productService}
-    - Target Audience: ${brief.targetAudience}
-    - Campaign Objective: ${brief.objective}
-    - Budget: ${brief.budget || 'Not specified'}
-    - Platform: ${brief.platform}
-    - Desired A/B Test: ${brief.abTestRequest || 'Suggest a relevant A/B test.'}
+    **Campaign Details:**
+    - Product/Service: ${form.productService}
+    - Target Audience: ${form.targetAudience}
+    - Primary Objective: ${form.objective}
+    - Budget: ${form.budget}
+    - Duration: ${form.duration}
+    - Selected Channels: ${form.channels.join(', ')}
 
-    Generate a detailed plan with the following structure:
-    1.  **Target Audience:** A detailed description of the audience to target on the platform.
-    2.  **Campaign Structure:** The recommended setup (e.g., campaigns, ad sets, ads).
-    3.  **Creatives and Copy:** Guidelines and specific suggestions for ad visuals and text.
-    4.  **A/B Test Plan:** A clear hypothesis and implementation plan for the A/B test.
-    5.  **Step-by-Step Guide:** A numbered list of simple, clear steps for the user to implement this plan in the platform's Ads Manager.
+    **Your Task:**
+    Generate a structured campaign plan as a JSON object. The plan must be practical, insightful, and tailored to the provided details.
+
+    **JSON Output Structure:**
+    - "campaignStructure": { "name": "A catchy campaign name", "objective": "A clear, measurable objective (e.g., 'Increase online sales by 15% in 30 days')", "kpis": "Key Performance Indicators to track (e.g., 'CPA, ROAS, Conversion Rate')" }
+    - "audienceDefinition": { "primary": "A detailed description of the primary audience persona", "secondary": "A description of a secondary audience, if applicable" }
+    - "creativesAndCopy": { "guidelines": "General guidelines for visuals and text (e.g., 'Use vibrant colors, focus on benefits, use a clear call-to-action')", "postExamples": [ { "platform": "e.g., Instagram", "text": "Example post text with hashtags", "visualIdea": "A description of the image or video for this post" }, ... ] }
     `;
 
     try {
@@ -48,80 +43,134 @@ export const generateCampaignPlan = async (brief: {
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        targetAudience: {
-                            type: Type.OBJECT,
-                            properties: {
-                                description: { type: Type.STRING },
-                                details: { type: Type.STRING }
-                            },
-                             required: ["description", "details"]
-                        },
                         campaignStructure: {
                             type: Type.OBJECT,
                             properties: {
+                                name: { type: Type.STRING },
                                 objective: { type: Type.STRING },
-                                setup: { type: Type.STRING }
+                                kpis: { type: Type.STRING },
                             },
-                            required: ["objective", "setup"]
+                            required: ["name", "objective", "kpis"],
+                        },
+                        audienceDefinition: {
+                            type: Type.OBJECT,
+                            properties: {
+                                primary: { type: Type.STRING },
+                                secondary: { type: Type.STRING },
+                            },
+                            required: ["primary", "secondary"],
                         },
                         creativesAndCopy: {
                             type: Type.OBJECT,
                             properties: {
                                 guidelines: { type: Type.STRING },
-                                suggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                postExamples: {
+                                    type: Type.ARRAY,
+                                    items: {
+                                        type: Type.OBJECT,
+                                        properties: {
+                                            platform: { type: Type.STRING },
+                                            text: { type: Type.STRING },
+                                            visualIdea: { type: Type.STRING },
+                                        },
+                                        required: ["platform", "text", "visualIdea"],
+                                    },
+                                },
                             },
-                             required: ["guidelines", "suggestions"]
+                            required: ["guidelines", "postExamples"],
                         },
-                        abTestPlan: {
-                            type: Type.OBJECT,
-                            properties: {
-                                hypothesis: { type: Type.STRING },
-                                implementation: { type: Type.STRING }
-                            },
-                            required: ["hypothesis", "implementation"]
-                        },
-                        stepByStepGuide: {
-                            type: Type.ARRAY,
-                            items: { type: Type.STRING }
-                        }
                     },
-                     required: ["targetAudience", "campaignStructure", "creativesAndCopy", "abTestPlan", "stepByStepGuide"]
-                }
-            }
+                    required: ["campaignStructure", "audienceDefinition", "creativesAndCopy"],
+                },
+            },
         });
         const result = JSON.parse(response.text);
         return result;
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error generating campaign plan:", error);
-        throw new Error("A IA não conseguiu gerar o plano de campanha. Tente refinar seu briefing.");
+        throw new Error("trafficPlanError");
     }
 };
 
-export const analyzeCampaignPerformance = async (image: UploadedImage): Promise<string> => {
+export const analyzeCampaignPerformance = async (
+    adsManagerScreenshot: UploadedImage,
+    language: string
+): Promise<string> => {
     const ai = getGoogleAI();
-    const model = 'gemini-2.5-pro'; // Vision capabilities are part of the main models
+    const model = 'gemini-2.5-pro';
 
     const prompt = `
-    As a data-driven traffic manager, analyze this screenshot from an ads manager dashboard.
-    1. Identify the key performance indicators (KPIs) visible (e.g., CPC, CTR, ROAS, Amount Spent).
-    2. Identify which campaigns or ad sets are performing well and which are underperforming based on common marketing goals.
-    3. Provide a short, bulleted list of actionable recommendations for optimization. For example: "- Consider increasing the budget for Campaign A as its ROAS is high. - The creative in Ad Set B has a low CTR; try testing a new image or video."
-    Keep the analysis concise and focused on actionable advice.
+    CRITICAL: Your entire output must be in the following language: ${language}.
+    As a senior performance marketing analyst, analyze the provided screenshot from an ads manager platform (e.g., Meta Ads Manager, Google Ads).
+
+    **Your Task:**
+    1.  Extract key metrics from the image (e.g., Spend, CTR, CPC, CPA, ROAS, Conversions).
+    2.  Provide a concise summary of the campaign's performance.
+    3.  Identify what is working well and what is underperforming.
+    4.  Offer 2-3 specific, actionable recommendations for optimization.
+
+    Present your analysis as a clear, well-formatted text. Do not return JSON.
+    `;
+
+    try {
+        const imagePart = {
+            inlineData: {
+                data: adsManagerScreenshot.base64,
+                mimeType: adsManagerScreenshot.mimeType,
+            },
+        };
+
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: { parts: [imagePart, { text: prompt }] },
+        });
+        return response.text.trim();
+    } catch (error: any) {
+        console.error("Error analyzing campaign performance:", error);
+        throw new Error("trafficAnalysisImageError");
+    }
+};
+
+export const generateOrganicContentPlan = async (form: OrganicGrowthForm, language: string): Promise<OrganicContentPlan> => {
+    const ai = getGoogleAI();
+    const model = 'gemini-2.5-flash';
+
+    const prompt = `
+    CRITICAL: Your entire JSON output, including all text values (titles, keywords, outline points, CTAs), must be in the following language: ${language}.
+    As an SEO and Content Marketing expert, create a content plan for organic growth based on the following details.
+
+    - Main Keyword/Theme: ${form.mainKeyword}
+    - Target Audience: ${form.targetAudience}
+    - Content Format: ${form.contentFormat}
+
+    Your task is to generate a comprehensive plan as a JSON object with the following structure:
+    - "optimizedTitles": An array of 3-5 catchy, SEO-optimized titles for the content.
+    - "relatedKeywords": An array of 5-7 related keywords and LSI (Latent Semantic Indexing) terms to include in the content.
+    - "contentOutline": An array of strings representing a clear, structured outline for the content (e.g., "Introduction: Hook the reader", "Section 1: The Problem", "Section 2: The Solution", "Conclusion").
+    - "ctaSuggestions": An array of 2-3 call-to-action suggestions to include at the end of the content.
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: model,
-            contents: {
-                parts: [
-                    { inlineData: { data: image.base64, mimeType: image.mimeType } },
-                    { text: prompt }
-                ]
-            },
+            model,
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        optimizedTitles: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        relatedKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        contentOutline: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        ctaSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    },
+                    required: ['optimizedTitles', 'relatedKeywords', 'contentOutline', 'ctaSuggestions']
+                }
+            }
         });
-        return response.text.trim();
-    } catch (error: any) {
-        console.error("Error analyzing performance:", error);
-        throw new Error("A IA não conseguiu analisar a imagem. Verifique se o print está claro e legível.");
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error generating organic content plan:", error);
+        throw new Error("organicContentPlanError");
     }
 };

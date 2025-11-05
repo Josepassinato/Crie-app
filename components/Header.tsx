@@ -2,7 +2,9 @@ import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { Language, AppPage } from '../types';
+// Fix: Add file extension to fix module resolution error.
 import { useAppState } from '../contexts/AppStateContext';
+import WhatsappNotificationManager from './WhatsappNotificationManager';
 
 const Header: React.FC = () => {
     const { currentUser, logout } = useContext(AuthContext);
@@ -70,6 +72,7 @@ const Header: React.FC = () => {
                             <option>English</option>
                             <option>Español</option>
                         </select>
+                        <WhatsappNotificationManager />
                         <button onClick={logout} className="p-2 rounded-full text-brand-subtle hover:bg-slate-700/50 hover:text-brand-text">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

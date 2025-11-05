@@ -1,6 +1,7 @@
 // Fix: Implement Gemini API calls for product post generation.
 import { GoogleGenAI, Modality } from "@google/genai";
-import { ProductPostContent, UploadedImage, MediaType } from "../types";
+import { ProductPostContent, UploadedImage, MediaType, ProductFormData } from "../types";
+import { styleTemplates } from '../lib/styleTemplates';
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -8,6 +9,32 @@ const getGoogleAI = () => {
         throw new Error("API_KEY environment variable not set.");
     }
     return new GoogleGenAI({ apiKey });
+};
+
+export const generateNarrationScript = async (
+    productName: string,
+    productDescription: string,
+    marketingVibe: string,
+    videoDuration: string,
+    language: string
+): Promise<string> => {
+    const ai = getGoogleAI();
+    const model = 'gemini-2.5-flash';
+    const prompt = `
+    CRITICAL: Your entire output must be in the following language: ${language}.
+    Create a short, punchy, and engaging narration script for a ${videoDuration.replace('s', '')}-second video ad.
+    Product: ${productName}
+    Description: ${productDescription}
+    Vibe: ${marketingVibe}
+    The script should be concise, powerful, and perfectly timed for the video's duration.
+    Your output must be ONLY the narration text, without any labels like "Narration:" or quotation marks.
+    `;
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+    });
+    // Fix: Per coding guidelines, access text directly.
+    return response.text;
 };
 
 export const generateProductPost = async (
@@ -19,16 +46,41 @@ export const generateProductPost = async (
     maskTemplate: string,
     colorPalette: string,
     logoImage: UploadedImage | null,
+    userSelfie: UploadedImage | null,
+    artisticStyle: string,
+    videoDuration: ProductFormData['videoDuration'],
+    animationStyle: ProductFormData['animationStyle'],
+    aspectRatio: string,
+    negativePrompt: string,
+    narrationScript: string,
+    backgroundMusic: string,
+    musicDescription: string,
+    postExample1: string,
+    postExample2: string,
+    postExample3: string,
+    language: string
 ): Promise<ProductPostContent> => {
     
     const ai = getGoogleAI();
 
     // Step 1: Generate post text
+    const writingStyleInstruction = [postExample1, postExample2, postExample3].some(p => p.trim() !== '')
+        ? `
+        To match the user's writing style, analyze these examples of their previous posts:
+        ${postExample1 ? `Example 1: "${postExample1}"\n` : ''}
+        ${postExample2 ? `Example 2: "${postExample2}"\n` : ''}
+        ${postExample3 ? `Example 3: "${postExample3}"\n` : ''}
+        The generated post text MUST adopt this tone, vocabulary, and structure.
+        `
+        : '';
+
     const postTextPrompt = `
+    CRITICAL: Your entire output must be in the following language: ${language}.
     Create a short, catchy social media post for the following product.
     Product Name: ${productName}
     Description: ${productDescription}
     Campaign Vibe: ${marketingVibe}
+    ${writingStyleInstruction}
     The post should be exciting and encourage people to check out the product. Include a few relevant hashtags. Don't use markdown formatting.
     `;
     const textModel = 'gemini-2.5-flash';
@@ -62,9 +114,20 @@ export const generateProductPost = async (
         ? `The image's color scheme must strictly adhere to this palette: ${colorPalette}.` 
         : '';
     
+    const selfieInstruction = userSelfie
+        ? "CRITICAL: A selfie has been provided. The main person in the final image MUST be the person from this selfie. Integrate their face and likeness realistically and seamlessly into the scene, matching the overall style."
+        : "";
+
+    const selectedStylePrompt = styleTemplates[artisticStyle]?.prompt || styleTemplates['Padrão'].prompt;
+
+    const negativePromptInstruction = negativePrompt
+        ? `CRITICAL: The final output must NOT contain any of the following elements: ${negativePrompt}.`
+        : '';
+
     // Step 2: Generate media (image or video)
     if (outputType === 'image') {
-        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as the main subject. The overall vibe should be "${marketingVibe}". ${templateInstruction} ${colorInstruction} The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image.`;
+        const aspectRatioInstruction = `The final image must have a ${aspectRatio} aspect ratio.`;
+        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as a key element. The overall vibe should be "${marketingVibe}". ${templateInstruction} ${colorInstruction} ${selfieInstruction} ${negativePromptInstruction} ${aspectRatioInstruction} The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
         const imageModel = 'gemini-2.5-flash-image';
         
         const imageParts: ({ text: string } | { inlineData: { data: string; mimeType: string; } })[] = [
@@ -75,6 +138,11 @@ export const generateProductPost = async (
         if (logoImage && maskTemplate === "minhaLogo") {
             imageParts.push({ 
                 inlineData: { data: logoImage.base64, mimeType: logoImage.mimeType } 
+            });
+        }
+        if (userSelfie) {
+            imageParts.push({
+                inlineData: { data: userSelfie.base64, mimeType: userSelfie.mimeType }
             });
         }
         
@@ -99,23 +167,113 @@ export const generateProductPost = async (
             throw new Error("Product image generation failed.");
         }
     } else { // outputType === 'video'
-        const videoPrompt = `Create a short, 5-second, energetic video ad for "${productName}". The video should start with the provided image and bring it to life with a vibe that is "${marketingVibe}". ${templateInstruction} ${colorInstruction} Make it eye-catching and dynamic for social media.`;
+        let animationStyleInstruction = '';
+        switch(animationStyle) {
+            case 'dynamic':
+                animationStyleInstruction = 'energetic, with fast-paced cuts and eye-catching motion graphics';
+                break;
+            case 'elegant':
+                animationStyleInstruction = 'elegant, with smooth, slow-motion transitions and a sophisticated feel';
+                break;
+            case 'minimalist':
+                animationStyleInstruction = 'minimalist, with subtle movements and a focus on the product against a clean background';
+                break;
+            case 'cinematic':
+                animationStyleInstruction = 'cinematic, with dramatic lighting, epic camera movements, and a short-film feel';
+                break;
+            default:
+                animationStyleInstruction = 'energetic and dynamic';
+        }
+
+        const durationInstruction = `around ${videoDuration.replace('s', '')} seconds`;
+
+        const narrationInstruction = narrationScript 
+            ? `CRITICAL: The video must be narrated by a professional voiceover artist reading this exact script: "${narrationScript}". The voice should match the campaign vibe.`
+            : 'The video should have no narration.';
+        
+        let musicInstruction = '';
+        if (backgroundMusic === 'ai_generated') {
+            if (musicDescription) {
+                musicInstruction = `CRITICAL: The video's soundtrack must be a custom, AI-generated music track that perfectly matches this description: "${musicDescription}". The music should be original and fit the vibe of the video.`;
+            } else {
+                musicInstruction = `CRITICAL: The video's soundtrack must be a custom, AI-generated music track that perfectly matches the video's content, mood, and the campaign vibe of "${marketingVibe}". The music should be original and instrumental.`;
+            }
+        } else if (backgroundMusic && backgroundMusic !== 'none') {
+            const backgroundMusicMap: Record<string, string> = {
+                epic: 'Epic Orchestral',
+                upbeat: 'Upbeat Pop',
+                lofi: 'Chill Lo-fi',
+            };
+            const musicPromptText = backgroundMusicMap[backgroundMusic];
+            musicInstruction = `CRITICAL: The video's soundtrack must be a high-quality ${musicPromptText} track that matches the vibe.`;
+        } else {
+             musicInstruction = 'The video should have no background music, only the narration if provided.';
+        }
         
         const videoModel = 'veo-3.1-fast-generate-preview';
+        const videoAI = getGoogleAI(); // Re-init client for Veo
+        let startFrameImage = {
+            base64: productImage.base64,
+            mimeType: productImage.mimeType
+        };
+
+        // If a selfie is provided, generate a composite start frame first.
+        if (userSelfie) {
+            const startFramePrompt = `Create a stunning, photorealistic marketing scene for a product named "${productName}". The vibe is "${marketingVibe}". The scene must feature the person from the provided user selfie, seamlessly and realistically integrated. Also incorporate the provided product image into the scene. ${templateInstruction} ${colorInstruction} ${negativePromptInstruction} The final image should be dynamic and high-quality, suitable for a video's first frame. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
+            
+            const imageModel = 'gemini-2.5-flash-image';
+            const imageParts: ({ text: string } | { inlineData: { data: string; mimeType: string; } })[] = [
+                { inlineData: { data: productImage.base64, mimeType: productImage.mimeType } },
+                { inlineData: { data: userSelfie.base64, mimeType: userSelfie.mimeType } },
+                { text: startFramePrompt }
+            ];
+
+            if (logoImage && maskTemplate === "minhaLogo") {
+                imageParts.push({ 
+                    inlineData: { data: logoImage.base64, mimeType: logoImage.mimeType } 
+                });
+            }
+            
+            const startFrameResponse = await ai.models.generateContent({
+                model: imageModel,
+                contents: { parts: imageParts },
+                config: {
+                    responseModalities: [Modality.IMAGE],
+                },
+            });
+
+            const candidate = startFrameResponse.candidates?.[0];
+            let foundImage = false;
+            if (candidate?.content?.parts) {
+                for (const part of candidate.content.parts) {
+                    if (part.inlineData) {
+                        startFrameImage = {
+                            base64: part.inlineData.data,
+                            mimeType: part.inlineData.mimeType
+                        };
+                        foundImage = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundImage) {
+                throw new Error("Failed to generate the initial video frame with the user's selfie.");
+            }
+        }
+
+        const videoPrompt = `Bring this scene to life. Create a short, ${durationInstruction}, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". ${narrationInstruction} ${musicInstruction} The final style should be ${selectedStylePrompt}. Make it eye-catching for social media.`;
         
-        // Re-init client for Veo
-        const videoAI = getGoogleAI();
         let operation = await videoAI.models.generateVideos({
             model: videoModel,
             prompt: videoPrompt,
             image: {
-                imageBytes: productImage.base64,
-                mimeType: productImage.mimeType,
+                imageBytes: startFrameImage.base64,
+                mimeType: startFrameImage.mimeType,
             },
             config: {
                 numberOfVideos: 1,
                 resolution: '720p',
-                aspectRatio: '1:1'
+                aspectRatio: aspectRatio === '1:1' ? '1:1' : (aspectRatio === '16:9' ? '16:9' : '9:16'),
             }
         });
 
@@ -131,6 +289,7 @@ export const generateProductPost = async (
         
         const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
         if (!videoResponse.ok) {
+            // Fix: Add specific error handling for 400/404 errors which may indicate an API key issue.
             if (videoResponse.status === 404 || videoResponse.status === 400) {
                  throw new Error("Requested entity was not found.");
             }
@@ -141,7 +300,7 @@ export const generateProductPost = async (
     }
     
     const textResponse = await textResponsePromise;
-    const postText = textResponse.text.trim();
+    const postText = textResponse.text;
 
     return {
         productName,

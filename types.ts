@@ -1,50 +1,83 @@
 // types.ts
 
-export type AppPage = 'creator' | 'analyzer' | 'trafficManager' | 'strategy' | 'admin' | 'buyTokens';
-
-export type AppMode = 'product' | 'content';
-
-export type MediaType = 'image' | 'video';
-
 export type Language = 'Português' | 'English' | 'Español';
 
+export type AppPage = 'creator' | 'analyzer' | 'trafficManager' | 'strategy' | 'admin' | 'buyTokens';
+export type AppMode = 'product' | 'content';
+export type MediaType = 'image' | 'video';
+
 export interface UploadedImage {
-  base64: string;
-  mimeType: string;
-  name: string;
+    base64: string;
+    mimeType: string;
+    name: string;
+}
+
+export interface ProductFormData {
+    productName: string;
+    productDescription: string;
+    marketingVibe: string;
+    productImage: UploadedImage | null;
+    maskTemplate: string;
+    colorPalette: string;
+    logoImage: UploadedImage | null;
+    userSelfie: UploadedImage | null;
+    artisticStyle: string;
+    videoDuration: '5s' | '10s' | '15s';
+    animationStyle: 'dynamic' | 'elegant' | 'minimalist' | 'cinematic';
+    aspectRatio: string;
+    negativePrompt: string;
+    narrationScript: string;
+    backgroundMusic: 'none' | 'epic' | 'upbeat' | 'lofi' | 'ai_generated';
+    musicDescription: string;
+    postExample1: string;
+    postExample2: string;
+    postExample3: string;
+    profileUrl: string;
+}
+
+export interface ContentFormData {
+    profession: string;
+    targetAudience: string;
+    professionalContext: string;
+    postFormat: 'single' | 'carousel';
+    carouselSlides: number;
+    maskTemplate: string;
+    colorPalette: string;
+    logoImage: UploadedImage | null;
+    userSelfie: UploadedImage | null;
+    postExample1: string;
+    postExample2: string;
+    postExample3: string;
+    artisticStyle: string;
+    aspectRatio: string;
+    negativePrompt: string;
+    videoDuration: '5s' | '10s' | '15s';
+    animationStyle: 'dynamic' | 'elegant' | 'minimalist' | 'cinematic';
+    narrationScript: string;
+    backgroundMusic: 'none' | 'epic' | 'upbeat' | 'lofi' | 'ai_generated';
+    musicDescription: string;
+    profileUrl: string;
 }
 
 export interface ProductPostContent {
-  productName: string;
-  postText: string;
-  mediaUrl: string;
-  mediaType: MediaType;
+    productName: string;
+    postText: string;
+    mediaUrl: string;
+    mediaType: MediaType;
 }
 
 export interface ContentMarketingPost {
-  imageUrls: string[];
-  platformTexts: {
-    instagram: string;
-    linkedin: string;
-    tiktok: string;
-    facebook: string;
-  };
+    mediaUrls: string[];
+    mediaType: MediaType;
+    platformTexts: {
+        instagram: string;
+        facebook: string;
+        linkedin: string;
+        tiktok: string;
+    };
 }
 
 export type GeneratedContent = ProductPostContent | ContentMarketingPost;
-
-export interface Schedule {
-  isEnabled: boolean;
-  postsPerDay: number;
-  times: string[];
-}
-
-export interface User {
-  id: string;
-  email: string;
-  tokens: number;
-  isAdmin: boolean;
-}
 
 export interface AnalysisResult {
     performanceSummary: string;
@@ -53,24 +86,65 @@ export interface AnalysisResult {
     strategicRecommendations: string[];
 }
 
+export interface AnalyzerFormData {
+    profileUrl: string;
+    feedImages: UploadedImage[];
+    analyticsImage: UploadedImage | null;
+}
+
 export interface CampaignPlan {
-    targetAudience: {
-        description: string;
-        details: string;
-    };
     campaignStructure: {
+        name: string;
         objective: string;
-        setup: string;
+        kpis: string;
+    };
+    audienceDefinition: {
+        primary: string;
+        secondary: string;
     };
     creativesAndCopy: {
         guidelines: string;
-        suggestions: string[];
+        postExamples: Array<{
+            platform: string;
+            text: string;
+            visualIdea: string;
+        }>;
     };
-    abTestPlan: {
-        hypothesis: string;
-        implementation: string;
+}
+
+export interface TrafficPlanForm {
+    productService: string;
+    targetAudience: string;
+    objective: string;
+    budget: string;
+    duration: string;
+    channels: string[];
+}
+
+export interface OrganicGrowthForm {
+    mainKeyword: string;
+    targetAudience: string;
+    contentFormat: 'blog' | 'youtube' | 'instagram' | 'tiktok';
+}
+
+export interface OrganicContentPlan {
+    optimizedTitles: string[];
+    relatedKeywords: string[];
+    contentOutline: string[];
+    ctaSuggestions: string[];
+}
+
+export interface PerformanceReport {
+    quantitativeSummary: {
+        reportOverview: string;
+        totalPosts: number;
+        totalCampaigns: number;
+        totalAnalyses: number;
     };
-    stepByStepGuide: string[];
+    growthAnalysis: string;
+    engagementTrends: string;
+    campaignEffectiveness: string;
+    strategicSummary: string;
 }
 
 export interface HolisticStrategyResult {
@@ -80,75 +154,56 @@ export interface HolisticStrategyResult {
     kpisToTrack: string[];
 }
 
-export interface PerformanceReport {
-    growthAnalysis: string;
-    engagementTrends: string;
-    campaignEffectiveness: string;
-    strategicSummary: string;
-    quantitativeSummary: {
-        reportOverview: string;
-        totalPosts: number;
-        totalCampaigns: number;
-        totalAnalyses: number;
-    };
-}
-
-
-// --- Account and History Types ---
-
-export interface ContentFormData {
-  profession: string;
-  targetAudience: string;
-  professionalContext: string;
-  postFormat: 'single' | 'carousel';
-  carouselSlides: number;
-  maskTemplate: string;
-  colorPalette: string;
-  logoImage: UploadedImage | null;
-  postExample1: string;
-  postExample2: string;
-  postExample3: string;
-  profileUrl: string; // For Analyzer
-}
-
-export interface ProductFormData {
-  productName: string;
-  productDescription: string;
-  marketingVibe: string;
-  productImage: UploadedImage | null;
-  maskTemplate: string;
-  colorPalette: string;
-  logoImage: UploadedImage | null;
-  profileUrl: string; // For Analyzer
-}
-
-export interface GeneratedHistoryItem {
-  id: string; 
-  type: 'productPost' | 'contentPost' | 'analysis' | 'campaignPlan' | 'performanceFeedback' | 'holisticStrategy' | 'performanceReport';
-  timestamp: string;
-  data: GeneratedContent | AnalysisResult | CampaignPlan | string | HolisticStrategyResult | PerformanceReport;
-  accountName: string;
+export interface Schedule {
+  isEnabled: boolean;
+  postsPerDay: number;
+  times: string[];
 }
 
 export interface SavedAccount {
-  id: string;
-  name: string;
-  type: 'content' | 'product';
-  formData: ContentFormData | ProductFormData;
-  history: GeneratedHistoryItem[];
-  schedule: Schedule;
+    id: string;
+    name: string;
+    type: AppMode;
+    formData: ProductFormData | ContentFormData;
+    history: GeneratedHistoryItem[];
+    schedule: Schedule;
 }
 
+export interface User {
+    id: string;
+    email: string;
+    isAdmin: boolean;
+    tokens: number;
+}
 
-// Fix: Define an interface for the aistudio object to avoid declaration conflicts.
-declare global {
-  // Fix: Moved AIStudio interface into declare global to resolve type conflict.
-  interface AIStudio {
-    hasSelectedApiKey: () => Promise<boolean>;
-    openSelectKey: () => Promise<void>;
-  }
+export type GeneratedHistoryItemType =
+  | 'productPost'
+  | 'contentPost'
+  | 'analysis'
+  | 'campaignPlan'
+  | 'performanceFeedback'
+  | 'holisticStrategy'
+  | 'performanceReport'
+  | 'voiceSession'
+  | 'organicContentPlan';
 
-  interface Window {
-    aistudio?: AIStudio;
-  }
+
+export interface GeneratedHistoryItem {
+    id: string;
+    type: GeneratedHistoryItemType;
+    timestamp: string;
+    data: any; // Can be ProductPostContent, ContentMarketingPost, AnalysisResult etc.
+    accountName: string;
+}
+
+export type WhatsappConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+
+export interface VoiceSessionTranscript {
+    role: 'user' | 'model';
+    text: string;
+}
+
+export interface VoiceSessionData {
+    transcript: VoiceSessionTranscript[];
+    endedBy: 'user' | 'timeout';
 }

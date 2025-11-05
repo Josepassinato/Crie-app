@@ -1,298 +1,459 @@
-import React, { createContext, useState, ReactNode, useContext, useCallback, useEffect } from 'react';
-import {
-  AppPage, AppMode, MediaType, GeneratedContent, ProductFormData,
-  ContentFormData, AnalysisResult, CampaignPlan, HolisticStrategyResult,
-  PerformanceReport, UploadedImage
+import React, { useState, useCallback, useContext, createContext, ReactNode } from 'react';
+import { 
+    AppPage, AppMode, MediaType, ProductFormData, ContentFormData, AnalyzerFormData,
+    GeneratedContent, AnalysisResult, SavedAccount, GeneratedHistoryItem, TrafficPlanForm,
+    CampaignPlan, HolisticStrategyResult, PerformanceReport, UploadedImage, WhatsappConnectionState,
+    OrganicGrowthForm, OrganicContentPlan
 } from '../types';
 import { generateProductPost } from '../services/geminiService';
 import { generateContentMarketingPost } from '../services/contentMarketingService';
 import { analyzeSocialProfile } from '../services/analyzerService';
-import { generateCampaignPlan, analyzeCampaignPerformance } from '../services/trafficManagerService';
+import { generateCampaignPlan, analyzeCampaignPerformance, generateOrganicContentPlan } from '../services/trafficManagerService';
 import { generateHolisticStrategy, analyzeAccountPerformance } from '../services/strategyService';
-import { LanguageContext } from './LanguageContext';
 import { AuthContext } from './AuthContext';
 import { AccountsContext } from './AccountsContext';
-import { TOKEN_COSTS } from '../lib/tokenCosts';
+// Fix: Import VIDEO_COSTS to correctly calculate video generation costs.
+import { TOKEN_COSTS, VIDEO_COSTS } from '../lib/tokenCosts';
+import { LanguageContext } from './LanguageContext';
 
-// Define the shape of the context state
-interface AppState {
-  activePage: AppPage;
-  appMode: AppMode;
-  outputType: MediaType;
-  generatedContent: GeneratedContent | null;
-  isLoading: boolean;
-  error: string | null;
-  hasSelectedApiKey: boolean; 
+// Define initial states
+const initialProductFormState: ProductFormData = {
+    productName: '', productDescription: '', marketingVibe: '', productImage: null, maskTemplate: 'Nenhum',
+    colorPalette: '', logoImage: null, userSelfie: null, artisticStyle: 'Padrão',
+    videoDuration: '5s', animationStyle: 'dynamic', aspectRatio: '1:1', negativePrompt: '',
+    narrationScript: '', backgroundMusic: 'none', musicDescription: '',
+    postExample1: '', postExample2: '', postExample3: '', profileUrl: '',
+};
 
-  // Forms
-  productFormState: ProductFormData;
-  contentFormState: ContentFormData;
-  analyzerFormState: { profileUrl: string; feedImages: UploadedImage[]; analyticsImage: UploadedImage | null; };
-  trafficPlanForm: { productService: string; targetAudience: string; objective: string; budget: string; platform: string; abTestRequest: string; };
-  trafficAnalysisImage: UploadedImage | null;
-  
-  // Results
-  analysisResult: AnalysisResult | null;
-  campaignPlan: CampaignPlan | null;
-  analysisFeedback: string | null;
-  strategyResult: HolisticStrategyResult | null;
-  performanceReport: PerformanceReport | null;
+const initialContentFormState: ContentFormData = {
+    profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3,
+    maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, userSelfie: null, postExample1: '',
+    postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1',
+    negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '',
+    backgroundMusic: 'none', musicDescription: '',
+};
 
-  // Loading States
-  isCreatorLoading: boolean;
-  isAnalyzerLoading: boolean;
-  isTrafficPlanLoading: boolean;
-  isTrafficAnalysisLoading: boolean;
-  isStrategyLoading: boolean;
-  isPerformanceReportLoading: boolean;
-}
+const initialAnalyzerFormState: AnalyzerFormData = {
+    profileUrl: '', feedImages: [], analyticsImage: null,
+};
 
-// Define the shape of the context, including state and actions
-interface AppStateContextType extends AppState {
-  setActivePage: (page: AppPage) => void;
-  setAppMode: (mode: AppMode) => void;
-  setOutputType: (type: MediaType) => void;
-  setProductFormState: React.Dispatch<React.SetStateAction<ProductFormData>>;
-  setContentFormState: React.Dispatch<React.SetStateAction<ContentFormData>>;
-  setAnalyzerFormState: React.Dispatch<React.SetStateAction<{ profileUrl: string; feedImages: UploadedImage[]; analyticsImage: UploadedImage | null; }>>;
-  setTrafficPlanForm: React.Dispatch<React.SetStateAction<{ productService: string; targetAudience: string; objective: string; budget: string; platform: string; abTestRequest: string; }>>;
-  setTrafficAnalysisImage: React.Dispatch<React.SetStateAction<UploadedImage | null>>;
+const initialTrafficPlanForm: TrafficPlanForm = {
+    productService: '', targetAudience: '', objective: '', budget: '', duration: '', channels: [],
+};
 
-  // Handlers
-  handleProductSubmit: () => Promise<void>;
-  handleContentSubmit: () => Promise<void>;
-  handleProfileAnalysisSubmit: () => Promise<void>;
-  handleCampaignPlanSubmit: () => Promise<void>;
-  handleCampaignPerformanceSubmit: () => Promise<void>;
-  handleStrategySubmit: () => Promise<void>;
-  handlePerformanceReportSubmit: () => Promise<void>;
+const initialOrganicGrowthForm: OrganicGrowthForm = {
+    mainKeyword: '', targetAudience: '', contentFormat: 'blog',
+};
 
-  clearForm: (resetAccount?: boolean) => void;
-  startGeneration: () => Promise<void>;
-  updateCreatorFormField: (field: keyof ContentFormData | keyof ProductFormData, value: any) => void;
-}
+// Define context type
+interface AppStateContextType {
+    activePage: AppPage;
+    setActivePage: (page: AppPage) => void;
+    appMode: AppMode;
+    setAppMode: (mode: AppMode) => void;
+    outputType: MediaType;
+    setOutputType: (type: MediaType) => void;
 
-// Create the context with a default value
-export const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
-
-// Create the provider component
-export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { t } = useContext(LanguageContext);
-    const { currentUser, updateUserTokens } = useContext(AuthContext);
-    const { addHistoryItem, selectedAccountId, accounts, selectAccount } = useContext(AccountsContext);
+    // Creator Page State
+    productFormState: ProductFormData;
+    setProductFormState: React.Dispatch<React.SetStateAction<ProductFormData>>;
+    contentFormState: ContentFormData;
+    setContentFormState: React.Dispatch<React.SetStateAction<ContentFormData>>;
+    generatedContent: GeneratedContent | null;
+    setGeneratedContent: React.Dispatch<React.SetStateAction<GeneratedContent | null>>;
+    isLoading: boolean;
+    handleProductSubmit: () => Promise<void>;
+    handleContentSubmit: () => Promise<void>;
+    clearForm: (clearContent?: boolean) => void;
+    updateCreatorFormField: (field: string, value: any) => void;
+    startGeneration: () => Promise<void>;
     
-    // --- Universal State ---
-    const [activePage, setActivePage] = useState<AppPage>('creator');
-    const [error, setError] = useState<string | null>(null);
-    const [hasSelectedApiKey, setHasSelectedApiKey] = useState(false);
+    // API Key State
+    hasSelectedApiKey: boolean;
+    setHasSelectedApiKey: React.Dispatch<React.SetStateAction<boolean>>;
+    
+    // Analyzer Page State
+    analyzerFormState: AnalyzerFormData;
+    setAnalyzerFormState: React.Dispatch<React.SetStateAction<AnalyzerFormData>>;
+    analysisResult: AnalysisResult | null;
+    isAnalyzerLoading: boolean;
+    handleProfileAnalysisSubmit: () => Promise<void>;
+    
+    // Traffic Manager Page State
+    trafficPlanForm: TrafficPlanForm;
+    setTrafficPlanForm: React.Dispatch<React.SetStateAction<TrafficPlanForm>>;
+    trafficAnalysisImage: UploadedImage | null;
+    setTrafficAnalysisImage: React.Dispatch<React.SetStateAction<UploadedImage | null>>;
+    campaignPlan: CampaignPlan | null;
+    campaignPerformanceFeedback: string | null;
+    isCampaignPlanLoading: boolean;
+    isCampaignPerformanceLoading: boolean;
+    organicGrowthForm: OrganicGrowthForm;
+    setOrganicGrowthForm: React.Dispatch<React.SetStateAction<OrganicGrowthForm>>;
+    organicContentPlan: OrganicContentPlan | null;
+    isOrganicGrowthLoading: boolean;
+    handleCampaignPlanSubmit: () => Promise<void>;
+    handleCampaignPerformanceSubmit: () => Promise<void>;
+    handleOrganicGrowthSubmit: () => Promise<void>;
+    handleChannelToggle: (channel: string) => void;
 
-    // --- Creator Page State ---
+    // Strategy Page State
+    strategyResult: HolisticStrategyResult | null;
+    performanceReport: PerformanceReport | null;
+    isStrategyLoading: boolean;
+    isPerformanceReportLoading: boolean;
+    handleStrategySubmit: () => Promise<void>;
+    handlePerformanceReportSubmit: () => Promise<void>;
+    
+    // WhatsApp State
+    whatsappState: WhatsappConnectionState;
+    whatsappQrCode: string | null;
+    connectWhatsapp: () => void;
+    disconnectWhatsapp: () => void;
+
+    // General Error State
+    error: string | null;
+}
+
+const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
+
+export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { currentUser, updateUserTokens } = useContext(AuthContext);
+    const { accounts, selectedAccountId, addHistoryItem } = useContext(AccountsContext);
+    const { language } = useContext(LanguageContext);
+    
+    // Common State
+    const [activePage, setActivePage] = useState<AppPage>('creator');
     const [appMode, setAppMode] = useState<AppMode>('content');
     const [outputType, setOutputType] = useState<MediaType>('image');
-    const [productFormState, setProductFormState] = useState<ProductFormData>({ productName: '', productDescription: '', marketingVibe: '', productImage: null, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, profileUrl: '' });
-    const [contentFormState, setContentFormState] = useState<ContentFormData>({ profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '' });
-    const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
-    const [isCreatorLoading, setIsCreatorLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    // --- Analyzer Page State ---
-    const [analyzerFormState, setAnalyzerFormState] = useState({ profileUrl: '', feedImages: [], analyticsImage: null as UploadedImage | null });
+    // Creator Page State
+    const [productFormState, setProductFormState] = useState(initialProductFormState);
+    const [contentFormState, setContentFormState] = useState(initialContentFormState);
+    const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasSelectedApiKey, setHasSelectedApiKey] = useState(false);
+
+    // Analyzer Page State
+    const [analyzerFormState, setAnalyzerFormState] = useState(initialAnalyzerFormState);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [isAnalyzerLoading, setIsAnalyzerLoading] = useState(false);
-
-    // --- Traffic Manager Page State ---
-    const [trafficPlanForm, setTrafficPlanForm] = useState({ productService: '', targetAudience: '', objective: 'Vendas', budget: '', platform: 'Meta', abTestRequest: '' });
+    
+    // Traffic Manager Page State
+    const [trafficPlanForm, setTrafficPlanForm] = useState(initialTrafficPlanForm);
     const [trafficAnalysisImage, setTrafficAnalysisImage] = useState<UploadedImage | null>(null);
     const [campaignPlan, setCampaignPlan] = useState<CampaignPlan | null>(null);
-    const [analysisFeedback, setAnalysisFeedback] = useState<string | null>(null);
-    const [isTrafficPlanLoading, setIsTrafficPlanLoading] = useState(false);
-    const [isTrafficAnalysisLoading, setIsTrafficAnalysisLoading] = useState(false);
+    const [campaignPerformanceFeedback, setCampaignPerformanceFeedback] = useState<string | null>(null);
+    const [isCampaignPlanLoading, setIsCampaignPlanLoading] = useState(false);
+    const [isCampaignPerformanceLoading, setIsCampaignPerformanceLoading] = useState(false);
+    const [organicGrowthForm, setOrganicGrowthForm] = useState(initialOrganicGrowthForm);
+    const [organicContentPlan, setOrganicContentPlan] = useState<OrganicContentPlan | null>(null);
+    const [isOrganicGrowthLoading, setIsOrganicGrowthLoading] = useState(false);
 
-    // --- Strategy Page State ---
+    // Strategy Page State
     const [strategyResult, setStrategyResult] = useState<HolisticStrategyResult | null>(null);
     const [performanceReport, setPerformanceReport] = useState<PerformanceReport | null>(null);
     const [isStrategyLoading, setIsStrategyLoading] = useState(false);
     const [isPerformanceReportLoading, setIsPerformanceReportLoading] = useState(false);
-
-    const isLoading = isCreatorLoading || isAnalyzerLoading || isTrafficPlanLoading || isTrafficAnalysisLoading || isStrategyLoading || isPerformanceReportLoading;
-
-    // --- Form Population Effect ---
-    useEffect(() => {
-        const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
-        if (selectedAccount) {
-             if (selectedAccount.type === 'product') {
-                setProductFormState(selectedAccount.formData as ProductFormData);
-             } else {
-                 setContentFormState({ postFormat: 'single', carouselSlides: 3, ...(selectedAccount.formData as ContentFormData) });
-             }
-            // Populate other forms
-            const formData = selectedAccount.formData;
-            if ('profileUrl' in formData) setAnalyzerFormState(prev => ({ ...prev, profileUrl: formData.profileUrl || '' }));
-            if (selectedAccount.type === 'product') {
-                setTrafficPlanForm(prev => ({ ...prev, productService: (formData as ProductFormData).productName, targetAudience: (formData as ProductFormData).marketingVibe }));
-            } else {
-                setTrafficPlanForm(prev => ({ ...prev, productService: (formData as ContentFormData).profession, targetAudience: (formData as ContentFormData).targetAudience }));
-            }
-        } else {
-            // Clear all forms if 'new-post' is selected
-            setProductFormState({ productName: '', productDescription: '', marketingVibe: '', productImage: null, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, profileUrl: '' });
-            setContentFormState({ profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '' });
-            setAnalyzerFormState({ profileUrl: '', feedImages: [], analyticsImage: null });
-            setTrafficPlanForm({ productService: '', targetAudience: '', objective: 'Vendas', budget: '', platform: 'Meta', abTestRequest: '' });
-        }
-    }, [selectedAccountId, accounts]);
+    
+    // WhatsApp State
+    const [whatsappState, setWhatsappState] = useState<WhatsappConnectionState>('disconnected');
+    const [whatsappQrCode, setWhatsappQrCode] = useState<string | null>(null);
 
 
-    const clearForm = useCallback((resetAccount = true) => {
-        if (resetAccount) {
-            selectAccount('new-post');
-        } else {
-             // Re-trigger useEffect to clear if needed, but selectAccount handles it
-        }
-        setGeneratedContent(null);
+    const clearForm = useCallback((clearContent = false) => {
+        setProductFormState(initialProductFormState);
+        setContentFormState(initialContentFormState);
+        if(clearContent) setGeneratedContent(null);
         setError(null);
-    }, [selectAccount]);
+    }, []);
+    
+     const handleError = (err: any, defaultKey: string) => {
+        console.error(err);
+        let messageKey = typeof err.message === 'string' ? err.message : defaultKey;
+        // Check if this is a video generation error related to API keys
+        if (messageKey === "Requested entity was not found.") {
+            if (outputType === 'video') {
+                messageKey = "videoApiKeyError";
+            } else {
+                messageKey = "apiKeyError";
+            }
+            setHasSelectedApiKey(false);
+        }
+        setError(messageKey);
+    };
 
+    const handleTokenCost = (cost: number): boolean => {
+        if (!currentUser || currentUser.isAdmin) return true;
+        if (currentUser.tokens < cost) {
+            setError('insufficientTokens');
+            return false;
+        }
+        updateUserTokens(currentUser.tokens - cost);
+        return true;
+    };
+    
+
+    // Creator Handlers
     const handleProductSubmit = async () => {
-        if (!productFormState.productName || !productFormState.productImage) {
-            setError(t('productFormError')); return;
+        if (!productFormState.productImage) {
+            setError("productImageRequired");
+            return;
         }
-        const cost = outputType === 'image' ? TOKEN_COSTS.PRODUCT_IMAGE : TOKEN_COSTS.PRODUCT_VIDEO;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) {
-            setError(t('insufficientTokens')); return;
-        }
-        setIsCreatorLoading(true); setError(null); setGeneratedContent(null);
+        // Fix: Correctly calculate video cost based on duration.
+        const cost = outputType === 'image'
+            ? TOKEN_COSTS.PRODUCT_IMAGE
+            : VIDEO_COSTS[productFormState.videoDuration];
+        if (!handleTokenCost(cost)) return;
+
+        setIsLoading(true);
+        setError(null);
+        setGeneratedContent(null);
         try {
-            const result = await generateProductPost(productFormState.productName, productFormState.productDescription, productFormState.marketingVibe, productFormState.productImage, outputType, productFormState.maskTemplate, productFormState.colorPalette, productFormState.logoImage);
+            const result = await generateProductPost(
+                productFormState.productName, productFormState.productDescription, productFormState.marketingVibe,
+                productFormState.productImage, outputType, productFormState.maskTemplate, productFormState.colorPalette,
+                productFormState.logoImage, productFormState.userSelfie, productFormState.artisticStyle,
+                productFormState.videoDuration, productFormState.animationStyle, productFormState.aspectRatio,
+                productFormState.negativePrompt, productFormState.narrationScript, productFormState.backgroundMusic,
+                productFormState.musicDescription, productFormState.postExample1, productFormState.postExample2,
+                productFormState.postExample3, language
+            );
             setGeneratedContent(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'productPost', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) {
-             if (err.message === "Requested entity was not found.") { setError(t('apiKeyError')); setHasSelectedApiKey(false); } else { setError(err.message || t('productApiError')); }
-        } finally { setIsCreatorLoading(false); }
+            if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'productPost', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch (err) {
+            handleError(err, 'productPostApiError');
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     const handleContentSubmit = async () => {
-        if (!contentFormState.profession) {
-            setError(t('contentFormError')); return;
-        }
-        const cost = TOKEN_COSTS.CONTENT_POST * (contentFormState.postFormat === 'carousel' ? contentFormState.carouselSlides : 1);
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) {
-            setError(t('insufficientTokens')); return;
-        }
-        setIsCreatorLoading(true); setError(null); setGeneratedContent(null);
+        // Fix: Correctly calculate video cost based on duration, and use either image or video cost, not both.
+        const cost = outputType === 'video'
+            ? VIDEO_COSTS[contentFormState.videoDuration]
+            : TOKEN_COSTS.CONTENT_POST * (contentFormState.postFormat === 'carousel' ? contentFormState.carouselSlides : 1);
+        if (!handleTokenCost(cost)) return;
+
+        setIsLoading(true);
+        setError(null);
+        setGeneratedContent(null);
         try {
-            const result = await generateContentMarketingPost(contentFormState.profession, contentFormState.targetAudience, contentFormState.professionalContext, contentFormState.postFormat, contentFormState.carouselSlides, contentFormState.maskTemplate, contentFormState.colorPalette, contentFormState.logoImage, contentFormState.postExample1, contentFormState.postExample2, contentFormState.postExample3);
+            const result = await generateContentMarketingPost(
+                contentFormState.profession, contentFormState.targetAudience, contentFormState.professionalContext,
+                outputType, contentFormState.postFormat, contentFormState.carouselSlides, contentFormState.maskTemplate,
+                contentFormState.colorPalette, contentFormState.logoImage, contentFormState.userSelfie,
+                contentFormState.postExample1, contentFormState.postExample2, contentFormState.postExample3,
+                contentFormState.artisticStyle, contentFormState.aspectRatio, contentFormState.negativePrompt,
+                contentFormState.videoDuration, contentFormState.animationStyle, contentFormState.narrationScript,
+                contentFormState.backgroundMusic, contentFormState.musicDescription, language
+            );
             setGeneratedContent(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'contentPost', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('contentApiError')); } finally { setIsCreatorLoading(false); }
+             if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'contentPost', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch (err) {
+            handleError(err, 'contentPostApiError');
+        } finally {
+            setIsLoading(false);
+        }
     };
     
+    const startGeneration = useCallback(async () => {
+        if (appMode === 'product') {
+            await handleProductSubmit();
+        } else {
+            await handleContentSubmit();
+        }
+    }, [appMode, handleProductSubmit, handleContentSubmit]);
+
+     const updateCreatorFormField = useCallback((field: string, value: any) => {
+        if (appMode === 'product') {
+            setProductFormState(prev => ({...prev, [field]: value}));
+        } else {
+            setContentFormState(prev => ({...prev, [field]: value}));
+        }
+    }, [appMode]);
+
+
+    // Analyzer Handler
     const handleProfileAnalysisSubmit = async () => {
-        if (!analyzerFormState.profileUrl) {
-            setError(t('analyzerUrlError')); return;
-        }
-        const cost = TOKEN_COSTS.PROFILE_ANALYSIS;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) {
-            setError(t('insufficientTokens')); return;
-        }
-        setIsAnalyzerLoading(true); setError(null); setAnalysisResult(null);
+        if (!handleTokenCost(TOKEN_COSTS.PROFILE_ANALYSIS)) return;
+        setIsAnalyzerLoading(true);
+        setError(null);
+        setAnalysisResult(null);
         try {
-            const result = await analyzeSocialProfile(analyzerFormState.profileUrl, analyzerFormState.feedImages, analyzerFormState.analyticsImage);
+            const result = await analyzeSocialProfile(analyzerFormState.profileUrl, analyzerFormState.feedImages, analyzerFormState.analyticsImage, language);
             setAnalysisResult(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'analysis', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('analyzerApiError')); } finally { setIsAnalyzerLoading(false); }
+             if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'analysis', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch (err) {
+            handleError(err, 'analyzerApiError');
+        } finally {
+            setIsAnalyzerLoading(false);
+        }
+    };
+    
+    // Traffic Manager Handlers
+    const handleChannelToggle = (channel: string) => {
+        setTrafficPlanForm(prev => {
+          const newChannels = prev.channels.includes(channel)
+            ? prev.channels.filter(c => c !== channel)
+            : [...prev.channels, channel];
+          return { ...prev, channels: newChannels };
+        });
     };
 
     const handleCampaignPlanSubmit = async () => {
-        const cost = TOKEN_COSTS.CAMPAIGN_PLAN;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) {
-            setError(t('insufficientTokens')); return;
-        }
-        setIsTrafficPlanLoading(true); setError(null); setCampaignPlan(null);
+        if (!handleTokenCost(TOKEN_COSTS.CAMPAIGN_PLAN)) return;
+        setIsCampaignPlanLoading(true);
+        setError(null);
+        setCampaignPlan(null);
         try {
-            const result = await generateCampaignPlan(trafficPlanForm);
+            const result = await generateCampaignPlan(trafficPlanForm, language);
             setCampaignPlan(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'campaignPlan', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('trafficPlanError')); } finally { setIsTrafficPlanLoading(false); }
+             if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'campaignPlan', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch(err) {
+            handleError(err, 'trafficPlanError');
+        } finally {
+            setIsCampaignPlanLoading(false);
+        }
     };
     
     const handleCampaignPerformanceSubmit = async () => {
         if (!trafficAnalysisImage) {
-            setError(t('trafficAnalysisError')); return;
+            setError("adsScreenshotRequired");
+            return;
         }
-        const cost = TOKEN_COSTS.PERFORMANCE_ANALYSIS;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) {
-            setError(t('insufficientTokens')); return;
-        }
-        setIsTrafficAnalysisLoading(true); setError(null); setAnalysisFeedback(null);
+        if (!handleTokenCost(TOKEN_COSTS.PERFORMANCE_ANALYSIS)) return;
+        setIsCampaignPerformanceLoading(true);
+        setError(null);
+        setCampaignPerformanceFeedback(null);
         try {
-            const result = await analyzeCampaignPerformance(trafficAnalysisImage);
-            setAnalysisFeedback(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'performanceFeedback', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('trafficAnalysisImageError')); } finally { setIsTrafficAnalysisLoading(false); }
+            const result = await analyzeCampaignPerformance(trafficAnalysisImage, language);
+            setCampaignPerformanceFeedback(result);
+             if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'performanceFeedback', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch(err) {
+            handleError(err, 'trafficAnalysisImageError');
+        } finally {
+            setIsCampaignPerformanceLoading(false);
+        }
     };
     
+    const handleOrganicGrowthSubmit = async () => {
+        if (!handleTokenCost(TOKEN_COSTS.CAMPAIGN_PLAN)) return;
+        setIsOrganicGrowthLoading(true);
+        setError(null);
+        setOrganicContentPlan(null);
+        try {
+            const result = await generateOrganicContentPlan(organicGrowthForm, language);
+            setOrganicContentPlan(result);
+            if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'organicContentPlan', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch (err) {
+            handleError(err, 'organicContentPlanError');
+        } finally {
+            setIsOrganicGrowthLoading(false);
+        }
+    };
+
+    // Strategy Handlers
     const handleStrategySubmit = async () => {
-        const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
-        if (!selectedAccount) { setError(t('selectAccountPrompt')); return; }
-        const cost = TOKEN_COSTS.STRATEGY_ANALYSIS;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) { setError(t('insufficientTokens')); return; }
-        setIsStrategyLoading(true); setError(null); setStrategyResult(null); setPerformanceReport(null);
+        if (!selectedAccountId || !accounts[selectedAccountId]) {
+            setError("selectAccountError");
+            return;
+        }
+        if (!handleTokenCost(TOKEN_COSTS.STRATEGY_ANALYSIS)) return;
+        setIsStrategyLoading(true);
+        setError(null);
+        setStrategyResult(null);
+        setPerformanceReport(null);
         try {
-            const result = await generateHolisticStrategy(selectedAccount);
+            const account = accounts[selectedAccountId];
+            const result = await generateHolisticStrategy(account, language);
             setStrategyResult(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'holisticStrategy', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('strategyApiError')); } finally { setIsStrategyLoading(false); }
+             if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'holisticStrategy', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch(err) {
+            handleError(err, 'strategyApiError');
+        } finally {
+            setIsStrategyLoading(false);
+        }
     };
-
+    
     const handlePerformanceReportSubmit = async () => {
-        const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
-        if (!selectedAccount) { setError(t('selectAccountPrompt')); return; }
-        const cost = TOKEN_COSTS.ACCOUNT_PERFORMANCE_ANALYSIS;
-        if (!currentUser?.isAdmin && (!currentUser || currentUser.tokens < cost)) { setError(t('insufficientTokens')); return; }
-        setIsPerformanceReportLoading(true); setError(null); setStrategyResult(null); setPerformanceReport(null);
+        if (!selectedAccountId || !accounts[selectedAccountId]) {
+            setError("selectAccountError");
+            return;
+        }
+        if (!handleTokenCost(TOKEN_COSTS.ACCOUNT_PERFORMANCE_ANALYSIS)) return;
+        setIsPerformanceReportLoading(true);
+        setError(null);
+        setPerformanceReport(null);
+        setStrategyResult(null);
         try {
-            const result = await analyzeAccountPerformance(selectedAccount);
+            const account = accounts[selectedAccountId];
+            const result = await analyzeAccountPerformance(account, language);
             setPerformanceReport(result);
-            if (selectedAccountId && selectedAccountId !== 'new-post') addHistoryItem(selectedAccountId, { id: Date.now().toString(), type: 'performanceReport', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || 'Unknown' });
-            if (currentUser && !currentUser.isAdmin) updateUserTokens(currentUser.tokens - cost);
-        } catch (err: any) { setError(err.message || t('performanceApiError')); } finally { setIsPerformanceReportLoading(false); }
+            if (selectedAccountId) {
+                const historyItem: GeneratedHistoryItem = { id: Date.now().toString(), type: 'performanceReport', timestamp: new Date().toISOString(), data: result, accountName: accounts[selectedAccountId]?.name || '' };
+                addHistoryItem(selectedAccountId, historyItem);
+            }
+        } catch(err) {
+            handleError(err, 'performanceApiError');
+        } finally {
+            setIsPerformanceReportLoading(false);
+        }
     };
+    
+    // WhatsApp Handlers (Simulated)
+    const connectWhatsapp = useCallback(() => {
+        setWhatsappState('connecting');
+        setWhatsappQrCode(null);
+        setTimeout(() => {
+            setWhatsappQrCode('https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/basic_market/generator/dist/generator/assets/images/websiteQRCode_noFrame.png');
+        }, 1500);
+        setTimeout(() => {
+            setWhatsappState('connected');
+        }, 5000);
+    }, []);
 
-    const startGeneration = useCallback(async () => {
-        if (activePage !== 'creator') {
-            setError("Generation can only be started from the Creator page."); return;
-        }
-        if (appMode === 'content') await handleContentSubmit();
-        else await handleProductSubmit();
-    }, [activePage, appMode, handleContentSubmit, handleProductSubmit]);
+    const disconnectWhatsapp = useCallback(() => {
+        setWhatsappState('disconnected');
+        setWhatsappQrCode(null);
+    }, []);
+    
 
-    const updateCreatorFormField = useCallback((field: keyof ContentFormData | keyof ProductFormData, value: any) => {
-        if (appMode === 'content') {
-            setContentFormState(prev => ({...prev, [field]: value}));
-        } else {
-            setProductFormState(prev => ({...prev, [field]: value}));
-        }
-    }, [appMode]);
-
-    const value = {
+    const value: AppStateContextType = {
         activePage, setActivePage, appMode, setAppMode, outputType, setOutputType,
         productFormState, setProductFormState, contentFormState, setContentFormState,
-        generatedContent,
-        isLoading, error, setError, hasSelectedApiKey, setHasSelectedApiKey,
-        analyzerFormState, setAnalyzerFormState, analysisResult,
+        generatedContent, setGeneratedContent, isLoading, error, hasSelectedApiKey, setHasSelectedApiKey,
+        handleProductSubmit, handleContentSubmit, clearForm, updateCreatorFormField, startGeneration,
+        analyzerFormState, setAnalyzerFormState, analysisResult, isAnalyzerLoading, handleProfileAnalysisSubmit,
         trafficPlanForm, setTrafficPlanForm, trafficAnalysisImage, setTrafficAnalysisImage,
-        campaignPlan, analysisFeedback, strategyResult, performanceReport,
-        isCreatorLoading, isAnalyzerLoading, isTrafficPlanLoading, isTrafficAnalysisLoading, isStrategyLoading, isPerformanceReportLoading,
-        handleProductSubmit, handleContentSubmit, handleProfileAnalysisSubmit,
-        handleCampaignPlanSubmit, handleCampaignPerformanceSubmit,
+        campaignPlan, campaignPerformanceFeedback, isCampaignPlanLoading, isCampaignPerformanceLoading,
+        organicGrowthForm, setOrganicGrowthForm, organicContentPlan, isOrganicGrowthLoading,
+        handleCampaignPlanSubmit, handleCampaignPerformanceSubmit, handleOrganicGrowthSubmit, handleChannelToggle,
+        strategyResult, performanceReport, isStrategyLoading, isPerformanceReportLoading,
         handleStrategySubmit, handlePerformanceReportSubmit,
-        clearForm, startGeneration, updateCreatorFormField
+        whatsappState, whatsappQrCode, connectWhatsapp, disconnectWhatsapp
     };
 
     return (
@@ -302,8 +463,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     );
 };
 
-// Custom hook to use the AppStateContext
-export const useAppState = () => {
+export const useAppState = (): AppStateContextType => {
     const context = useContext(AppStateContext);
     if (context === undefined) {
         throw new Error('useAppState must be used within an AppStateProvider');

@@ -39,13 +39,14 @@ const formatHistoryForPrompt = (history: GeneratedHistoryItem[]): string => {
 };
 
 
-export const generateHolisticStrategy = async (account: SavedAccount): Promise<HolisticStrategyResult> => {
+export const generateHolisticStrategy = async (account: SavedAccount, language: string): Promise<HolisticStrategyResult> => {
     const ai = getGoogleAI();
     const model = 'gemini-2.5-pro'; // Use a more powerful model for strategic reasoning
 
     const historySummary = formatHistoryForPrompt(account.history);
 
     const prompt = `
+    CRITICAL: Your entire JSON output, including all text values, must be in the following language: ${language}.
     Act as a master digital marketing strategist. Your task is to provide a holistic and unified strategy for a client account based on their profile and a summary of recent activities generated using this same tool.
 
     **Client Account Information:**
@@ -88,7 +89,7 @@ export const generateHolisticStrategy = async (account: SavedAccount): Promise<H
         return result;
     } catch (error: any) {
         console.error("Error generating holistic strategy:", error);
-        throw new Error("A IA não conseguiu gerar a estratégia. Verifique se a conta possui histórico suficiente para análise.");
+        throw new Error("strategyApiError");
     }
 };
 
@@ -117,7 +118,7 @@ const formatHistoryForPerformanceAnalysis = (history: GeneratedHistoryItem[]): s
 };
 
 
-export const analyzeAccountPerformance = async (account: SavedAccount): Promise<PerformanceReport> => {
+export const analyzeAccountPerformance = async (account: SavedAccount, language: string): Promise<PerformanceReport> => {
     const ai = getGoogleAI();
     const model = 'gemini-2.5-pro';
 
@@ -129,6 +130,7 @@ export const analyzeAccountPerformance = async (account: SavedAccount): Promise<
     const totalAnalyses = account.history.filter(item => item.type === 'analysis' || item.type === 'performanceFeedback').length;
 
     const prompt = `
+    CRITICAL: Your entire JSON output, including all text values, must be in the following language: ${language}.
     Act as a senior data analyst specializing in social media growth. Your task is to analyze the historical performance of a client account by interpreting a chronological summary of their activities and analyses.
 
     **Client Account Information:**
@@ -195,6 +197,6 @@ export const analyzeAccountPerformance = async (account: SavedAccount): Promise<
         return result;
     } catch (error: any) {
         console.error("Error analyzing account performance:", error);
-        throw new Error("A IA não conseguiu analisar a performance. A conta pode não ter histórico suficiente de campanhas ou análises.");
+        throw new Error("performanceApiError");
     }
 };

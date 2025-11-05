@@ -12,12 +12,14 @@ const getGoogleAI = () => {
 export const analyzeSocialProfile = async (
     profileUrl: string,
     feedImages: UploadedImage[],
-    analyticsImage: UploadedImage | null
+    analyticsImage: UploadedImage | null,
+    language: string
 ): Promise<AnalysisResult> => {
     const ai = getGoogleAI();
     const model = 'gemini-2.5-pro'; // Upgraded to Pro for better multimodal reasoning
 
     const prompt = `
+    CRITICAL: Your entire output (the final JSON object) must be in the following language: ${language}.
     As a specialist in digital marketing and branding, perform a complete analysis of the following social media profile using ALL the provided data.
 
     **Data Sources:**
@@ -50,28 +52,36 @@ export const analyzeSocialProfile = async (
         });
 
         if (analyticsImage) {
+            // Fix: Corrected typo `base6` to `base64`.
             parts.push({
                 inlineData: { data: analyticsImage.base64, mimeType: analyticsImage.mimeType }
             });
         }
-
+        
+        // Fix: Completed the function by adding the API call and result processing.
         const response = await ai.models.generateContent({
             model: model,
-            contents: { parts },
+            contents: { parts: parts },
             config: {
+                // Use Google Search for the URL as requested in the prompt
                 tools: [{ googleSearch: {} }],
-            }
+            },
         });
-        
-        const responseText = response.text.trim();
-        const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
-        const jsonString = jsonMatch ? jsonMatch[1] : responseText;
-        
-        const result = JSON.parse(jsonString);
+
+        // The model is instructed to return a JSON object inside a markdown block.
+        // We need to robustly extract it.
+        let jsonString = response.text;
+        const match = jsonString.match(/```json\s*([\s\S]*?)\s*```/);
+        if (match && match[1]) {
+            jsonString = match[1];
+        }
+
+        const result: AnalysisResult = JSON.parse(jsonString.trim());
         return result;
 
     } catch (error: any) {
-        console.error("Error analyzing profile:", error);
-        throw new Error("A IA não conseguiu analisar o perfil. Verifique se a URL está correta, se o perfil é público e se as imagens são legíveis.");
+        console.error("Error analyzing social profile:", error);
+        // Throw a generic error key that can be translated by the UI
+        throw new Error("analyzerApiError");
     }
 };

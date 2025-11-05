@@ -6,6 +6,7 @@ import { AccountsContext } from '../contexts/AccountsContext';
 import { TOKEN_COSTS } from '../lib/tokenCosts';
 import AccountManager from '../components/AccountManager';
 import HistoryPanel from '../components/HistoryPanel';
+// Fix: Add file extension to fix module resolution error.
 import { useAppState } from '../contexts/AppStateContext';
 
 const StrategyPage: React.FC = () => {

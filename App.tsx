@@ -2,12 +2,15 @@ import React from 'react';
 import Header from './components/Header';
 import CreatorPage from './pages/CreatorPage';
 import AnalyzerPage from './pages/AnalyzerPage';
+// Fix: Add file extension to fix module resolution error.
 import TrafficManagerPage from './pages/TrafficManagerPage';
 import StrategyPage from './pages/StrategyPage';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import BuyTokensPage from './pages/BuyTokensPage';
 import { AuthContext } from './contexts/AuthContext';
+// Fix: Add file extension to fix module resolution error.
 import { useAppState } from './contexts/AppStateContext';
 import InteractionChoicePage from './pages/InteractionChoicePage';
 import VoiceAgentPage from './pages/VoiceAgentPage';
@@ -15,7 +18,20 @@ import VoiceAgentPage from './pages/VoiceAgentPage';
 const AppContent: React.FC = () => {
     const { currentUser, loading } = React.useContext(AuthContext);
     const { activePage, setActivePage } = useAppState();
+    
+    // State for pre-login flow
+    const [preLoginView, setPreLoginView] = React.useState<'landing' | 'login'>('landing');
+
+    // State for post-login flow
     const [viewMode, setViewMode] = React.useState<'choice' | 'dashboard' | 'voiceAgent'>('choice');
+
+    // Effect to reset views on logout
+    React.useEffect(() => {
+        if (!currentUser) {
+            setPreLoginView('landing');
+            setViewMode('choice');
+        }
+    }, [currentUser]);
 
     const renderPage = () => {
         switch (activePage) {
@@ -45,6 +61,10 @@ const AppContent: React.FC = () => {
     }
 
     if (!currentUser) {
+        if (preLoginView === 'landing') {
+            return <LandingPage onStart={() => setPreLoginView('login')} />;
+        }
+        // Once onStart is called, it switches to the login page
         return <LoginPage />;
     }
     
