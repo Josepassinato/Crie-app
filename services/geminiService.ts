@@ -236,7 +236,16 @@ export const generateProductPost = async (
             }
         }
 
-        const videoPrompt = `Bring this scene to life. Create a short, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". The final style should be ${selectedStylePrompt}. Make it eye-catching for social media.`;
+        let audioInstructions = '';
+        if (narrationScript && backgroundMusic && backgroundMusic !== 'none') {
+            audioInstructions = "The final video MUST include BOTH the provided narration text AND background music that fits the requested vibe.";
+        } else if (narrationScript) {
+            audioInstructions = "The final video MUST include the provided narration text.";
+        } else if (backgroundMusic && backgroundMusic !== 'none') {
+            audioInstructions = "The final video MUST include background music that fits the requested vibe.";
+        }
+
+        const videoPrompt = `Bring this scene to life. Create a short, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". The final style should be ${selectedStylePrompt}. Make it eye-catching for social media. ${audioInstructions}`;
         
         const videoConfig: any = {
             numberOfVideos: 1,

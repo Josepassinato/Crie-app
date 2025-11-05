@@ -250,7 +250,16 @@ export const generateContentMarketingPost = async (
             default: animationStyleInstruction = 'energetic and dynamic';
         }
         
-        const videoPrompt = `Animate this scene. Create a short, ${animationStyleInstruction} video post for a content creator who is a ${profession}. Final style must be ${selectedStylePrompt}.`;
+        let audioInstructions = '';
+        if (narrationScript && backgroundMusic && backgroundMusic !== 'none') {
+            audioInstructions = "The final video MUST include BOTH the provided narration text AND background music that fits the requested vibe.";
+        } else if (narrationScript) {
+            audioInstructions = "The final video MUST include the provided narration text.";
+        } else if (backgroundMusic && backgroundMusic !== 'none') {
+            audioInstructions = "The final video MUST include background music that fits the requested vibe.";
+        }
+        
+        const videoPrompt = `Animate this scene. Create a short, ${animationStyleInstruction} video post for a content creator who is a ${profession}. Final style must be ${selectedStylePrompt}. ${audioInstructions}`;
         
         const videoConfig: any = {
             numberOfVideos: 1,
