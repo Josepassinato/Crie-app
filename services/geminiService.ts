@@ -184,31 +184,6 @@ export const generateProductPost = async (
             default:
                 animationStyleInstruction = 'energetic and dynamic';
         }
-
-        const durationInstruction = `around ${videoDuration.replace('s', '')} seconds`;
-
-        const narrationInstruction = narrationScript 
-            ? `CRITICAL: The video must be narrated by a professional voiceover artist reading this exact script: "${narrationScript}". The voice should match the campaign vibe.`
-            : 'The video should have no narration.';
-        
-        let musicInstruction = '';
-        if (backgroundMusic === 'ai_generated') {
-            if (musicDescription) {
-                musicInstruction = `CRITICAL: The video's soundtrack must be a custom, AI-generated music track that perfectly matches this description: "${musicDescription}". The music should be original and fit the vibe of the video.`;
-            } else {
-                musicInstruction = `CRITICAL: The video's soundtrack must be a custom, AI-generated music track that perfectly matches the video's content, mood, and the campaign vibe of "${marketingVibe}". The music should be original and instrumental.`;
-            }
-        } else if (backgroundMusic && backgroundMusic !== 'none') {
-            const backgroundMusicMap: Record<string, string> = {
-                epic: 'Epic Orchestral',
-                upbeat: 'Upbeat Pop',
-                lofi: 'Chill Lo-fi',
-            };
-            const musicPromptText = backgroundMusicMap[backgroundMusic];
-            musicInstruction = `CRITICAL: The video's soundtrack must be a high-quality ${musicPromptText} track that matches the vibe.`;
-        } else {
-             musicInstruction = 'The video should have no background music, only the narration if provided.';
-        }
         
         const videoModel = 'veo-3.1-fast-generate-preview';
         const videoAI = getGoogleAI(); // Re-init client for Veo
@@ -261,8 +236,31 @@ export const generateProductPost = async (
             }
         }
 
-        const videoPrompt = `Bring this scene to life. Create a short, ${durationInstruction}, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". ${narrationInstruction} ${musicInstruction} The final style should be ${selectedStylePrompt}. Make it eye-catching for social media.`;
+        const videoPrompt = `Bring this scene to life. Create a short, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". The final style should be ${selectedStylePrompt}. Make it eye-catching for social media.`;
         
+        const videoConfig: any = {
+            numberOfVideos: 1,
+            resolution: '720p',
+            aspectRatio: (aspectRatio === '16:9' || aspectRatio === '9:16') ? aspectRatio : '9:16',
+            durationInSeconds: parseInt(videoDuration.replace('s', ''), 10),
+        };
+
+        if (narrationScript) {
+            videoConfig.narration = { text: narrationScript };
+        }
+
+        if (backgroundMusic === 'ai_generated') {
+            const musicPrompt = musicDescription || `A high-quality, original, instrumental track that perfectly matches the video's content, mood, and the campaign vibe of "${marketingVibe}".`;
+            videoConfig.music = { prompt: musicPrompt };
+        } else if (backgroundMusic && backgroundMusic !== 'none') {
+            const backgroundMusicMap: Record<string, string> = {
+                epic: 'Epic Orchestral',
+                upbeat: 'Upbeat Pop',
+                lofi: 'Chill Lo-fi',
+            };
+            videoConfig.music = { prompt: backgroundMusicMap[backgroundMusic] };
+        }
+
         let operation = await videoAI.models.generateVideos({
             model: videoModel,
             prompt: videoPrompt,
@@ -270,11 +268,7 @@ export const generateProductPost = async (
                 imageBytes: startFrameImage.base64,
                 mimeType: startFrameImage.mimeType,
             },
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: aspectRatio === '1:1' ? '1:1' : (aspectRatio === '16:9' ? '16:9' : '9:16'),
-            }
+            config: videoConfig
         });
 
         while (!operation.done) {

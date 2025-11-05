@@ -162,6 +162,8 @@ const pt: TranslationKeys = {
   // Analyzer Page
   analyzerTitle: 'Analisador de Perfil IA',
   analyzerSubtitle: 'Receba um diagnóstico completo e recomendações estratégicas para o seu perfil.',
+  proTipTitle: 'Dica de Mestre',
+  proTipDescription: 'Para a análise mais precisa, forneça a URL, prints do feed e das métricas. A IA cruzará essas três fontes de dados para um diagnóstico completo.',
   profileUrlLabel: 'URL do Perfil (Instagram, TikTok, etc.)',
   profileUrlPlaceholder: 'https://instagram.com/seuperfil',
   feedScreenshotsLabel: 'Prints do Feed (até 5 imagens)',
@@ -177,7 +179,10 @@ const pt: TranslationKeys = {
   audienceProfile: 'Perfil da Audiência',
   brandArchetype: 'Arquétipo da Marca',
   strategicRecommendations: 'Recomendações Estratégicas',
-  
+  useForContent: 'Usar para Conteúdo',
+  useForCampaign: 'Usar para Campanha',
+  basedOnAnalysis: 'Baseado na análise estratégica',
+
   // API Key Selector
   apiKeyTitle: 'Chave de API Necessária',
   apiKeyDescription: 'Para gerar vídeos, esta ferramenta utiliza a API da Google AI Studio. Por favor, selecione sua chave de API para continuar. O uso será cobrado em sua conta Google.',
@@ -313,6 +318,8 @@ export const translations: Record<Language, TranslationKeys> = {
       clear: 'Clear',
       save: 'Save',
       cancel: 'Cancel',
+      proTipTitle: 'Pro Tip',
+      proTipDescription: 'For the most accurate analysis, provide the URL, feed screenshots, and metrics. The AI will cross-reference these three data sources for a complete diagnosis.',
       // ... Add all other translations
     },
   'Español': { 
@@ -325,6 +332,8 @@ export const translations: Record<Language, TranslationKeys> = {
       clear: 'Limpiar',
       save: 'Guardar',
       cancel: 'Cancelar',
+      proTipTitle: 'Consejo Profesional',
+      proTipDescription: 'Para el análisis más preciso, proporcione la URL, capturas de pantalla del feed y las métricas. La IA cruzará estas tres fuentes de datos para un diagnóstico completo.',
       // ... Add all other translations
     }, 
 };

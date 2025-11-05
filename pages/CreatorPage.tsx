@@ -33,7 +33,8 @@ const CreatorPage: React.FC = () => {
         hasSelectedApiKey, setHasSelectedApiKey,
         handleProductSubmit,
         handleContentSubmit,
-        clearForm
+        clearForm,
+        contextualPrompt, setContextualPrompt,
     } = useAppState();
 
     const [isSaveModalOpen, setIsSaveModalOpen] = React.useState(false);
@@ -46,6 +47,18 @@ const CreatorPage: React.FC = () => {
 
     const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
     const currentSchedule = selectedAccount ? selectedAccount.schedule : tempSchedule;
+
+    React.useEffect(() => {
+        if (contextualPrompt) {
+            setAppMode('content');
+            setContentFormState(prev => ({
+                ...prev,
+                professionalContext: `${t('basedOnAnalysis')}:\n"${contextualPrompt}"`
+            }));
+            setContextualPrompt(null);
+        }
+    }, [contextualPrompt, setAppMode, setContentFormState, setContextualPrompt, t]);
+
 
     React.useEffect(() => {
         const checkApiKey = async () => {

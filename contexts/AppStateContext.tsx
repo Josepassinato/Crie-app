@@ -53,6 +53,8 @@ interface AppStateContextType {
     setAppMode: (mode: AppMode) => void;
     outputType: MediaType;
     setOutputType: (type: MediaType) => void;
+    contextualPrompt: string | null;
+    setContextualPrompt: React.Dispatch<React.SetStateAction<string | null>>;
 
     // Creator Page State
     productFormState: ProductFormData;
@@ -127,6 +129,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [appMode, setAppMode] = useState<AppMode>('content');
     const [outputType, setOutputType] = useState<MediaType>('image');
     const [error, setError] = useState<string | null>(null);
+    const [contextualPrompt, setContextualPrompt] = useState<string | null>(null);
 
     // Creator Page State
     const [productFormState, setProductFormState] = useState(initialProductFormState);
@@ -443,6 +446,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const value: AppStateContextType = {
         activePage, setActivePage, appMode, setAppMode, outputType, setOutputType,
+        contextualPrompt, setContextualPrompt,
         productFormState, setProductFormState, contentFormState, setContentFormState,
         generatedContent, setGeneratedContent, isLoading, error, hasSelectedApiKey, setHasSelectedApiKey,
         handleProductSubmit, handleContentSubmit, clearForm, updateCreatorFormField, startGeneration,

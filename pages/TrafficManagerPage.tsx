@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAppState } from '../contexts/AppStateContext';
@@ -37,7 +37,20 @@ const TrafficManagerPage: React.FC = () => {
         handleCampaignPerformanceSubmit,
         handleOrganicGrowthSubmit,
         handleChannelToggle,
+        contextualPrompt,
+        setContextualPrompt,
     } = useAppState();
+
+    useEffect(() => {
+        if (contextualPrompt) {
+            setTrafficPlanForm(prev => ({
+                ...prev,
+                objective: `${t('basedOnAnalysis')}:\n"${contextualPrompt}"`
+            }));
+            setContextualPrompt(null);
+        }
+    }, [contextualPrompt, setTrafficPlanForm, setContextualPrompt, t]);
+
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -147,7 +160,7 @@ const TrafficManagerPage: React.FC = () => {
                             <div className="space-y-4">
                                <input value={trafficPlanForm.productService} onChange={e => setTrafficPlanForm(p => ({...p, productService: e.target.value}))} placeholder={t('productService')} className="w-full input-style" />
                                <textarea value={trafficPlanForm.targetAudience} onChange={e => setTrafficPlanForm(p => ({...p, targetAudience: e.target.value}))} placeholder={t('targetAudienceTraffic')} className="w-full input-style" rows={2}></textarea>
-                               <input value={trafficPlanForm.objective} onChange={e => setTrafficPlanForm(p => ({...p, objective: e.target.value}))} placeholder={t('campaignObjective')} className="w-full input-style" />
+                               <textarea value={trafficPlanForm.objective} onChange={e => setTrafficPlanForm(p => ({...p, objective: e.target.value}))} placeholder={t('campaignObjective')} className="w-full input-style" rows={3}></textarea>
                                <input value={trafficPlanForm.budget} onChange={e => setTrafficPlanForm(p => ({...p, budget: e.target.value}))} placeholder={t('budget')} className="w-full input-style" />
                                <input value={trafficPlanForm.duration} onChange={e => setTrafficPlanForm(p => ({...p, duration: e.target.value}))} placeholder={t('duration')} className="w-full input-style" />
                                <div>

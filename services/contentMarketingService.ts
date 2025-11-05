@@ -249,32 +249,35 @@ export const generateContentMarketingPost = async (
             case 'cinematic': animationStyleInstruction = 'cinematic, with dramatic lighting and camera movements'; break;
             default: animationStyleInstruction = 'energetic and dynamic';
         }
-        const durationInstruction = `around ${videoDuration.replace('s', '')} seconds`;
-        const narrationInstruction = narrationScript ? `The video must be narrated by a professional voiceover reading this exact script: "${narrationScript}".` : 'The video should have no narration.';
         
-        let musicInstruction = '';
+        const videoPrompt = `Animate this scene. Create a short, ${animationStyleInstruction} video post for a content creator who is a ${profession}. Final style must be ${selectedStylePrompt}.`;
+        
+        const videoConfig: any = {
+            numberOfVideos: 1,
+            resolution: '720p',
+            aspectRatio: (aspectRatio === '16:9' || aspectRatio === '9:16') ? aspectRatio : '9:16',
+            durationInSeconds: parseInt(videoDuration.replace('s', ''), 10),
+        };
+
+        if (narrationScript) {
+            videoConfig.narration = { text: narrationScript };
+        }
+
         if (backgroundMusic === 'ai_generated') {
-             musicInstruction = `The video's soundtrack must be a custom, AI-generated music track that perfectly matches this description: "${musicDescription || 'an inspiring and professional tone'}".`;
+             const musicPrompt = musicDescription || 'an inspiring and professional tone';
+             videoConfig.music = { prompt: musicPrompt };
         } else if (backgroundMusic && backgroundMusic !== 'none') {
             const backgroundMusicMap: Record<string, string> = { epic: 'Epic Orchestral', upbeat: 'Upbeat Pop', lofi: 'Chill Lo-fi' };
-            musicInstruction = `The video's soundtrack must be a high-quality ${backgroundMusicMap[backgroundMusic]} track.`;
-        } else {
-             musicInstruction = 'The video should have no background music.';
+            videoConfig.music = { prompt: backgroundMusicMap[backgroundMusic] };
         }
         
         const videoModel = 'veo-3.1-fast-generate-preview';
-        const videoPrompt = `Animate this scene. Create a short, ${durationInstruction}, ${animationStyleInstruction} video post for a content creator who is a ${profession}. ${narrationInstruction} ${musicInstruction} Final style must be ${selectedStylePrompt}.`;
-        
         const videoAI = getGoogleAI(); // Re-init client for Veo
         let operation = await videoAI.models.generateVideos({
             model: videoModel,
             prompt: videoPrompt,
             image: { imageBytes: startFrameImage.base64, mimeType: startFrameImage.mimeType },
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: aspectRatio === '1:1' ? '1:1' : (aspectRatio === '16:9' ? '16:9' : '9:16'),
-            }
+            config: videoConfig
         });
 
         while (!operation.done) {

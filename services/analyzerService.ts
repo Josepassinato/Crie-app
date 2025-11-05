@@ -19,27 +19,32 @@ export const analyzeSocialProfile = async (
     const model = 'gemini-2.5-pro'; // Upgraded to Pro for better multimodal reasoning
 
     const prompt = `
-    CRITICAL: Your entire output (the final JSON object) must be in the following language: ${language}.
-    As a specialist in digital marketing and branding, perform a complete analysis of the following social media profile using ALL the provided data.
+    CRITICAL: Your entire output must be a single, raw, valid JSON object, and nothing else. The text content within the JSON must be in the following language: ${language}.
+    
+    You are an elite digital marketing strategist. Your task is to perform a deep, holistic analysis of a social media profile by synthesizing information from three distinct data sources. Your analysis must be data-driven and lead to actionable insights.
 
-    **Data Sources:**
-    1.  **Profile URL (for public data and context via Google Search):** ${profileUrl}
-    2.  **Feed Screenshots (for visual identity, content style, and tone):** I have provided ${feedImages.length} image(s) of the user's feed.
-    3.  **Analytics Screenshot (for performance and audience data):** I have provided ${analyticsImage ? 1 : 0} screenshot(s) of the user's analytics dashboard (e.g., Meta Business Suite).
+    **Provided Data Sources:**
+    1.  **Profile URL:** ${profileUrl} (Use Google Search to analyze public content, bio, and recent activity).
+    2.  **Feed Screenshots:** ${feedImages.length} image(s) are provided (Analyze for visual identity, branding, content themes, and aesthetic quality).
+    3.  **Analytics Screenshot:** ${analyticsImage ? '1 image is' : 'No image is'} provided (If available, extract metrics like engagement, reach, and audience demographics to ground your analysis in real data).
 
-    **Analysis Task:**
-    Synthesize information from ALL THREE sources to create a deeply insightful and accurate strategic report.
-    - Use Google Search on the URL to understand public positioning and recent posts.
-    - Analyze the Feed Screenshots to understand the visual aesthetic, color palette, post formats, and the "vibe" of the content.
-    - Analyze the Analytics Screenshot to extract key metrics, audience demographics, and performance data. This is crucial for data-driven recommendations.
-    - Connect the findings. For example, if the analytics show high engagement from women aged 25-34, but the feed visuals seem to target teenagers, point out this mismatch.
+    **Your Analysis Process:**
+    1.  **Synthesize, Don't Just List:** Your primary goal is to connect the dots. For example, if the analytics show high engagement from women 25-34, but the feed visuals look like they target teenagers, you MUST point out this strategic mismatch in your recommendations.
+    2.  **Data-Driven Insights:** Base your 'performanceSummary' and 'audienceProfile' directly on the provided analytics image if available. If not, infer from the public data found via the URL and feed images, but state that you are making an inference.
+    3.  **Actionable Recommendations:** Each recommendation must be concrete and directly linked to a specific weakness or opportunity you identified.
 
-    Provide the final report as a single, valid JSON object inside a markdown block, and nothing else.
-    The JSON object must have the following keys and value types:
-    - "performanceSummary": A string summarizing what's working and what could be improved, using data from the analytics screenshot and public engagement.
-    - "audienceProfile": A string describing the target audience, combining data from the analytics screenshot with observations from the content.
-    - "brandArchetype": A string identifying the primary brand archetype (e.g., Hero, Sage, Explorer) based on the visual and textual content.
-    - "strategicRecommendations": An array of 3-5 strings with actionable recommendations that integrate all findings.
+    **JSON Output Specification:**
+    Return a single, valid JSON object with the following structure:
+    {
+      "performanceSummary": "A data-driven summary of what's working (e.g., 'High engagement on Reels, indicating video content is effective') and what's not (e.g., 'Low reach on static posts, possibly due to poor hashtag strategy').",
+      "audienceProfile": "A detailed description of the audience, synthesized from analytics data and content style. Mention demographics, interests, and potential psychographics.",
+      "brandArchetype": "Identify the primary brand archetype (e.g., The Sage, The Jester, The Hero) and briefly justify why based on the visual and textual tone.",
+      "strategicRecommendations": [
+        "A specific, actionable recommendation. For example: 'The analytics show a 70% female audience, but the color palette is very masculine. Recommendation: Test a new color palette incorporating softer tones on the next 3 posts to improve audience resonance.'",
+        "Another specific, actionable recommendation.",
+        "A third specific, actionable recommendation."
+      ]
+    }
     `;
 
     try {
@@ -52,24 +57,19 @@ export const analyzeSocialProfile = async (
         });
 
         if (analyticsImage) {
-            // Fix: Corrected typo `base6` to `base64`.
             parts.push({
                 inlineData: { data: analyticsImage.base64, mimeType: analyticsImage.mimeType }
             });
         }
         
-        // Fix: Completed the function by adding the API call and result processing.
         const response = await ai.models.generateContent({
             model: model,
             contents: { parts: parts },
             config: {
-                // Use Google Search for the URL as requested in the prompt
                 tools: [{ googleSearch: {} }],
             },
         });
 
-        // The model is instructed to return a JSON object inside a markdown block.
-        // We need to robustly extract it.
         let jsonString = response.text;
         const match = jsonString.match(/```json\s*([\s\S]*?)\s*```/);
         if (match && match[1]) {
@@ -81,7 +81,6 @@ export const analyzeSocialProfile = async (
 
     } catch (error: any) {
         console.error("Error analyzing social profile:", error);
-        // Throw a generic error key that can be translated by the UI
         throw new Error("analyzerApiError");
     }
 };

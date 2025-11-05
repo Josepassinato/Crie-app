@@ -24,6 +24,12 @@ const ProductInputForm: React.FC<ProductInputFormProps> = ({ formState, setFormS
     const { currentUser } = useContext(AuthContext);
     const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
     const [isNarrationLoading, setIsNarrationLoading] = useState(false);
+
+    React.useEffect(() => {
+        if (outputType === 'video' && !['9:16', '16:9'].includes(formState.aspectRatio)) {
+            setFormState((prevState: ProductFormData) => ({ ...prevState, aspectRatio: '9:16' }));
+        }
+    }, [outputType, formState.aspectRatio, setFormState]);
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormState({ ...formState, [e.target.name]: e.target.value });
@@ -173,7 +179,7 @@ const ProductInputForm: React.FC<ProductInputFormProps> = ({ formState, setFormS
                     <div>
                         <label htmlFor="aspectRatio" className="block text-sm font-medium text-brand-subtle mb-2">{t('aspectRatioLabel')}</label>
                         <select name="aspectRatio" id="aspectRatio" value={formState.aspectRatio} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                            <option value="1:1">1:1 (Square)</option>
+                            {outputType === 'image' && <option value="1:1">1:1 (Square)</option>}
                             <option value="9:16">9:16 (Vertical)</option>
                             <option value="16:9">16:9 (Horizontal)</option>
                              {outputType === 'image' && <option value="4:3">4:3 (Classic)</option>}
@@ -256,21 +262,20 @@ const ProductInputForm: React.FC<ProductInputFormProps> = ({ formState, setFormS
                         <h3 className="text-md font-semibold text-brand-text">{t('videoStyleOptions')}</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="videoDuration" className="block text-sm font-medium text-brand-subtle mb-2">{t('videoDurationLabel')}</label>
-                                <select name="videoDuration" id="videoDuration" value={formState.videoDuration} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                    {(Object.keys(VIDEO_COSTS) as Array<keyof typeof VIDEO_COSTS>).map(duration => {
-                                        const durationTextMap: Record<string, string> = {
-                                            '5s': t('duration5s'),
-                                            '10s': t('duration10s'),
-                                            '15s': t('duration15s'),
-                                        };
-                                        return (
-                                            <option key={duration} value={duration}>
-                                                {t('videoDurationOption', { duration: durationTextMap[duration], cost: VIDEO_COSTS[duration], tokens: t('tokens') })}
-                                            </option>
-                                        )
-                                    })}
-                                </select>
+                                <label className="block text-sm font-medium text-brand-subtle mb-2">{t('videoDurationLabel')}</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(Object.keys(VIDEO_COSTS) as Array<keyof typeof VIDEO_COSTS>).map((duration) => (
+                                        <button
+                                            key={duration}
+                                            type="button"
+                                            onClick={() => handleInputChange({ target: { name: 'videoDuration', value: duration } } as any)}
+                                            className={`relative inline-flex flex-col items-center justify-center w-full rounded-md p-2 text-sm ring-1 ring-inset ring-slate-600 focus:z-10 transition-colors ${formState.videoDuration === duration ? 'bg-brand-primary text-slate-900 ring-brand-primary' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}
+                                        >
+                                            <span className="font-bold text-base">{duration}</span>
+                                            <span className="text-xs opacity-80">{VIDEO_COSTS[duration]} {t('tokens')}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div>
                                 <label htmlFor="animationStyle" className="block text-sm font-medium text-brand-subtle mb-2">{t('animationStyleLabel')}</label>

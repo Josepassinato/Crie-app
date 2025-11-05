@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AnalysisResult, UploadedImage } from '../types';
+import { AnalysisResult, UploadedImage, AppPage } from '../types';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { TOKEN_COSTS } from '../lib/tokenCosts';
@@ -16,6 +16,8 @@ const AnalyzerPage: React.FC = () => {
         isAnalyzerLoading,
         error,
         handleProfileAnalysisSubmit,
+        setContextualPrompt,
+        setActivePage,
     } = useAppState();
 
     const handleFeedImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +29,6 @@ const AnalyzerPage: React.FC = () => {
                 setAnalyzerFormState(prev => ({ ...prev, feedImages: [] }));
                 return;
             }
-            // Fix: Add explicit type `File` to the `file` parameter to resolve type inference issues.
             fileArray.forEach((file: File) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -72,6 +73,11 @@ const AnalyzerPage: React.FC = () => {
         }
     };
     
+    const handleUseRecommendation = (recommendation: string, page: AppPage) => {
+        setContextualPrompt(recommendation);
+        setActivePage(page);
+    };
+
     const ResultSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
             <h3 className="flex items-center text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-2">
@@ -98,6 +104,17 @@ const AnalyzerPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                      <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 space-y-6">
+                        <div className="bg-blue-900/20 border border-blue-500/30 text-blue-200 px-4 py-3 rounded-lg relative" role="alert">
+                            <div className="flex">
+                                <div className="py-1">
+                                    <svg className="fill-current h-6 w-6 text-blue-400 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zM9 11v4h2v-4H9zm0-4h2v2H9V7z"/></svg>
+                                </div>
+                                <div>
+                                    <p className="font-bold">{t('proTipTitle')}</p>
+                                    <p className="text-sm">{t('proTipDescription')}</p>
+                                </div>
+                            </div>
+                        </div>
                         <div>
                             <label htmlFor="profileUrl" className="block text-sm font-medium text-brand-subtle mb-2">{t('profileUrlLabel')}</label>
                             <input
@@ -186,11 +203,29 @@ const AnalyzerPage: React.FC = () => {
                                     <p>{analysisResult.brandArchetype}</p>
                                 </ResultSection>
                                 <ResultSection title={t('strategicRecommendations')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}>
-                                    <ul className="list-disc list-inside space-y-2">
+                                    <div className="space-y-4">
                                         {analysisResult.strategicRecommendations.map((rec, index) => (
-                                            <li key={index}>{rec}</li>
+                                            <div key={index} className="border-t border-slate-700/50 pt-3 space-y-3">
+                                                <p>{rec}</p>
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => handleUseRecommendation(rec, 'creator')}
+                                                        className="px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-cyan-900/50 hover:bg-cyan-900/80 rounded-full transition-colors flex items-center gap-1.5"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
+                                                        {t('useForContent')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleUseRecommendation(rec, 'trafficManager')}
+                                                        className="px-3 py-1.5 text-xs font-semibold text-amber-300 bg-amber-900/50 hover:bg-amber-900/80 rounded-full transition-colors flex items-center gap-1.5"
+                                                    >
+                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                                        {t('useForCampaign')}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </ul>
+                                    </div>
                                 </ResultSection>
                             </div>
                         )}
