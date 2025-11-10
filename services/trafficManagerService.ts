@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { CampaignPlan, OrganicContentPlan, OrganicGrowthForm, TrafficPlanForm, UploadedImage } from "../types.ts";
+import { CampaignPlan, OrganicContentPlan, OrganicGrowthForm, TrafficPlanForm, UploadedImage, CampaignPerformanceAnalysisResult } from "../types.ts";
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -95,21 +95,29 @@ export const generateCampaignPlan = async (form: TrafficPlanForm, language: stri
 export const analyzeCampaignPerformance = async (
     adsManagerScreenshot: UploadedImage,
     language: string
-): Promise<string> => {
+): Promise<CampaignPerformanceAnalysisResult> => {
     const ai = getGoogleAI();
-    const model = 'gemini-2.5-pro';
+    const model = 'gemini-2.5-pro'; // Pro for better vision and structured output
 
     const prompt = `
-    CRITICAL: Your entire output must be in the following language: ${language}.
-    As a senior performance marketing analyst, analyze the provided screenshot from an ads manager platform (e.g., Meta Ads Manager, Google Ads).
+    CRITICAL: Your entire output must be a single, raw, valid JSON object, and nothing else. All text values within the JSON must be in the following language: ${language}.
+    
+    You are a senior performance marketing analyst and a highly practical digital marketing consultant. Your task is to analyze the provided screenshot from an ads manager platform (e.g., Meta Ads Manager, Google Ads).
 
-    **Your Task:**
-    1.  Extract key metrics from the image (e.g., Spend, CTR, CPC, CPA, ROAS, Conversions).
-    2.  Provide a concise summary of the campaign's performance.
-    3.  Identify what is working well and what is underperforming.
-    4.  Offer 2-3 specific, actionable recommendations for optimization.
+    **Your Analysis Task:**
+    1.  **Performance Summary (string):** Extract key metrics, summarize the campaign's performance (what's working/not working), and offer 2-3 specific, actionable recommendations for optimization. This should be a concise overview.
+    2.  **Step-by-Step Implementation Guide (string[]):** Based on your performance summary and recommendations, provide a clear, numbered, step-by-step guide for the user to implement these changes manually within their chosen ads platform (e.g., Meta Ads Manager, Google Ads). Focus on *where to go* in the platform and *how to configure* the specific settings (e.g., audience adjustments, creative updates, budget changes). Each step should be a self-contained instruction.
 
-    Present your analysis as a clear, well-formatted text. Do not return JSON.
+    **JSON Output Specification:**
+    {
+      "performanceSummary": "A concise summary of campaign performance, including key metrics, what's working/not working, and actionable optimization recommendations.",
+      "stepByStepGuide": [
+        "Step 1: Go to the Meta Ads Manager and navigate to your campaign.",
+        "Step 2: Edit the Ad Set. Under 'Audience', adjust demographics to include X and exclude Y.",
+        "Step 3: Update Ad Creatives. For Ad A, change the primary text to Z and update the headline to W."
+        // ... more steps based on the analysis
+      ]
+    }
     `;
 
     try {
@@ -123,8 +131,19 @@ export const analyzeCampaignPerformance = async (
         const response = await ai.models.generateContent({
             model: model,
             contents: { parts: [imagePart, { text: prompt }] },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        performanceSummary: { type: Type.STRING },
+                        stepByStepGuide: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    },
+                    required: ["performanceSummary", "stepByStepGuide"],
+                },
+            },
         });
-        return response.text.trim();
+        return JSON.parse(response.text.trim());
     } catch (error: any) {
         console.error("Error analyzing campaign performance:", error);
         throw new Error("trafficAnalysisImageError");

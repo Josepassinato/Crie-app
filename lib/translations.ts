@@ -85,6 +85,7 @@ const pt: TranslationKeys = {
   benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
   benchmarkAnalysisInstruction: 'Analise este perfil do Instagram e adapte o estilo, tom e tipo de conteúdo para que as novas postagens sejam similares.', // New, internal AI instruction
   specialSettings: 'Configurações Especiais', // New translation key
+  generateAISuggestions: 'Gerar Sugestões IA', // New
 
   videoStyleOptions: 'Opções de Estilo do Vídeo',
   videoDurationLabel: 'Duração do Vídeo',
@@ -188,7 +189,7 @@ const pt: TranslationKeys = {
   useForCampaign: 'Usar para Campanha',
   basedOnAnalysis: 'Baseado na análise estratégica',
 
-  // API Key Selector
+  // API Key Selector - REMOVED, but error messages kept for consistency
   apiKeyTitle: 'Chave de API Necessária',
   apiKeyDescription: 'Para gerar vídeos, esta ferramenta utiliza a API da Google AI Studio. Por favor, selecione sua chave de API para continuar. O uso será cobrado em sua conta Google.',
   selectApiKey: 'Selecionar Chave de API do Google',
@@ -257,6 +258,7 @@ const pt: TranslationKeys = {
   relatedKeywords: 'Palavras-chave Relacionadas',
   contentOutline: 'Esboço do Conteúdo',
   ctaSuggestions: 'Sugestões de CTA',
+  stepByStepGuideTitle: 'Guia Passo a Passo para Implementação', // New translation key
 
 
   // Strategy Page
@@ -302,6 +304,7 @@ const pt: TranslationKeys = {
   selectAccountError: 'Por favor, selecione uma conta para continuar.',
   strategyApiError: 'Ocorreu um erro ao gerar a estratégia.',
   performanceApiError: 'Ocorreu um erro ao gerar o relatório de performance.',
+  creativeSuggestionsApiError: 'Ocorreu um erro ao gerar sugestões de IA.', // New
   
   // Voice Agent
   agentChoiceTitle: 'Como você quer interagir?',
@@ -320,6 +323,7 @@ export const translations: Record<Language, TranslationKeys> = {
       benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
       benchmarkAnalysisInstruction: 'Analyze this Instagram profile and adapt the style, tone, and content type so new posts are similar.', // New, internal AI instruction
       specialSettings: 'Special Settings', // New translation key
+      generateAISuggestions: 'Generate AI Suggestions', // New
       videoApiKeyError: 'Video generation failed. Your selected API key might not have the Veo API enabled. Please check that the "Vertex AI API" is enabled in your Google Cloud project and try again.',
       tokens: 'Tokens',
       buyMore: 'Buy More',
@@ -330,6 +334,8 @@ export const translations: Record<Language, TranslationKeys> = {
       cancel: 'Cancel',
       proTipTitle: 'Pro Tip',
       proTipDescription: 'For the most accurate analysis, provide the URL, feed screenshots, and metrics. The AI will cross-reference these three data sources for a complete diagnosis.',
+      creativeSuggestionsApiError: 'An error occurred while generating AI suggestions.', // New
+      stepByStepGuideTitle: 'Step-by-Step Implementation Guide', // New translation key
     },
   'Español': { 
       ...pt,
@@ -338,6 +344,7 @@ export const translations: Record<Language, TranslationKeys> = {
       benchmarkProfileUrlPlaceholder: 'Ej: https://instagram.com/benchmarkprofile', // New
       benchmarkAnalysisInstruction: 'Analice este perfil de Instagram y adapte el estilo, tono y tipo de contenido para que las nuevas publicaciones sean similares.', // New, internal AI instruction
       specialSettings: 'Configuración Especial', // New translation key
+      generateAISuggestions: 'Generar Sugerencias IA', // New
       videoApiKeyError: 'Falló la generación de video. Es posible que su clave de API seleccionada no tenga la API de Veo habilitada. Verifique que la "API de Vertex AI" esté habilitada en su proyecto de Google Cloud e inténtelo de nuevo.',
       tokens: 'Tokens',
       buyMore: 'Comprar más',
@@ -348,5 +355,7 @@ export const translations: Record<Language, TranslationKeys> = {
       cancel: 'Cancelar',
       proTipTitle: 'Consejo Profesional',
       proTipDescription: 'Para el análisis más preciso, proporcione la URL, capturas de pantalla del feed y las métricas. La IA cruzará estas tres fuentes de datos para un diagnóstico completo.',
+      creativeSuggestionsApiError: 'Ocurrió un error al generar sugerencias de IA.', // New
+      stepByStepGuideTitle: 'Guía Paso a Paso para la Implementación', // New translation key
     }, 
 };

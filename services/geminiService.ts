@@ -1,6 +1,6 @@
 // Fix: Implement Gemini API calls for product post generation.
-import { GoogleGenAI, Modality } from "@google/genai";
-import { ProductPostContent, UploadedImage, MediaType, ProductFormData } from "../types.ts";
+import { GoogleGenAI, Modality, Type } from "@google/genai";
+import { ProductPostContent, UploadedImage, MediaType, ProductFormData, CreativeSuggestions } from "../types.ts";
 import { styleTemplates } from '../lib/styleTemplates.ts';
 import { translations } from '../lib/translations.ts'; // Import translations for AI instruction
 
@@ -351,4 +351,102 @@ export const generateProductPost = async (
         mediaUrl,
         mediaType: outputType,
     };
+};
+
+export const generateCreativeSuggestions = async (
+    coreInputs: {
+        profession?: string; // For Content
+        productName?: string; // For Product
+        marketingVibe?: string; // For Product
+        profileUrl?: string; // User's own profile URL (optional)
+        benchmarkProfileUrl?: string; // Benchmark profile URL (optional)
+    },
+    outputType: MediaType, // To know if we need video suggestions
+    language: string
+): Promise<CreativeSuggestions> => {
+    const ai = getGoogleAI();
+    const model = 'gemini-2.5-pro'; // Use a powerful model for reasoning
+
+    let contextSummary = '';
+    if (coreInputs.profileUrl) {
+        contextSummary += `User's own Instagram profile is ${coreInputs.profileUrl}. Analyze its style for influence.`;
+    }
+    if (coreInputs.benchmarkProfileUrl) {
+        const benchmarkSummary = await analyzeBenchmarkProfile(coreInputs.benchmarkProfileUrl, language);
+        if (benchmarkSummary) {
+            contextSummary += ` Benchmark Instagram profile analysis: "${benchmarkSummary}".`;
+        }
+    }
+
+    const typeSpecificInputs = coreInputs.profession
+        ? `Profession: ${coreInputs.profession}`
+        : `Product Name: ${coreInputs.productName}, Marketing Vibe: ${coreInputs.marketingVibe}`;
+
+    const videoSpecificInstructions = outputType === 'video' ? `
+        Also suggest optimal "videoDuration" ('5s', '10s', '15s'), "animationStyle" ('dynamic', 'elegant', 'minimalist', 'cinematic'), and "backgroundMusic" ('none', 'epic', 'upbeat', 'lofi', 'ai_generated').
+        If "backgroundMusic" is 'ai_generated', also provide a short "musicDescription" (e.g., 'a calm, inspiring instrumental track').
+    ` : '';
+
+    const postFormatInstruction = coreInputs.profession ? `
+        For a content creator (${coreInputs.profession}), suggest "postFormat" ('single' or 'carousel') and "carouselSlides" (3 to 7, if carousel).
+    ` : '';
+
+
+    const prompt = `
+    CRITICAL: Your entire output must be a single, raw, valid JSON object, and nothing else. All text values within the JSON must be in the following language: ${language}.
+    You are an expert digital marketing strategist. Your task is to provide optimal content creative parameters based on the client's profile and a benchmark.
+
+    **Client Context:**
+    - ${typeSpecificInputs}
+    - Additional context for suggestions: ${contextSummary || 'No additional context provided.'}
+
+    **Your Task:**
+    Generate a JSON object with creative suggestions for content creation. Focus on aspects that would be "special settings" or advanced configurations, designed to maximize engagement and align with best practices from the benchmark.
+    Only suggest fields that are relevant and make sense based on the context. If a field is not applicable or cannot be confidently suggested, omit it from the JSON.
+
+    **JSON Output Specification (conform to CreativeSuggestions interface):**
+    {
+        "targetAudience"?: "Detailed description of suggested target audience for content posts.",
+        ${postFormatInstruction}
+        "artisticStyle"?: "Suggested artistic style, e.g., 'Vintage', 'Cyberpunk', 'Aquarela', 'Padrão', 'Fantasia', 'Minimalista Arte'. Choose one that aligns with the profession/product and benchmark.",
+        "aspectRatio"?: "Suggested aspect ratio, e.g., '1:1', '16:9', '9:16'. Prefer '9:16' for vertical content if suitable for the platform/vibe.",
+        "negativePrompt"?: "Common elements to avoid for high quality visuals based on typical marketing best practices (e.g., 'text on image', 'blurry', 'distorted faces').",
+        "maskTemplate"?: "Suggested mask template, e.g., 'Moderno com Círculo', 'Grunge com Pinceladas', 'Minimalista com Linhas', 'Nenhum', 'minhaLogo'. Choose 'minhaLogo' if branding is key, otherwise 'Nenhum' or a subtle one.",
+        "colorPalette"?: "Suggested primary color palette (hex codes or descriptive names, e.g., '#FFFFFF, #000000, Tons de Azul').",
+        ${videoSpecificInstructions}
+    }
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: [{text: prompt}],
+            config: {
+                responseMimeType: "application/json",
+                tools: [{ googleSearch: {} }], // Allow search for profile analysis
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        targetAudience: { type: Type.STRING },
+                        postFormat: { type: Type.STRING, enum: ['single', 'carousel'] },
+                        carouselSlides: { type: Type.INTEGER },
+                        artisticStyle: { type: Type.STRING },
+                        aspectRatio: { type: Type.STRING, enum: ['1:1', '16:9', '9:16', '4:3', '3:4'] },
+                        negativePrompt: { type: Type.STRING },
+                        maskTemplate: { type: Type.STRING },
+                        colorPalette: { type: Type.STRING },
+                        videoDuration: { type: Type.STRING, enum: ['5s', '10s', '15s'] },
+                        animationStyle: { type: Type.STRING, enum: ['dynamic', 'elegant', 'minimalist', 'cinematic'] },
+                        backgroundMusic: { type: Type.STRING, enum: ['none', 'epic', 'upbeat', 'lofi', 'ai_generated'] },
+                        musicDescription: { type: Type.STRING },
+                    },
+                },
+            },
+        });
+        const result: CreativeSuggestions = JSON.parse(response.text.trim());
+        return result;
+    } catch (error) {
+        console.error("Error generating creative suggestions:", error);
+        throw new Error("creativeSuggestionsApiError");
+    }
 };

@@ -5,7 +5,7 @@ import AnalyzerPage from './pages/AnalyzerPage.tsx';
 // Fix: Add file extension to fix module resolution error.
 import TrafficManagerPage from './pages/TrafficManagerPage.tsx';
 // Fix: Changed import from default to named export to resolve module resolution error.
-import { StrategyPage } from './pages/StrategyPage.tsx';
+// import { StrategyPage } from './pages/StrategyPage.tsx'; // REMOVED
 import LandingPage from './pages/LandingPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
@@ -42,8 +42,8 @@ const AppContent: React.FC = () => {
                 return <AnalyzerPage />;
             case 'trafficManager':
                 return <TrafficManagerPage />;
-            case 'strategy':
-                return <StrategyPage />;
+            // case 'strategy': // REMOVED
+            //     return <StrategyPage />; // REMOVED
             case 'admin':
                 return <AdminPage />;
             case 'buyTokens':

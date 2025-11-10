@@ -16,7 +16,7 @@ const Header: React.FC = () => {
         { id: 'creator', label: t('creatorPage') || 'Creator' },
         { id: 'analyzer', label: t('analyzerPage') || 'Analyzer' },
         { id: 'trafficManager', label: t('trafficManagerPage') || 'Traffic Manager' },
-        { id: 'strategy', label: t('strategyPage') || 'Strategy AI' },
+        // { id: 'strategy', label: t('strategyPage') || 'Strategy AI' }, // REMOVED
     ];
     if (currentUser?.isAdmin) {
         navItems.push({ id: 'admin', label: 'Admin' });

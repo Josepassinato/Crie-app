@@ -3,7 +3,7 @@ import {
     AppPage, AppMode, MediaType, ProductFormData, ContentFormData, AnalyzerFormData,
     GeneratedContent, AnalysisResult, SavedAccount, GeneratedHistoryItem, TrafficPlanForm,
     CampaignPlan, HolisticStrategyResult, PerformanceReport, UploadedImage, WhatsappConnectionState,
-    OrganicGrowthForm, OrganicContentPlan
+    OrganicGrowthForm, OrganicContentPlan, CampaignPerformanceAnalysisResult // Import new type
 } from '../types';
 import { generateProductPost } from '../services/geminiService';
 import { generateContentMarketingPost } from '../services/contentMarketingService';
@@ -79,6 +79,7 @@ interface AppStateContextType {
     analyzerFormState: AnalyzerFormData;
     setAnalyzerFormState: React.Dispatch<React.SetStateAction<AnalyzerFormData>>;
     analysisResult: AnalysisResult | null;
+    setAnalysisResult: React.Dispatch<React.SetStateAction<AnalysisResult | null>>; // Fix: Added setAnalysisResult
     isAnalyzerLoading: boolean;
     handleProfileAnalysisSubmit: () => Promise<void>;
     
@@ -88,7 +89,7 @@ interface AppStateContextType {
     trafficAnalysisImage: UploadedImage | null;
     setTrafficAnalysisImage: React.Dispatch<React.SetStateAction<UploadedImage | null>>;
     campaignPlan: CampaignPlan | null;
-    campaignPerformanceFeedback: string | null;
+    campaignPerformanceFeedback: CampaignPerformanceAnalysisResult | null; // Updated type
     isCampaignPlanLoading: boolean;
     isCampaignPerformanceLoading: boolean;
     organicGrowthForm: OrganicGrowthForm;
@@ -102,7 +103,9 @@ interface AppStateContextType {
 
     // Strategy Page State
     strategyResult: HolisticStrategyResult | null;
+    setStrategyResult: React.Dispatch<React.SetStateAction<HolisticStrategyResult | null>>; // Fix: Added setStrategyResult
     performanceReport: PerformanceReport | null;
+    setPerformanceReport: React.Dispatch<React.SetStateAction<PerformanceReport | null>>; // Fix: Added setPerformanceReport
     isStrategyLoading: boolean;
     isPerformanceReportLoading: boolean;
     handleStrategySubmit: () => Promise<void>;
@@ -116,6 +119,8 @@ interface AppStateContextType {
 
     // General Error State
     error: string | null;
+    // Fix: Add handleTokenCost to the interface
+    handleTokenCost: (cost: number) => boolean;
 }
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -148,7 +153,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [trafficPlanForm, setTrafficPlanForm] = useState(initialTrafficPlanForm);
     const [trafficAnalysisImage, setTrafficAnalysisImage] = useState<UploadedImage | null>(null);
     const [campaignPlan, setCampaignPlan] = useState<CampaignPlan | null>(null);
-    const [campaignPerformanceFeedback, setCampaignPerformanceFeedback] = useState<string | null>(null);
+    const [campaignPerformanceFeedback, setCampaignPerformanceFeedback] = useState<CampaignPerformanceAnalysisResult | null>(null); // Updated type
     const [isCampaignPlanLoading, setIsCampaignPlanLoading] = useState(false);
     const [isCampaignPerformanceLoading, setIsCampaignPerformanceLoading] = useState(false);
     const [organicGrowthForm, setOrganicGrowthForm] = useState(initialOrganicGrowthForm);
@@ -188,7 +193,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         setError(messageKey);
     };
 
-    const handleTokenCost = (cost: number): boolean => {
+    const handleTokenCost = useCallback((cost: number): boolean => {
         if (!currentUser || currentUser.isAdmin) return true;
         if (currentUser.tokens < cost) {
             setError('insufficientTokens');
@@ -196,7 +201,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
         updateUserTokens(currentUser.tokens - cost);
         return true;
-    };
+    }, [currentUser, updateUserTokens]);
     
 
     // Creator Handlers
@@ -454,14 +459,15 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         generatedContent, setGeneratedContent, isLoading, error, 
         // Removed hasSelectedApiKey from here
         handleProductSubmit, handleContentSubmit, clearForm, updateCreatorFormField, startGeneration,
-        analyzerFormState, setAnalyzerFormState, analysisResult, isAnalyzerLoading, handleProfileAnalysisSubmit,
+        analyzerFormState, setAnalyzerFormState, analysisResult, setAnalysisResult, isAnalyzerLoading, handleProfileAnalysisSubmit,
         trafficPlanForm, setTrafficPlanForm, trafficAnalysisImage, setTrafficAnalysisImage,
         campaignPlan, campaignPerformanceFeedback, isCampaignPlanLoading, isCampaignPerformanceLoading,
         organicGrowthForm, setOrganicGrowthForm, organicContentPlan, isOrganicGrowthLoading,
         handleCampaignPlanSubmit, handleCampaignPerformanceSubmit, handleOrganicGrowthSubmit, handleChannelToggle,
-        strategyResult, performanceReport, isStrategyLoading, isPerformanceReportLoading,
+        strategyResult, setStrategyResult, performanceReport, setPerformanceReport, isStrategyLoading, isPerformanceReportLoading,
         handleStrategySubmit, handlePerformanceReportSubmit,
-        whatsappState, whatsappQrCode, connectWhatsapp, disconnectWhatsapp
+        whatsappState, whatsappQrCode, connectWhatsapp, disconnectWhatsapp,
+        handleTokenCost, // Fix: Added handleTokenCost to the context value
     };
 
     return (

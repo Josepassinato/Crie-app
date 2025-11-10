@@ -11,6 +11,8 @@ import HistoryPanel from '../components/HistoryPanel.tsx';
 import AutomationScheduler from '../components/AutomationScheduler.tsx';
 // Fix: Add file extension to fix module resolution error.
 import { useAppState } from '../contexts/AppStateContext.tsx';
+// Fix: Import Schedule type to resolve 'Cannot find name 'Schedule'' error.
+import { Schedule } from '../types';
 
 const CreatorPage: React.FC = () => {
     const { t } = React.useContext(LanguageContext);

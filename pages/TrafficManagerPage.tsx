@@ -5,7 +5,7 @@ import { useAppState } from '../contexts/AppStateContext.tsx';
 import { TOKEN_COSTS } from '../lib/tokenCosts.ts';
 import AccountManager from '../components/AccountManager.tsx';
 import HistoryPanel from '../components/HistoryPanel.tsx';
-import { CampaignPlan, OrganicContentPlan } from '../types.ts';
+import { CampaignPlan, OrganicContentPlan, CampaignPerformanceAnalysisResult } from '../types.ts'; // Import new type
 
 const PAID_CHANNELS = [
     { id: 'google', nameKey: 'googleAds', icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path d="M5.293 6.707a1 1 0 011.414 0L12 11.001l5.293-5.294a1 1 0 111.414 1.414L13.414 12l5.293 5.293a1 1 0 01-1.414 1.414L12 13.415l-5.293 5.293a1 1 0 01-1.414-1.414L10.586 12 5.293 6.707z" /></svg> },
@@ -25,7 +25,7 @@ const TrafficManagerPage: React.FC = () => {
         trafficAnalysisImage,
         setTrafficAnalysisImage,
         campaignPlan,
-        campaignPerformanceFeedback,
+        campaignPerformanceFeedback, // Updated type
         isCampaignPlanLoading,
         isCampaignPerformanceLoading,
         organicGrowthForm,
@@ -112,6 +112,21 @@ const TrafficManagerPage: React.FC = () => {
         </div>
     );
     
+    const renderCampaignPerformanceFeedback = (feedback: CampaignPerformanceAnalysisResult) => (
+        <div className="space-y-4 animate-fade-in">
+            <ResultSection title={t('performanceSummary')}>
+                <p className="whitespace-pre-wrap font-mono text-sm">{feedback.performanceSummary}</p>
+            </ResultSection>
+            <ResultSection title={t('stepByStepGuideTitle')}>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                    {feedback.stepByStepGuide.map((step, i) => (
+                        <li key={i}>{step}</li>
+                    ))}
+                </ol>
+            </ResultSection>
+        </div>
+    );
+
     const renderOrganicPlan = (plan: OrganicContentPlan) => (
         <div className="space-y-4 animate-fade-in">
             <ResultSection title={t('optimizedTitles')}>
@@ -235,8 +250,8 @@ const TrafficManagerPage: React.FC = () => {
                                  <div className="text-center text-red-400 p-4 bg-red-900/20 border border-red-500/30 rounded-md">{error}</div>
                              ) : activeTab === 'paid' && campaignPlan ? (
                                 renderCampaignPlan(campaignPlan)
-                             ) : activeTab === 'paid' && campaignPerformanceFeedback ? (
-                                 <div className="whitespace-pre-wrap font-mono text-sm p-4 bg-slate-900/50 rounded-md border border-slate-700">{campaignPerformanceFeedback}</div>
+                             ) : activeTab === 'paid' && campaignPerformanceFeedback ? ( // Check for the new structured feedback
+                                renderCampaignPerformanceFeedback(campaignPerformanceFeedback)
                              ) : activeTab === 'organic' && organicContentPlan ? (
                                 renderOrganicPlan(organicContentPlan)
                              ) : (

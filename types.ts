@@ -114,6 +114,11 @@ export interface CampaignPlan {
     };
 }
 
+export interface CampaignPerformanceAnalysisResult {
+    performanceSummary: string;
+    stepByStepGuide: string[];
+}
+
 export interface TrafficPlanForm {
     productService: string;
     targetAudience: string;
@@ -208,4 +213,19 @@ export interface VoiceSessionTranscript {
 export interface VoiceSessionData {
     transcript: VoiceSessionTranscript[];
     endedBy: 'user' | 'timeout';
+}
+
+export interface CreativeSuggestions {
+    targetAudience?: string;
+    postFormat?: 'single' | 'carousel';
+    carouselSlides?: number;
+    artisticStyle?: string;
+    aspectRatio?: string;
+    negativePrompt?: string;
+    maskTemplate?: string;
+    colorPalette?: string;
+    videoDuration?: '5s' | '10s' | '15s';
+    animationStyle?: 'dynamic' | 'elegant' | 'minimalist' | 'cinematic';
+    backgroundMusic?: 'none' | 'epic' | 'upbeat' | 'lofi' | 'ai_generated';
+    musicDescription?: string;
 }

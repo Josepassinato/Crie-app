@@ -33,6 +33,10 @@
  * 8. Account Performance Analysis (gemini-2.5-pro for complexity):
  *   - Cost: Similar to holistic strategy. Estimate ~$0.01.
  *   - Price: $0.01 * 4 = $0.04. This costs 20 tokens.
+ * 
+ * 9. Creative Suggestions Analysis (gemini-2.5-pro with Google Search):
+ *    - Cost: Medium complexity, includes search grounding. Estimate ~$0.005.
+ *    - Price: $0.005 * 4 = $0.02. This costs 10 tokens.
  */
 
 export const TOKEN_COSTS = {
@@ -43,6 +47,7 @@ export const TOKEN_COSTS = {
     PERFORMANCE_ANALYSIS: 8,
     STRATEGY_ANALYSIS: 20,
     ACCOUNT_PERFORMANCE_ANALYSIS: 20,
+    CREATIVE_SUGGESTIONS_ANALYSIS: 10, // New token cost
 };
 
 export const VIDEO_COSTS = {

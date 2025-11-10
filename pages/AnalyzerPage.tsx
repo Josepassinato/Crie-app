@@ -1,24 +1,37 @@
 import React, { useContext } from 'react';
-import { AnalysisResult, UploadedImage, AppPage } from '../types.ts';
+import { AnalysisResult, UploadedImage, AppPage, HolisticStrategyResult, PerformanceReport } from '../types.ts';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { TOKEN_COSTS } from '../lib/tokenCosts.ts';
 import AccountManager from '../components/AccountManager.tsx';
 import HistoryPanel from '../components/HistoryPanel.tsx';
 import { useAppState } from '../contexts/AppStateContext.tsx';
+import { AccountsContext } from '../contexts/AccountsContext'; // Import AccountsContext to check selected account
 
 const AnalyzerPage: React.FC = () => {
     const { t } = useContext(LanguageContext);
     const { currentUser } = useContext(AuthContext);
+    const { selectedAccountId } = useContext(AccountsContext); // Use selectedAccountId
+    
     const {
         analyzerFormState, setAnalyzerFormState,
-        analysisResult,
+        analysisResult, setAnalysisResult, // Fix: Destructure setAnalysisResult
         isAnalyzerLoading,
         error,
         handleProfileAnalysisSubmit,
         setContextualPrompt,
         setActivePage,
+        // Strategy/Performance states and handlers
+        strategyResult, setStrategyResult, // Fix: Destructure setStrategyResult
+        performanceReport, setPerformanceReport, // Fix: Destructure setPerformanceReport
+        isStrategyLoading,
+        isPerformanceReportLoading,
+        handleStrategySubmit,
+        handlePerformanceReportSubmit,
     } = useAppState();
+
+    const selectedAccount = !!selectedAccountId && selectedAccountId !== 'new-post';
+
 
     const handleFeedImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -91,6 +104,67 @@ const AnalyzerPage: React.FC = () => {
     const analyzeButtonText = currentUser?.isAdmin 
         ? t('analyze') 
         : `${t('analyze')} (${TOKEN_COSTS.PROFILE_ANALYSIS} ${t('tokens')})`;
+
+    const strategyButtonText = currentUser?.isAdmin 
+        ? t('generateStrategyButton') 
+        : `${t('generateStrategyButton')} (${TOKEN_COSTS.STRATEGY_ANALYSIS} ${t('tokens')})`;
+    
+    const performanceButtonText = currentUser?.isAdmin
+        ? t('analyzePerformanceButton')
+        // Fix: Correctly access ACCOUNT_PERFORMANCE_ANALYSIS from TOKEN_COSTS.
+        : `${t('analyzePerformanceButton')} (${TOKEN_COSTS.ACCOUNT_PERFORMANCE_ANALYSIS} ${t('tokens')})`;
+
+
+    const renderHolisticStrategyResult = (result: HolisticStrategyResult) => (
+        <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 space-y-6 animate-fade-in">
+            <h2 className="text-2xl font-bold text-center text-brand-text mb-4">{t('holisticStrategyReport')}</h2>
+            <ResultSection title={t('overallDiagnosisTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 002-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>}>
+                <p>{result.overallDiagnosis}</p>
+            </ResultSection>
+            <ResultSection title={t('strategicPillarsTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>}>
+                <ul className="list-disc list-inside space-y-1">
+                    {result.strategicPillars.map((pillar, index) => <li key={index}>{pillar}</li>)}
+                </ul>
+            </ResultSection>
+            <ResultSection title={t('actionableRecommendationsTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}>
+                <ul className="list-disc list-inside space-y-1">
+                    {result.actionableRecommendations.map((rec, index) => <li key={index}>{rec}</li>)}
+                </ul>
+            </ResultSection>
+            <ResultSection title={t('kpisToTrackTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}>
+                <ul className="list-disc list-inside space-y-1">
+                    {result.kpisToTrack.map((kpi, index) => <li key={index}>{kpi}</li>)}
+                </ul>
+            </ResultSection>
+        </div>
+    );
+
+    const renderPerformanceReport = (report: PerformanceReport) => (
+        <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 space-y-6 animate-fade-in">
+            <h2 className="text-2xl font-bold text-center text-brand-text mb-4">{t('performanceReportTitle')}</h2>
+            <ResultSection title={t('quantitativeSummaryTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}>
+                <p>{report.quantitativeSummary.reportOverview}</p>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>{t('totalPosts')}: {report.quantitativeSummary.totalPosts}</li>
+                    <li>{t('totalCampaigns')}: {report.quantitativeSummary.totalCampaigns}</li>
+                    <li>{t('totalAnalyses')}: {report.quantitativeSummary.totalAnalyses}</li>
+                </ul>
+            </ResultSection>
+            <ResultSection title={t('growthAnalysisTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}>
+                <p>{report.growthAnalysis}</p>
+            </ResultSection>
+            <ResultSection title={t('engagementTrendsTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.945 13A9.001 9.001 0 1110.055 3.055M11 13H15.045A9.001 9.001 0 0120.945 13V13z" /></svg>}>
+                <p>{report.engagementTrends}</p>
+            </ResultSection>
+            <ResultSection title={t('campaignEffectivenessTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.007 12.007 0 002.944 12c0 2.897.836 5.618 2.38 7.956A11.955 11.955 0 0112 21.056c2.897 0 5.618-.836 7.956-2.38A11.955 11.955 0 0021.056 12a12.007 12.007 0 00-3.04-8.618z" /></svg>}>
+                <p>{report.campaignEffectiveness}</p>
+            </ResultSection>
+            <ResultSection title={t('strategicSummaryTitle')} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.5v8.25m0 3.75h.007v.008H12v-.008zM12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" /></svg>}>
+                <p>{report.strategicSummary}</p>
+            </ResultSection>
+        </div>
+    );
+
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -182,14 +256,18 @@ const AnalyzerPage: React.FC = () => {
                         </button>
                     </div>
                      <div className="mt-8">
-                        {isAnalyzerLoading && (
+                        {(isAnalyzerLoading || isStrategyLoading || isPerformanceReportLoading) && (
                             <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
-                                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-brand-primary"></div>
-                                <p className="text-lg text-brand-subtle">{t('analyzerSpinnerMessage')}</p>
+                                <div className={`animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 
+                                    ${isAnalyzerLoading ? 'border-brand-primary' : (isStrategyLoading ? 'border-rose-500' : 'border-blue-500')}`}></div>
+                                <p className="text-lg text-brand-subtle">
+                                    {isAnalyzerLoading ? t('analyzerSpinnerMessage') : (isStrategyLoading ? t('generatingStrategy') : t('analyzingPerformance'))}
+                                </p>
                                 <p className="text-sm text-slate-500">{t('spinnerSubtext')}</p>
                             </div>
                         )}
                         {error && <div className="text-center text-red-400 p-4 bg-red-900/20 border border-red-500/30 rounded-md">{error}</div>}
+                        
                         {analysisResult && (
                             <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 space-y-6 animate-fade-in">
                                 <h2 className="text-2xl font-bold text-center text-brand-text mb-4">{t('strategicReport')}</h2>
@@ -229,6 +307,33 @@ const AnalyzerPage: React.FC = () => {
                                 </ResultSection>
                             </div>
                         )}
+                        
+                        {/* Strategy and Performance Buttons */}
+                        {analysisResult && ( // Show these buttons only after an analysis is done
+                            <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 space-y-4 animate-fade-in mt-8">
+                                <button
+                                    onClick={handleStrategySubmit}
+                                    disabled={isStrategyLoading || isPerformanceReportLoading || !selectedAccount}
+                                    className="w-full py-3 px-8 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-rose-500 to-red-500 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 focus:ring-offset-brand-bg disabled:from-slate-600 disabled:to-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-200"
+                                >
+                                    {isStrategyLoading ? t('generatingStrategy') : strategyButtonText}
+                                </button>
+                                <button
+                                    onClick={handlePerformanceReportSubmit}
+                                    disabled={isPerformanceReportLoading || isStrategyLoading || !selectedAccount}
+                                    className="w-full py-3 px-8 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-brand-bg disabled:from-slate-600 disabled:to-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-200"
+                                >
+                                    {isPerformanceReportLoading ? t('analyzingPerformance') : performanceButtonText}
+                                </button>
+                                {!selectedAccount && (
+                                    <p className="text-center text-sm text-brand-subtle">{t('selectAccountPrompt')}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {strategyResult && renderHolisticStrategyResult(strategyResult)}
+                        {performanceReport && renderPerformanceReport(performanceReport)}
+
                     </div>
                 </div>
                 <div className="lg:col-span-1 space-y-8">
@@ -239,7 +344,17 @@ const AnalyzerPage: React.FC = () => {
                         <HistoryPanel 
                            onSelectHistoryItem={(item) => {
                              if (item.type === 'analysis') {
-                                // This needs to be handled in context now, maybe by setting active result
+                                setAnalysisResult(item.data as AnalysisResult);
+                                setStrategyResult(null); // Clear other results when selecting a new analysis
+                                setPerformanceReport(null);
+                             } else if (item.type === 'holisticStrategy') {
+                                setStrategyResult(item.data as HolisticStrategyResult);
+                                setAnalysisResult(null); // Clear other results
+                                setPerformanceReport(null);
+                             } else if (item.type === 'performanceReport') {
+                                setPerformanceReport(item.data as PerformanceReport);
+                                setAnalysisResult(null); // Clear other results
+                                setStrategyResult(null);
                              }
                            }}
                         />

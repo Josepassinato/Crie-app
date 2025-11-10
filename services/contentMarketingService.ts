@@ -3,7 +3,7 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { ContentMarketingPost, UploadedImage, MediaType } from "../types.ts";
 import { styleTemplates } from '../lib/styleTemplates.ts';
-import { analyzeBenchmarkProfile } from './geminiService.ts'; // Import the shared benchmark analysis function
+import { analyzeBenchmarkProfile, generateCreativeSuggestions } from './geminiService.ts'; // Import the shared benchmark analysis and creative suggestions functions
 import { translations } from '../lib/translations.ts'; // Import translations for AI instruction
 
 
