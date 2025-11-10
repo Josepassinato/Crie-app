@@ -80,6 +80,10 @@ const pt: TranslationKeys = {
   uploadLogo: 'Carregar Logo',
   changeLogo: 'Trocar Logo',
   includeSelfieLabel: 'Incluir sua Selfie',
+  profileUrlForAnalysis: 'Seu Perfil Instagram (Opcional)',
+  benchmarkProfileUrlLabel: 'Perfil Instagram de Referência (Opcional)', // New
+  benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
+  benchmarkAnalysisInstruction: 'Analise este perfil do Instagram e adapte o estilo, tom e tipo de conteúdo para que as novas postagens sejam similares.', // New, internal AI instruction
 
   videoStyleOptions: 'Opções de Estilo do Vídeo',
   videoDurationLabel: 'Duração do Vídeo',
@@ -110,7 +114,7 @@ const pt: TranslationKeys = {
   generateProductMedia: 'Gerar Mídia do Produto',
   
   // Output Display
-  productPlaceholderTitle: 'Sua Mídia de Produto Aparecerá Aqui',
+  productPlaceholderTitle: 'Sua Média de Produto Aparecerá Aqui',
   contentPlaceholderTitle: 'Seu Conteúdo Aparecerá Aqui',
   placeholderSubtitle: 'Preencha o formulário e clique em gerar.',
   spinnerVideoMessage: 'Gerando seu vídeo...',
@@ -310,6 +314,10 @@ export const translations: Record<Language, TranslationKeys> = {
   'Português': pt,
   'English': { 
       ...pt,
+      profileUrlForAnalysis: 'Your Instagram Profile (Optional)',
+      benchmarkProfileUrlLabel: 'Benchmark Instagram Profile (Optional)', // New
+      benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
+      benchmarkAnalysisInstruction: 'Analyze this Instagram profile and adapt the style, tone, and content type so new posts are similar.', // New, internal AI instruction
       videoApiKeyError: 'Video generation failed. Your selected API key might not have the Veo API enabled. Please check that the "Vertex AI API" is enabled in your Google Cloud project and try again.',
       tokens: 'Tokens',
       buyMore: 'Buy More',
@@ -320,10 +328,13 @@ export const translations: Record<Language, TranslationKeys> = {
       cancel: 'Cancel',
       proTipTitle: 'Pro Tip',
       proTipDescription: 'For the most accurate analysis, provide the URL, feed screenshots, and metrics. The AI will cross-reference these three data sources for a complete diagnosis.',
-      // ... Add all other translations
     },
   'Español': { 
       ...pt,
+      profileUrlForAnalysis: 'Tu Perfil de Instagram (Opcional)',
+      benchmarkProfileUrlLabel: 'Perfil de Instagram de Referencia (Opcional)', // New
+      benchmarkProfileUrlPlaceholder: 'Ej: https://instagram.com/benchmarkprofile', // New
+      benchmarkAnalysisInstruction: 'Analice este perfil de Instagram y adapte el estilo, tono y tipo de contenido para que las nuevas publicaciones sean similares.', // New, internal AI instruction
       videoApiKeyError: 'Falló la generación de video. Es posible que su clave de API seleccionada no tenga la API de Veo habilitada. Verifique que la "API de Vertex AI" esté habilitada en su proyecto de Google Cloud e inténtelo de nuevo.',
       tokens: 'Tokens',
       buyMore: 'Comprar más',
@@ -334,6 +345,5 @@ export const translations: Record<Language, TranslationKeys> = {
       cancel: 'Cancelar',
       proTipTitle: 'Consejo Profesional',
       proTipDescription: 'Para el análisis más preciso, proporcione la URL, capturas de pantalla del feed y las métricas. La IA cruzará estas tres fuentes de datos para un diagnóstico completo.',
-      // ... Add all other translations
     }, 
 };

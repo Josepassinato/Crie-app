@@ -33,6 +33,7 @@ export interface ProductFormData {
     postExample2: string;
     postExample3: string;
     profileUrl: string;
+    benchmarkProfileUrl?: string; // New field for benchmark
 }
 
 export interface ContentFormData {
@@ -57,6 +58,7 @@ export interface ContentFormData {
     backgroundMusic: 'none' | 'epic' | 'upbeat' | 'lofi' | 'ai_generated';
     musicDescription: string;
     profileUrl: string;
+    benchmarkProfileUrl?: string; // New field for benchmark
 }
 
 export interface ProductPostContent {

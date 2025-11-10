@@ -2,6 +2,7 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { ProductPostContent, UploadedImage, MediaType, ProductFormData } from "../types";
 import { styleTemplates } from '../lib/styleTemplates';
+import { translations } from '../lib/translations'; // Import translations for AI instruction
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -10,6 +11,34 @@ const getGoogleAI = () => {
     }
     return new GoogleGenAI({ apiKey });
 };
+
+// New shared function to analyze a benchmark profile
+export const analyzeBenchmarkProfile = async (profileUrl: string, language: string): Promise<string> => {
+    if (!profileUrl) return "";
+    const ai = getGoogleAI();
+    const model = 'gemini-2.5-pro'; // Pro for better search and reasoning
+    const prompt = `
+    CRITICAL: Your entire output must be in the following language: ${language}.
+    Analyze the public Instagram profile at this URL: ${profileUrl}.
+    Identify the main content themes, visual style, tone of voice, common hashtags, and overall brand personality.
+    Summarize these characteristics in a concise paragraph. This summary will be used to guide AI content generation.
+    Your output should be ONLY this summary paragraph.
+    `;
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: [{text: prompt}],
+            config: { tools: [{ googleSearch: {} }] },
+        });
+        // Per coding guidelines, access text directly.
+        return response.text.trim();
+    } catch (error) {
+        console.warn(`Failed to analyze benchmark profile ${profileUrl}:`, error);
+        // Return a placeholder instruction in case of failure
+        return translations[language]['benchmarkAnalysisInstruction'] || `(Failed to analyze benchmark profile at ${profileUrl} due to an error, proceeding without it.)`;
+    }
+};
+
 
 export const generateNarrationScript = async (
     productName: string,
@@ -31,7 +60,7 @@ export const generateNarrationScript = async (
     `;
     const response = await ai.models.generateContent({
         model,
-        contents: prompt,
+        contents: [{text: prompt}],
     });
     // Fix: Per coding guidelines, access text directly.
     return response.text;
@@ -58,10 +87,20 @@ export const generateProductPost = async (
     postExample1: string,
     postExample2: string,
     postExample3: string,
+    profileUrl: string, // Added your profile URL for context
+    benchmarkProfileUrl: string | undefined, // New: Benchmark profile URL
     language: string
 ): Promise<ProductPostContent> => {
     
     const ai = getGoogleAI();
+
+    let benchmarkInstruction = '';
+    if (benchmarkProfileUrl) {
+        const benchmarkSummary = await analyzeBenchmarkProfile(benchmarkProfileUrl, language);
+        if (benchmarkSummary) {
+            benchmarkInstruction = `CRITICAL: Adopt a style, tone, and content structure similar to the following benchmark analysis: "${benchmarkSummary}".`;
+        }
+    }
 
     // Step 1: Generate post text
     const writingStyleInstruction = [postExample1, postExample2, postExample3].some(p => p.trim() !== '')
@@ -81,12 +120,13 @@ export const generateProductPost = async (
     Description: ${productDescription}
     Campaign Vibe: ${marketingVibe}
     ${writingStyleInstruction}
+    ${benchmarkInstruction}
     The post should be exciting and encourage people to check out the product. Include a few relevant hashtags. Don't use markdown formatting.
     `;
     const textModel = 'gemini-2.5-flash';
     const textResponsePromise = ai.models.generateContent({
         model: textModel,
-        contents: postTextPrompt,
+        contents: [{text: postTextPrompt}],
     });
 
     let mediaUrl: string;
@@ -127,7 +167,7 @@ export const generateProductPost = async (
     // Step 2: Generate media (image or video)
     if (outputType === 'image') {
         const aspectRatioInstruction = `The final image must have a ${aspectRatio} aspect ratio.`;
-        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as a key element. The overall vibe should be "${marketingVibe}". ${templateInstruction} ${colorInstruction} ${selfieInstruction} ${negativePromptInstruction} ${aspectRatioInstruction} The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
+        const imagePrompt = `Create a stunning marketing image for "${productName}". Use the provided product image as a key element. The overall vibe should be "${marketingVibe}". ${templateInstruction} ${colorInstruction} ${selfieInstruction} ${negativePromptInstruction} ${aspectRatioInstruction} ${benchmarkInstruction} The final image should be dynamic and high-quality, suitable for an ad campaign. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
         const imageModel = 'gemini-2.5-flash-image';
         
         const imageParts: ({ text: string } | { inlineData: { data: string; mimeType: string; } })[] = [
@@ -194,7 +234,7 @@ export const generateProductPost = async (
 
         // If a selfie is provided, generate a composite start frame first.
         if (userSelfie) {
-            const startFramePrompt = `Create a stunning, photorealistic marketing scene for a product named "${productName}". The vibe is "${marketingVibe}". The scene must feature the person from the provided user selfie, seamlessly and realistically integrated. Also incorporate the provided product image into the scene. ${templateInstruction} ${colorInstruction} ${negativePromptInstruction} The final image should be dynamic and high-quality, suitable for a video's first frame. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
+            const startFramePrompt = `Create a stunning, photorealistic marketing scene for a product named "${productName}". The vibe is "${marketingVibe}". The scene must feature the person from the provided user selfie, seamlessly and realistically integrated. Also incorporate the provided product image into the scene. ${templateInstruction} ${colorInstruction} ${negativePromptInstruction} ${benchmarkInstruction} The final image should be dynamic and high-quality, suitable for a video's first frame. Do not include any text in the image. Final style must be: ${selectedStylePrompt}`;
             
             const imageModel = 'gemini-2.5-flash-image';
             const imageParts: ({ text: string } | { inlineData: { data: string; mimeType: string; } })[] = [
@@ -245,7 +285,7 @@ export const generateProductPost = async (
             audioInstructions = "The final video MUST include background music that fits the requested vibe.";
         }
 
-        const videoPrompt = `Bring this scene to life. Create a short, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". The final style should be ${selectedStylePrompt}. Make it eye-catching for social media. ${audioInstructions}`;
+        const videoPrompt = `Bring this scene to life. Create a short, ${animationStyleInstruction} video ad for "${productName}". The video should animate the provided starting image with a vibe that is "${marketingVibe}". The final style should be ${selectedStylePrompt}. Make it eye-catching for social media. ${audioInstructions} ${benchmarkInstruction}`;
         
         const videoConfig: any = {
             numberOfVideos: 1,

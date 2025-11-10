@@ -39,7 +39,7 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
                     id: TEST_ACCOUNT_ID,
                     name: 'Conta Teste',
                     type: 'content',
-                    formData: { profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, userSelfie: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1', negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '', backgroundMusic: 'none', musicDescription: '' },
+                    formData: { profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, userSelfie: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1', negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '', backgroundMusic: 'none', musicDescription: '', benchmarkProfileUrl: '' }, // Added benchmarkProfileUrl
                     history: [],
                     schedule: { isEnabled: false, postsPerDay: 1, times: ['09:00'] }
                 };
@@ -61,6 +61,14 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 }
                 if (loadedAccounts[key].formData.negativePrompt === undefined) {
                     loadedAccounts[key].formData.negativePrompt = '';
+                }
+                if (loadedAccounts[key].formData.profileUrl === undefined) {
+                    loadedAccounts[key].formData.profileUrl = '';
+                }
+                // New migration for benchmarkProfileUrl
+                if ((loadedAccounts[key].formData as ProductFormData).benchmarkProfileUrl === undefined && (loadedAccounts[key].formData as ContentFormData).benchmarkProfileUrl === undefined) { 
+                    (loadedAccounts[key].formData as ProductFormData).benchmarkProfileUrl = '';
+                    (loadedAccounts[key].formData as ContentFormData).benchmarkProfileUrl = '';
                 }
                 if (loadedAccounts[key].type === 'content') {
                     const formData = loadedAccounts[key].formData as ContentFormData;
@@ -142,7 +150,15 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const id = Date.now().toString();
         
         // Ensure new accounts have defaults
-        let finalFormData: ContentFormData | ProductFormData = { artisticStyle: 'Padrão', userSelfie: null, aspectRatio: '1:1', negativePrompt: '', ...formData };
+        let finalFormData: ContentFormData | ProductFormData = { 
+            artisticStyle: 'Padrão', 
+            userSelfie: null, 
+            aspectRatio: '1:1', 
+            negativePrompt: '', 
+            profileUrl: '', // Ensure default for profileUrl
+            benchmarkProfileUrl: '', // Ensure default for benchmarkProfileUrl
+            ...formData 
+        };
         if (type === 'content') {
             finalFormData = {
                 postFormat: 'single',

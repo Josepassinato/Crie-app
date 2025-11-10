@@ -3,6 +3,9 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { ContentMarketingPost, UploadedImage, MediaType } from "../types";
 import { styleTemplates } from '../lib/styleTemplates';
+import { analyzeBenchmarkProfile } from './geminiService'; // Import the shared benchmark analysis function
+import { translations } from '../lib/translations'; // Import translations for AI instruction
+
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -32,7 +35,7 @@ export const generateContentNarrationScript = async (
     `;
     const response = await ai.models.generateContent({
         model,
-        contents: prompt,
+        contents: [{text: prompt}],
     });
     // Fix: Per coding guidelines, access text directly.
     return response.text;
@@ -61,9 +64,20 @@ export const generateContentMarketingPost = async (
     narrationScript: string,
     backgroundMusic: string,
     musicDescription: string,
+    profileUrl: string, // Added your profile URL for context
+    benchmarkProfileUrl: string | undefined, // New: Benchmark profile URL
     language: string
 ): Promise<ContentMarketingPost> => {
     const ai = getGoogleAI();
+
+    let benchmarkInstruction = '';
+    if (benchmarkProfileUrl) {
+        const benchmarkSummary = await analyzeBenchmarkProfile(benchmarkProfileUrl, language);
+        if (benchmarkSummary) {
+            benchmarkInstruction = `CRITICAL: Adapt a style, tone, and content structure similar to the following benchmark analysis: "${benchmarkSummary}".`;
+        }
+    }
+
 
     // Create template and color instructions for the prompt
     let templateInstruction = '';
@@ -121,6 +135,7 @@ export const generateContentMarketingPost = async (
     Additional Context: ${professionalContext || 'N/A'}
 
     ${writingStyleInstruction}
+    ${benchmarkInstruction}
 
     The pack must contain:
     1. ${isCarousel 
@@ -162,7 +177,7 @@ export const generateContentMarketingPost = async (
 
     const textResponsePromise = ai.models.generateContent({
         model: textModel,
-        contents: textGenerationPrompt,
+        contents: [{text: textGenerationPrompt}],
         config: {
             responseMimeType: "application/json",
             responseSchema: responseSchema,
@@ -259,7 +274,7 @@ export const generateContentMarketingPost = async (
             audioInstructions = "The final video MUST include background music that fits the requested vibe.";
         }
         
-        const videoPrompt = `Animate this scene. Create a short, ${animationStyleInstruction} video post for a content creator who is a ${profession}. Final style must be ${selectedStylePrompt}. ${audioInstructions}`;
+        const videoPrompt = `Animate this scene. Create a short, ${animationStyleInstruction} video post for a content creator who is a ${profession}. Final style must be ${selectedStylePrompt}. ${audioInstructions} ${benchmarkInstruction}`;
         
         const videoConfig: any = {
             numberOfVideos: 1,

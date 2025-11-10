@@ -3,7 +3,6 @@ import { Schedule } from '../types';
 import ProductInputForm from '../components/ProductInputForm';
 import ContentInputForm from '../components/ContentInputForm';
 import OutputDisplay from '../components/OutputDisplay';
-import ApiKeySelector from '../components/ApiKeySelector';
 import SaveAccountModal from '../components/SaveAccountModal';
 import AccountManager from '../components/AccountManager';
 import { LanguageContext } from '../contexts/LanguageContext';
@@ -30,7 +29,6 @@ const CreatorPage: React.FC = () => {
         generatedContent, setGeneratedContent,
         isLoading,
         error,
-        hasSelectedApiKey, setHasSelectedApiKey,
         handleProductSubmit,
         handleContentSubmit,
         clearForm,
@@ -60,22 +58,6 @@ const CreatorPage: React.FC = () => {
     }, [contextualPrompt, setAppMode, setContentFormState, setContextualPrompt, t]);
 
 
-    React.useEffect(() => {
-        const checkApiKey = async () => {
-            if (window.aistudio) {
-                const hasKey = await window.aistudio.hasSelectedApiKey();
-                setHasSelectedApiKey(hasKey);
-            }
-        };
-        checkApiKey();
-    }, [setHasSelectedApiKey]);
-    
-    const handleApiKeySelect = async () => {
-        if (window.aistudio) {
-            await window.aistudio.openSelectKey();
-            setHasSelectedApiKey(true);
-        }
-    };
     
     const handleSaveAccount = (accountName: string) => {
         const formData = appMode === 'product' ? productFormState : contentFormState;
@@ -90,12 +72,6 @@ const CreatorPage: React.FC = () => {
             setTempSchedule(newSchedule);
         }
     };
-
-    const isVeoModel = outputType === 'video';
-
-    if (isVeoModel && !hasSelectedApiKey) {
-        return <ApiKeySelector onKeySelect={handleApiKeySelect} />;
-    }
 
     return (
         <>

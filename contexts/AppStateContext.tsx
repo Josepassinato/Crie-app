@@ -23,6 +23,7 @@ const initialProductFormState: ProductFormData = {
     videoDuration: '5s', animationStyle: 'dynamic', aspectRatio: '1:1', negativePrompt: '',
     narrationScript: '', backgroundMusic: 'none', musicDescription: '',
     postExample1: '', postExample2: '', postExample3: '', profileUrl: '',
+    benchmarkProfileUrl: '', // New field
 };
 
 const initialContentFormState: ContentFormData = {
@@ -31,6 +32,7 @@ const initialContentFormState: ContentFormData = {
     postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1',
     negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '',
     backgroundMusic: 'none', musicDescription: '',
+    benchmarkProfileUrl: '', // New field
 };
 
 const initialAnalyzerFormState: AnalyzerFormData = {
@@ -71,9 +73,8 @@ interface AppStateContextType {
     startGeneration: () => Promise<void>;
     
     // API Key State
-    hasSelectedApiKey: boolean;
-    setHasSelectedApiKey: React.Dispatch<React.SetStateAction<boolean>>;
-    
+    // Removed hasSelectedApiKey from here
+
     // Analyzer Page State
     analyzerFormState: AnalyzerFormData;
     setAnalyzerFormState: React.Dispatch<React.SetStateAction<AnalyzerFormData>>;
@@ -136,7 +137,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [contentFormState, setContentFormState] = useState(initialContentFormState);
     const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [hasSelectedApiKey, setHasSelectedApiKey] = useState(false);
+    // Removed hasSelectedApiKey state
 
     // Analyzer Page State
     const [analyzerFormState, setAnalyzerFormState] = useState(initialAnalyzerFormState);
@@ -182,7 +183,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             } else {
                 messageKey = "apiKeyError";
             }
-            setHasSelectedApiKey(false);
+            // Removed: setHasSelectedApiKey(false);
         }
         setError(messageKey);
     };
@@ -221,7 +222,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 productFormState.videoDuration, productFormState.animationStyle, productFormState.aspectRatio,
                 productFormState.negativePrompt, productFormState.narrationScript, productFormState.backgroundMusic,
                 productFormState.musicDescription, productFormState.postExample1, productFormState.postExample2,
-                productFormState.postExample3, language
+                productFormState.postExample3, productFormState.profileUrl, productFormState.benchmarkProfileUrl, // Pass new field
+                language
             );
             setGeneratedContent(result);
             if (selectedAccountId) {
@@ -253,7 +255,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 contentFormState.postExample1, contentFormState.postExample2, contentFormState.postExample3,
                 contentFormState.artisticStyle, contentFormState.aspectRatio, contentFormState.negativePrompt,
                 contentFormState.videoDuration, contentFormState.animationStyle, contentFormState.narrationScript,
-                contentFormState.backgroundMusic, contentFormState.musicDescription, language
+                contentFormState.backgroundMusic, contentFormState.musicDescription, contentFormState.profileUrl, contentFormState.benchmarkProfileUrl, // Pass new field
+                language
             );
             setGeneratedContent(result);
              if (selectedAccountId) {
@@ -448,7 +451,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         activePage, setActivePage, appMode, setAppMode, outputType, setOutputType,
         contextualPrompt, setContextualPrompt,
         productFormState, setProductFormState, contentFormState, setContentFormState,
-        generatedContent, setGeneratedContent, isLoading, error, hasSelectedApiKey, setHasSelectedApiKey,
+        generatedContent, setGeneratedContent, isLoading, error, 
+        // Removed hasSelectedApiKey from here
         handleProductSubmit, handleContentSubmit, clearForm, updateCreatorFormField, startGeneration,
         analyzerFormState, setAnalyzerFormState, analysisResult, isAnalyzerLoading, handleProfileAnalysisSubmit,
         trafficPlanForm, setTrafficPlanForm, trafficAnalysisImage, setTrafficAnalysisImage,

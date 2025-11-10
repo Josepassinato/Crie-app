@@ -114,6 +114,11 @@ const ContentInputForm: React.FC<ContentInputFormProps> = ({ formState, setFormS
                 <label htmlFor="profileUrl" className="block text-sm font-medium text-brand-subtle mb-2">{t('profileUrlForAnalysis')}</label>
                 <input type="url" name="profileUrl" id="profileUrl" value={formState.profileUrl} onChange={handleInputChange} placeholder={t('profileUrlPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
             </div>
+            {/* New: Benchmark Instagram Profile URL */}
+            <div>
+                <label htmlFor="benchmarkProfileUrl" className="block text-sm font-medium text-brand-subtle mb-2">{t('benchmarkProfileUrlLabel')}</label>
+                <input type="url" name="benchmarkProfileUrl" id="benchmarkProfileUrl" value={formState.benchmarkProfileUrl || ''} onChange={handleInputChange} placeholder={t('benchmarkProfileUrlPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
+            </div>
             
              {/* Post Format Selection */}
             <div className="space-y-4 pt-4 border-t border-slate-700/50">
