@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
-import { AnalysisResult, UploadedImage, AppPage } from '../types';
+import { AnalysisResult, UploadedImage, AppPage } from '../types.ts';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AuthContext } from '../contexts/AuthContext';
-import { TOKEN_COSTS } from '../lib/tokenCosts';
-import AccountManager from '../components/AccountManager';
-import HistoryPanel from '../components/HistoryPanel';
-import { useAppState } from '../contexts/AppStateContext';
+import { TOKEN_COSTS } from '../lib/tokenCosts.ts';
+import AccountManager from '../components/AccountManager.tsx';
+import HistoryPanel from '../components/HistoryPanel.tsx';
+import { useAppState } from '../contexts/AppStateContext.tsx';
 
 const AnalyzerPage: React.FC = () => {
     const { t } = useContext(LanguageContext);

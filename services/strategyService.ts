@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { SavedAccount, GeneratedHistoryItem, HolisticStrategyResult, ContentMarketingPost, ProductPostContent, AnalysisResult, CampaignPlan, PerformanceReport } from "../types";
+import { SavedAccount, GeneratedHistoryItem, HolisticStrategyResult, ContentMarketingPost, ProductPostContent, AnalysisResult, CampaignPlan, PerformanceReport } from "../types.ts";
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;

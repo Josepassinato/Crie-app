@@ -1,19 +1,20 @@
 import React from 'react';
-import Header from './components/Header';
-import CreatorPage from './pages/CreatorPage';
-import AnalyzerPage from './pages/AnalyzerPage';
+import Header from './components/Header.tsx';
+import CreatorPage from './pages/CreatorPage.tsx';
+import AnalyzerPage from './pages/AnalyzerPage.tsx';
 // Fix: Add file extension to fix module resolution error.
-import TrafficManagerPage from './pages/TrafficManagerPage';
-import StrategyPage from './pages/StrategyPage';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import AdminPage from './pages/AdminPage';
-import BuyTokensPage from './pages/BuyTokensPage';
+import TrafficManagerPage from './pages/TrafficManagerPage.tsx';
+// Fix: Changed import from default to named export to resolve module resolution error.
+import { StrategyPage } from './pages/StrategyPage.tsx';
+import LandingPage from './pages/LandingPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import AdminPage from './pages/AdminPage.tsx';
+import BuyTokensPage from './pages/BuyTokensPage.tsx';
 import { AuthContext } from './contexts/AuthContext';
 // Fix: Add file extension to fix module resolution error.
-import { useAppState } from './contexts/AppStateContext';
-import InteractionChoicePage from './pages/InteractionChoicePage';
-import VoiceAgentPage from './pages/VoiceAgentPage';
+import { useAppState } from './contexts/AppStateContext.tsx';
+import InteractionChoicePage from './pages/InteractionChoicePage.tsx';
+import VoiceAgentPage from './pages/VoiceAgentPage.tsx';
 
 const AppContent: React.FC = () => {
     const { currentUser, loading } = React.useContext(AuthContext);

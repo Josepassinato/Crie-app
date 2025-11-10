@@ -1,8 +1,8 @@
 // Fix: Implement Gemini API calls for product post generation.
 import { GoogleGenAI, Modality } from "@google/genai";
-import { ProductPostContent, UploadedImage, MediaType, ProductFormData } from "../types";
-import { styleTemplates } from '../lib/styleTemplates';
-import { translations } from '../lib/translations'; // Import translations for AI instruction
+import { ProductPostContent, UploadedImage, MediaType, ProductFormData } from "../types.ts";
+import { styleTemplates } from '../lib/styleTemplates.ts';
+import { translations } from '../lib/translations.ts'; // Import translations for AI instruction
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;

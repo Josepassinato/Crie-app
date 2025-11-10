@@ -1,10 +1,10 @@
 // Fix: Implement Gemini API calls for content marketing post generation.
 // Fix: Updated import to use the correct '@google/genai' package.
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { ContentMarketingPost, UploadedImage, MediaType } from "../types";
-import { styleTemplates } from '../lib/styleTemplates';
-import { analyzeBenchmarkProfile } from './geminiService'; // Import the shared benchmark analysis function
-import { translations } from '../lib/translations'; // Import translations for AI instruction
+import { ContentMarketingPost, UploadedImage, MediaType } from "../types.ts";
+import { styleTemplates } from '../lib/styleTemplates.ts';
+import { analyzeBenchmarkProfile } from './geminiService.ts'; // Import the shared benchmark analysis function
+import { translations } from '../lib/translations.ts'; // Import translations for AI instruction
 
 
 const getGoogleAI = () => {
@@ -214,7 +214,7 @@ export const generateContentMarketingPost = async (
             if (candidate?.content?.parts) {
                 for (const part of candidate.content.parts) {
                   if (part.inlineData) {
-                    imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    imageUrl = `data:${part.inlineData.mimeType};base664,${part.inlineData.data}`;
                     break; 
                   }
                 }

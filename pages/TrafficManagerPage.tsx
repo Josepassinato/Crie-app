@@ -1,11 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AuthContext } from '../contexts/AuthContext';
-import { useAppState } from '../contexts/AppStateContext';
-import { TOKEN_COSTS } from '../lib/tokenCosts';
-import AccountManager from '../components/AccountManager';
-import HistoryPanel from '../components/HistoryPanel';
-import { CampaignPlan, OrganicContentPlan } from '../types';
+import { useAppState } from '../contexts/AppStateContext.tsx';
+import { TOKEN_COSTS } from '../lib/tokenCosts.ts';
+import AccountManager from '../components/AccountManager.tsx';
+import HistoryPanel from '../components/HistoryPanel.tsx';
+import { CampaignPlan, OrganicContentPlan } from '../types.ts';
 
 const PAID_CHANNELS = [
     { id: 'google', nameKey: 'googleAds', icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path d="M5.293 6.707a1 1 0 011.414 0L12 11.001l5.293-5.294a1 1 0 111.414 1.414L13.414 12l5.293 5.293a1 1 0 01-1.414 1.414L12 13.415l-5.293 5.293a1 1 0 01-1.414-1.414L10.586 12 5.293 6.707z" /></svg> },

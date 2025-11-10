@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
-import { Language, AppPage } from '../types';
+import { Language, AppPage } from '../types.ts';
 // Fix: Add file extension to fix module resolution error.
-import { useAppState } from '../contexts/AppStateContext';
-import WhatsappNotificationManager from './WhatsappNotificationManager';
+import { useAppState } from '../contexts/AppStateContext.tsx';
+import WhatsappNotificationManager from './WhatsappNotificationManager.tsx';
 
 const Header: React.FC = () => {
     const { currentUser, logout } = useContext(AuthContext);

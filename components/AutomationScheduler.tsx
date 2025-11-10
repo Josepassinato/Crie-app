@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Schedule } from '../types';
+import { Schedule } from '../types.ts';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 interface AutomationSchedulerProps {

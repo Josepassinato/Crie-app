@@ -1,16 +1,16 @@
 import React from 'react';
-import { Schedule } from '../types';
-import ProductInputForm from '../components/ProductInputForm';
-import ContentInputForm from '../components/ContentInputForm';
-import OutputDisplay from '../components/OutputDisplay';
-import SaveAccountModal from '../components/SaveAccountModal';
-import AccountManager from '../components/AccountManager';
+// Fix: Changed import from default to named export to resolve module resolution error.
+import { ProductInputForm } from '../components/ProductInputForm.tsx';
+import ContentInputForm from '../components/ContentInputForm.tsx';
+import OutputDisplay from '../components/OutputDisplay.tsx';
+import SaveAccountModal from '../components/SaveAccountModal.tsx';
+import AccountManager from '../components/AccountManager.tsx';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { AccountsContext } from '../contexts/AccountsContext';
-import HistoryPanel from '../components/HistoryPanel';
-import AutomationScheduler from '../components/AutomationScheduler';
+import HistoryPanel from '../components/HistoryPanel.tsx';
+import AutomationScheduler from '../components/AutomationScheduler.tsx';
 // Fix: Add file extension to fix module resolution error.
-import { useAppState } from '../contexts/AppStateContext';
+import { useAppState } from '../contexts/AppStateContext.tsx';
 
 const CreatorPage: React.FC = () => {
     const { t } = React.useContext(LanguageContext);

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { GeneratedContent, AppMode, MediaType, ContentMarketingPost, ProductPostContent } from '../types';
+import { GeneratedContent, AppMode, MediaType, ContentMarketingPost, ProductPostContent } from '../types.ts';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 interface OutputDisplayProps {

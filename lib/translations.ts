@@ -84,6 +84,7 @@ const pt: TranslationKeys = {
   benchmarkProfileUrlLabel: 'Perfil Instagram de Referência (Opcional)', // New
   benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
   benchmarkAnalysisInstruction: 'Analise este perfil do Instagram e adapte o estilo, tom e tipo de conteúdo para que as novas postagens sejam similares.', // New, internal AI instruction
+  specialSettings: 'Configurações Especiais', // New translation key
 
   videoStyleOptions: 'Opções de Estilo do Vídeo',
   videoDurationLabel: 'Duração do Vídeo',
@@ -97,7 +98,7 @@ const pt: TranslationKeys = {
   styleMinimalist: 'Minimalista',
   styleCinematic: 'Cinemático',
   
-  videoAudioOptions: 'Opções de Áudio do Vídeo',
+  videoAudioOptions: 'Opcões de Áudio do Vídeo',
   narrationScriptLabel: 'Roteiro de Narração',
   narrationScriptPlaceholder: 'Digite ou gere um roteiro aqui...',
   generateNarrationAi: 'Gerar com IA',
@@ -318,6 +319,7 @@ export const translations: Record<Language, TranslationKeys> = {
       benchmarkProfileUrlLabel: 'Benchmark Instagram Profile (Optional)', // New
       benchmarkProfileUrlPlaceholder: 'Ex: https://instagram.com/benchmarkprofile', // New
       benchmarkAnalysisInstruction: 'Analyze this Instagram profile and adapt the style, tone, and content type so new posts are similar.', // New, internal AI instruction
+      specialSettings: 'Special Settings', // New translation key
       videoApiKeyError: 'Video generation failed. Your selected API key might not have the Veo API enabled. Please check that the "Vertex AI API" is enabled in your Google Cloud project and try again.',
       tokens: 'Tokens',
       buyMore: 'Buy More',
@@ -335,6 +337,7 @@ export const translations: Record<Language, TranslationKeys> = {
       benchmarkProfileUrlLabel: 'Perfil de Instagram de Referencia (Opcional)', // New
       benchmarkProfileUrlPlaceholder: 'Ej: https://instagram.com/benchmarkprofile', // New
       benchmarkAnalysisInstruction: 'Analice este perfil de Instagram y adapte el estilo, tono y tipo de contenido para que las nuevas publicaciones sean similares.', // New, internal AI instruction
+      specialSettings: 'Configuración Especial', // New translation key
       videoApiKeyError: 'Falló la generación de video. Es posible que su clave de API seleccionada no tenga la API de Veo habilitada. Verifique que la "API de Vertex AI" esté habilitada en su proyecto de Google Cloud e inténtelo de nuevo.',
       tokens: 'Tokens',
       buyMore: 'Comprar más',
