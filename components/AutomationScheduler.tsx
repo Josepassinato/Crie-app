@@ -42,7 +42,7 @@ const AutomationScheduler: React.FC<AutomationSchedulerProps> = ({ schedule, set
                         onClick={handleToggle}
                         disabled={isDisabled || !schedule}
                         className={`${
-                        schedule?.isEnabled ? 'bg-brand-primary' : 'bg-slate-600'
+                        schedule?.isEnabled ? 'bg-brand-primary' : 'bg-brand-subtle'
                         } relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:cursor-not-allowed`}
                         aria-pressed={schedule?.isEnabled}
                     >
@@ -75,7 +75,7 @@ const AutomationScheduler: React.FC<AutomationSchedulerProps> = ({ schedule, set
                             id="posts-per-day"
                             value={schedule.postsPerDay}
                             onChange={handlePostsPerDayChange}
-                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                            className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                         >
                             <option value={1}>1</option>
                             <option value={2}>2</option>
@@ -93,7 +93,7 @@ const AutomationScheduler: React.FC<AutomationSchedulerProps> = ({ schedule, set
                                     id={`time-${index}`}
                                     value={time}
                                     onChange={(e) => handleTimeChange(index, e.target.value)}
-                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                                 />
                             </div>
                         ))}

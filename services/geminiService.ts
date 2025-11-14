@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { ProductFormData, ContentFormData, MediaType, UploadedImage, CreativeSuggestions } from "../types.ts";
 
 // Helper function to initialize GoogleGenAI
@@ -281,5 +281,40 @@ export const enhanceVideoPrompt = async (
     } catch (error) {
         console.error("Error enhancing video prompt:", error);
         throw new Error("creativeSuggestionsApiError"); // Reusing an existing error key
+    }
+};
+
+export const generateImageFromPrompt = async (
+    prompt: string
+): Promise<string> => {
+    try {
+        const ai = getGoogleAI();
+        const model = 'gemini-2.5-flash-image';
+
+        console.log(`Generating image with prompt: "${prompt}"`);
+
+        const response = await ai.models.generateContent({
+            model,
+            contents: {
+                parts: [{ text: prompt }],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE],
+            },
+        });
+
+        const imagePart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.mimeType.startsWith('image/'));
+
+        if (imagePart?.inlineData?.data) {
+            console.log("Image generation successful.");
+            return imagePart.inlineData.data;
+        } else {
+            console.error("Image data not found in API response:", response);
+            throw new Error("Image data was not found in the API response.");
+        }
+    } catch (error) {
+        console.error("Error generating image from prompt:", error);
+        // Let the caller handle the error message key
+        throw error;
     }
 };

@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useCallback, ReactNode, useEffect } from 'react';
 import {
     AppPage, AppMode, MediaType, ProductFormData, ContentFormData,
     GeneratedContent, AnalysisResult, AnalyzerFormData,
@@ -32,7 +32,7 @@ import { sendWhatsappNotification } from '../services/whatsappService.ts';
 import { TOKEN_COSTS, VIDEO_COSTS } from '../lib/tokenCosts.ts';
 import { generateCompositeVideo } from '../services/videoService.ts';
 import { generateElevenLabsAudio } from '../services/elevenLabsService.ts';
-import { sanitizePromptForVideo } from '../services/geminiService.ts';
+import { sanitizePromptForVideo, generateImageFromPrompt } from '../services/geminiService.ts';
 
 
 // Initial form states
@@ -134,6 +134,8 @@ const initialOrganicGrowthForm: OrganicGrowthForm = {
     contentFormat: 'blog',
 };
 
+const PERSONA_IMAGES_STORAGE_KEY = 'crie-app-persona-images';
+
 type SubmissionType = 'product' | 'content' | 'special' | 'personaPost';
 
 interface AppStateContextType {
@@ -167,6 +169,10 @@ interface AppStateContextType {
     handleRetryWithSanitizedPrompt: () => Promise<void>;
     clearForm: (clearOutputToo?: boolean) => void;
     updateCreatorFormField: (mode: AppMode, field: keyof (ProductFormData | ContentFormData), value: any) => void;
+    // Persona Image Generation
+    personaImages: Record<string, string>;
+    generatingPersonaImage: string | null;
+    handleGeneratePersonaImage: (personaKey: string, prompt: string) => Promise<void>;
 
     // Analyzer Page States & Actions
     analyzerFormState: AnalyzerFormData;
@@ -247,6 +253,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [specialCreatorFormState, setSpecialCreatorFormState] = useState({ formData: initialSpecialCreatorFormData });
     const [personaCreatorFormState, setPersonaCreatorFormState] = useState<PersonaCreatorFormData>(initialPersonaCreatorFormData);
     const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+    const [personaImages, setPersonaImages] = useState<Record<string, string>>({});
+    const [generatingPersonaImage, setGeneratingPersonaImage] = useState<string | null>(null);
 
     // Analyzer Page States
     const [analyzerFormState, setAnalyzerFormState] = useState<AnalyzerFormData>(initialAnalyzerFormData);
@@ -271,6 +279,25 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     // Whatsapp Integration State (simulated)
     const [whatsappState, setWhatsappState] = useState<WhatsappConnectionState>('disconnected');
     const [whatsappQrCode, setWhatsappQrCode] = useState<string | null>(null);
+
+    useEffect(() => {
+        try {
+            const savedImagesJSON = localStorage.getItem(PERSONA_IMAGES_STORAGE_KEY);
+            if (savedImagesJSON) {
+                setPersonaImages(JSON.parse(savedImagesJSON));
+            }
+        } catch (error) {
+            console.error("Failed to load persona images from localStorage:", error);
+        }
+    }, []);
+
+    const savePersonaImagesToStorage = (images: Record<string, string>) => {
+        try {
+            localStorage.setItem(PERSONA_IMAGES_STORAGE_KEY, JSON.stringify(images));
+        } catch (error) {
+            console.error("Failed to save persona images to localStorage:", error);
+        }
+    };
 
     // --- Global Actions ---
     const handleError = useCallback((err: Error, customMessageKey?: string) => {
@@ -507,6 +534,27 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }, [personaCreatorFormState, language, handleTokenCost, handleError, selectedAccountId, addHistoryItem, accounts]);
     
+    const handleGeneratePersonaImage = useCallback(async (personaKey: string, prompt: string) => {
+        setError(null);
+        setGeneratingPersonaImage(personaKey);
+
+        if (!handleTokenCost(TOKEN_COSTS.PERSONA_IMAGE_GENERATION)) {
+            setGeneratingPersonaImage(null);
+            return;
+        }
+
+        try {
+            const imageBase64 = await generateImageFromPrompt(prompt);
+            const newImages = { ...personaImages, [personaKey]: imageBase64 };
+            setPersonaImages(newImages);
+            savePersonaImagesToStorage(newImages);
+        } catch (err: any) {
+            handleError(err as Error, 'personaGenerationError'); // Reusing error key
+        } finally {
+            setGeneratingPersonaImage(null);
+        }
+    }, [personaImages, handleTokenCost, handleError]);
+
     const handleRetryWithSanitizedPrompt = useCallback(async () => {
         if (!lastSubmissionType) return;
 
@@ -545,7 +593,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             handleError(err as Error);
             setIsLoading(false);
         }
-    }, [lastSubmissionType, productFormState, contentFormState, specialCreatorFormState, personaCreatorFormState, handleProductSubmit, handleContentSubmit, handleSpecialCreatorSubmit, handleError]);
+    }, [lastSubmissionType, productFormState, contentFormState, specialCreatorFormState, handleProductSubmit, handleContentSubmit, handleSpecialCreatorSubmit, handleError]);
 
 
     // --- Analyzer Page Actions ---
@@ -793,6 +841,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const value: AppStateContextType = {
         activePage, setActivePage, appMode, setAppMode, outputType, setOutputType, isLoading, error, contextualPrompt, setContextualPrompt,
         productFormState, setProductFormState, contentFormState, setContentFormState, specialCreatorFormState, setSpecialCreatorFormState, personaCreatorFormState, setPersonaCreatorFormState, generatedContent, setGeneratedContent, handleProductSubmit, handleContentSubmit, handleSpecialCreatorSubmit, handlePersonaSubmit, handleRetryWithSanitizedPrompt, clearForm, updateCreatorFormField,
+        personaImages, generatingPersonaImage, handleGeneratePersonaImage,
         analyzerFormState, setAnalyzerFormState, analysisResult, setAnalysisResult, isAnalyzerLoading, strategyResult, setStrategyResult, isStrategyLoading, performanceReport, setPerformanceReport, isPerformanceReportLoading, handleProfileAnalysisSubmit, handleStrategySubmit, handlePerformanceReportSubmit,
         trafficPlanForm, setTrafficPlanForm, trafficAnalysisImage, setTrafficAnalysisImage, campaignPlan, setCampaignPlan, isCampaignPlanLoading, campaignPerformanceFeedback, setCampaignPerformanceFeedback, isCampaignPerformanceLoading, organicGrowthForm, setOrganicGrowthForm, organicContentPlan, setOrganicContentPlan, isOrganicGrowthLoading, handleCampaignPlanSubmit, handleCampaignPerformanceSubmit, handleOrganicGrowthSubmit, handleChannelToggle,
         handleError, handleTokenCost,

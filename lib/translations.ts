@@ -144,6 +144,7 @@ export const translations: Record<Language, Record<string, string>> = {
     uploadScenarioImage: '3. Faça o Upload de uma Imagem de Cenário (Opcional)',
     scenarioDescriptionLabel: '2. Descreva o Cenário da Foto',
     scenarioDescriptionPlaceholder: 'Ex: Em uma praia ensolarada no Rio de Janeiro, em um café aconchegante em Paris, em um estúdio minimalista com luz natural...',
+    generatePersonaImage: 'Gerar Nova Imagem',
     persona1Name: 'Júlia, a Comunicadora',
     persona1Desc: 'Jovem, carismática e antenada nas tendências. Perfeita para produtos de moda, beleza e lifestyle.',
     persona2Name: 'Sofia, a Elegante',
@@ -154,6 +155,16 @@ export const translations: Record<Language, Record<string, string>> = {
     persona4Desc: 'Urbano, estiloso e criativo. Conecta-se com públicos de tecnologia, games, streetwear e arte.',
     persona5Name: 'Rafael, o Profissional',
     persona5Desc: 'Confiável, inteligente e articulado. Excelente para serviços B2B, finanças, consultoria e produtos de alta performance.',
+    persona6Name: 'Helena, a Artista',
+    persona6Desc: 'Criativa, expressiva e visual. Perfeita para marcas de arte, design, moda autoral e decoração.',
+    persona7Name: 'Beatriz, a Guru do Bem-Estar',
+    persona7Desc: 'Calma, centrada e saudável. Ideal para produtos de yoga, meditação, alimentação orgânica e cuidados naturais.',
+    persona8Name: 'Carlos, o Mentor Experiente',
+    persona8Desc: 'Sábio, elegante e confiável. Ótimo para consultoria de negócios, serviços financeiros de alto valor e marcas de luxo clássicas.',
+    persona9Name: 'Marina, a Mãe Moderna',
+    persona9Desc: 'Ocupada, carinhosa e prática. Conecta-se com produtos infantis, soluções para casa e marcas focadas na família.',
+    persona10Name: 'Fernando, o Geek Tecnológico',
+    persona10Desc: 'Inteligente, entusiasmado e inovador. Perfeito para gadgets, software, startups e entretenimento digital.',
 
 
     // ElevenLabs

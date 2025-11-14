@@ -19,12 +19,12 @@ const ImageUploadArea: React.FC<{
         <div>
             <label className="block text-sm font-medium text-brand-subtle mb-2">{label}</label>
             <div
-                className="relative flex justify-center items-center w-full aspect-video bg-slate-900/50 px-6 py-4 border-2 border-slate-600 border-dashed rounded-md cursor-pointer hover:border-brand-primary transition-colors overflow-hidden group"
+                className="relative flex justify-center items-center w-full aspect-video bg-brand-soft-bg px-6 py-4 border-2 border-brand-border border-dashed rounded-md cursor-pointer hover:border-brand-primary transition-colors overflow-hidden group"
                 onClick={onUploadClick}
             >
                 {/* Safe Area Overlay */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full aspect-[9/16] border-x-2 border-dashed border-white/20 pointer-events-none group-hover:border-white/40 transition-colors">
-                     <div className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-white/20 group-hover:text-white/40">9:16</div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full aspect-[9/16] border-x-2 border-dashed border-slate-400/50 pointer-events-none group-hover:border-brand-primary/50 transition-colors">
+                     <div className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-slate-400/50 group-hover:text-brand-primary/50">{t('aspectRatio_9_16')}</div>
                 </div>
 
                 {uploadedImage ? (
@@ -44,9 +44,9 @@ const ImageUploadArea: React.FC<{
                     </>
                 ) : (
                     <div className="text-center">
-                        <svg className="mx-auto h-8 w-8 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" /></svg>
+                        <svg className="mx-auto h-8 w-8 text-brand-subtle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" /></svg>
                         <h3 className="mt-2 text-sm font-medium text-brand-subtle">{t('uploadAreaTitle')}</h3>
-                        <p className="mt-1 text-xs text-slate-500">{t('uploadAreaSubtitle')}</p>
+                        <p className="mt-1 text-xs text-brand-subtle">{t('uploadAreaSubtitle')}</p>
                     </div>
                 )}
             </div>
@@ -59,7 +59,7 @@ const HelpTooltip: React.FC<{ text: string }> = ({ text }) => (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-subtle cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
         </svg>
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal z-10 pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium bg-brand-surface text-brand-text border border-brand-border rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal z-10 pointer-events-none">
             {text}
         </div>
     </div>
@@ -164,7 +164,7 @@ const SpecialCreatorForm: React.FC = () => {
     const refineButtonText = t('refineWithAI', { cost: TOKEN_COSTS.PROMPT_ENHANCEMENT });
 
     return (
-        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
             <div className="space-y-8">
                 <div>
                     <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-2">{t('specialCreatorTitle')}</h2>
@@ -187,7 +187,7 @@ const SpecialCreatorForm: React.FC = () => {
                             ))}
                         </div>
                         {formData.assetImages.length < 2 && (
-                            <button type="button" onClick={addAssetImageSlot} className="w-full mt-2 py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors">{t('addAssetImage')}</button>
+                            <button type="button" onClick={addAssetImageSlot} className="w-full mt-2 py-2 px-4 border border-brand-border rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg transition-colors">{t('addAssetImage')}</button>
                         )}
                     </div>
 
@@ -208,34 +208,39 @@ const SpecialCreatorForm: React.FC = () => {
                                 }}
                                 placeholder={t('tooltipVideoPromptComposite')}
                                 rows={5}
-                                className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500 pr-10 resize-y"
+                                className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle resize-y"
                             />
                             <div className="absolute top-2 right-2 flex flex-col space-y-2">
                                 <div className="relative group">
-                                    <button type="button" onClick={handleRefinePrompt} disabled={isRefining || isLoading} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-full text-brand-text self-start disabled:opacity-50">
+                                    <button type="button" onClick={handleRefinePrompt} disabled={isRefining || isLoading} className="p-2 bg-brand-soft-bg hover:bg-brand-hover-bg rounded-full text-brand-text self-start disabled:opacity-50">
                                         {isRefining ? <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.3 2.043A1 1 0 0112 3v1.36l.003.002a7.5 7.5 0 014.656 2.443l.893-1.25a1 1 0 111.69 1.206l-.892 1.25a7.5 7.5 0 010 6.492l.892 1.25a1 1 0 11-1.69 1.206l-.893-1.25a7.5 7.5 0 01-4.656 2.443v1.36a1 1 0 11-2 0v-1.36a7.5 7.5 0 01-4.656-2.443l-.893 1.25a1 1 0 01-1.69-1.206l.892-1.25a7.5 7.5 0 010-6.492l-.892-1.25a1 1 0 111.69-1.206l.893 1.25A7.5 7.5 0 019 4.362V3a1 1 0 01.7-.957zM10 6.5A3.5 3.5 0 1010 13.5 3.5 3.5 0 0010 6.5z" clipRule="evenodd" /></svg>}
                                     </button>
-                                     <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{t('tooltipRefineWithAI')}</div>
+                                     <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-brand-text border-brand-border rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{t('tooltipRefineWithAI')}</div>
                                 </div>
                                 {promptIsAiGenerated && (
                                     <div className="relative group">
-                                        <button type="button" onClick={handleDeleteAiPrompt} disabled={isLoading} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-full text-red-400 self-start disabled:opacity-50">
+                                        <button type="button" onClick={handleDeleteAiPrompt} disabled={isLoading} className="p-2 bg-brand-soft-bg hover:bg-brand-hover-bg rounded-full text-red-500 self-start disabled:opacity-50">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
                                         </button>
-                                        <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{t('tooltipDeleteAiPrompt')}</div>
+                                        <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-brand-text border-brand-border rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{t('tooltipDeleteAiPrompt')}</div>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-
-                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                        <p className="text-sm text-brand-subtle"><span className="font-bold text-yellow-400">{t('note')}:</span> {t('aspectRatioFixedNote')}</p>
+                     <div className="bg-brand-soft-bg p-4 rounded-md border border-brand-border">
+                        <p className="text-sm text-brand-subtle"><span className="font-bold text-brand-text">{t('note')}:</span> {t('aspectRatioFixedNote')}</p>
                     </div>
+                </div>
 
-                    <div className="flex justify-end items-center mt-8">
-                        <button onClick={handleSpecialCreatorSubmit} disabled={isLoading || (!formData.backgroundImage && formData.assetImages.every(i => !i)) || !formData.prompt} className="py-3 px-6 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">{isLoading ? t('generating') : generationButtonText}</button>
-                    </div>
+                <div className="flex justify-end items-center mt-8">
+                    <button
+                        onClick={handleSpecialCreatorSubmit}
+                        disabled={isLoading || !formData.prompt || (!formData.backgroundImage && formData.assetImages.length === 0)}
+                        className="py-3 px-6 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                    >
+                        {isLoading ? t('generating') : generationButtonText}
+                    </button>
                 </div>
             </div>
         </div>

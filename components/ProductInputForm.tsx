@@ -22,16 +22,16 @@ const ImageUploadArea: React.FC<{
 }> = ({ label, uploadedImage, onUploadClick, onRemoveClick, isPrimary = false }) => {
     const { t } = useContext(LanguageContext);
 
-    let containerClasses = "relative flex justify-center items-center w-full h-32 px-6 py-4 border-2 border-slate-600 border-dashed rounded-md cursor-pointer hover:border-brand-primary transition-colors";
-    let iconClasses = "mx-auto h-8 w-8 text-slate-500";
+    let containerClasses = "relative flex justify-center items-center w-full h-32 px-6 py-4 border-2 border-brand-border border-dashed rounded-md cursor-pointer hover:border-brand-primary transition-colors";
+    let iconClasses = "mx-auto h-8 w-8 text-brand-subtle";
     let titleClasses = "mt-2 text-sm font-medium text-brand-subtle";
     let labelClasses = "block text-sm font-medium text-brand-subtle mb-2";
 
     if (isPrimary) {
-        containerClasses = "relative flex flex-col justify-center items-center w-full h-52 px-6 py-4 border-2 border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-900/50 hover:bg-slate-900 hover:border-brand-primary transition-all duration-300 ring-offset-brand-surface focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2";
-        iconClasses = "mx-auto h-12 w-12 text-slate-500 group-hover:text-brand-primary transition-colors";
-        titleClasses = "mt-2 text-base font-semibold text-brand-subtle group-hover:text-brand-light-text transition-colors";
-        labelClasses = "block text-lg font-semibold text-brand-light-text mb-2";
+        containerClasses = "relative flex flex-col justify-center items-center w-full h-52 px-6 py-4 border-2 border-brand-border border-dashed rounded-lg cursor-pointer bg-brand-soft-bg hover:bg-brand-hover-bg transition-all duration-300 ring-offset-brand-surface focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2";
+        iconClasses = "mx-auto h-12 w-12 text-brand-subtle group-hover:text-brand-primary transition-colors";
+        titleClasses = "mt-2 text-base font-semibold text-brand-subtle group-hover:text-brand-text transition-colors";
+        labelClasses = "block text-lg font-semibold text-brand-text mb-2";
     }
 
     return (
@@ -62,7 +62,7 @@ const ImageUploadArea: React.FC<{
                     <div className="text-center">
                         <svg className={iconClasses} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" /></svg>
                         <h3 className={titleClasses}>{t('uploadAreaTitle')}</h3>
-                        <p className="mt-1 text-xs text-slate-500">{t('uploadAreaSubtitle')}</p>
+                        <p className="mt-1 text-xs text-brand-subtle">{t('uploadAreaSubtitle')}</p>
                     </div>
                 )}
             </div>
@@ -75,7 +75,7 @@ const HelpTooltip: React.FC<{ text: string }> = ({ text }) => (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-subtle cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
         </svg>
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal z-10 pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium bg-brand-surface text-brand-text border border-brand-border rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal z-10 pointer-events-none">
             {text}
         </div>
     </div>
@@ -242,7 +242,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                         value={formData.productName}
                         onChange={(e) => updateForm('productName', e.target.value)}
                         placeholder={t('productNamePlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div>
@@ -256,7 +256,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                             onChange={(e) => updateForm('productDescription', e.target.value)}
                             placeholder={t('productDescriptionPlaceholder')}
                             rows={3}
-                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500 pr-10 resize-y"
+                            className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle pr-10 resize-y"
                         />
                         <div className="absolute top-2 right-2">
                             <VoicePromptButton 
@@ -277,7 +277,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                         className={`px-6 py-2 rounded-full text-base font-medium transition-colors ${
                             outputType === 'image' && !isAudioOnly
                                 ? 'bg-brand-secondary text-white shadow-md'
-                                : 'bg-slate-700/50 text-brand-subtle hover:bg-slate-700'
+                                : 'bg-brand-soft-bg text-brand-subtle hover:bg-brand-hover-bg'
                         }`}
                         disabled={isAudioOnly}
                     >
@@ -288,7 +288,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                         className={`px-6 py-2 rounded-full text-base font-medium transition-colors ${
                             outputType === 'video' && !isAudioOnly
                                 ? 'bg-brand-secondary text-white shadow-md'
-                                : 'bg-slate-700/50 text-brand-subtle hover:bg-slate-700'
+                                : 'bg-brand-soft-bg text-brand-subtle hover:bg-brand-hover-bg'
                         }`}
                         disabled={isAudioOnly}
                     >
@@ -297,7 +297,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                 </div>
                 
                 {/* Advanced Settings */}
-                <div className="border-t border-slate-700 pt-6">
+                <div className="border-t border-brand-border pt-6">
                     <button
                         onClick={() => setIsAdvancedSettingsOpen(!isAdvancedSettingsOpen)}
                         className="w-full flex justify-between items-center text-left text-xl font-bold text-brand-text mb-4"
@@ -327,7 +327,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     value={formData.marketingVibe}
                                     onChange={(e) => updateForm('marketingVibe', e.target.value)}
                                     placeholder={t('marketingVibePlaceholder')}
-                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                                 />
                             </div>
                             <div>
@@ -340,7 +340,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     value={formData.profileUrl}
                                     onChange={(e) => updateForm('profileUrl', e.target.value)}
                                     placeholder={t('profileUrlPlaceholder')}
-                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                                 />
                             </div>
                             <div>
@@ -353,7 +353,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     value={formData.benchmarkProfileUrl || ''}
                                     onChange={(e) => updateForm('benchmarkProfileUrl', e.target.value)}
                                     placeholder={t('benchmarkProfileUrlPlaceholder')}
-                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                                 />
                             </div>
                             <button
@@ -378,9 +378,9 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                 <h3 className="text-lg font-semibold text-brand-text mb-2 flex items-center">{t('writingPersonalization')} <HelpTooltip text={t('tooltipWritingPersonalization')} /></h3>
                                 <p className="text-sm text-brand-subtle mb-4">{t('writingPersonalizationDescription')}</p>
                                 <div className="space-y-3">
-                                    <input type="text" value={formData.postExample1} onChange={(e) => updateForm('postExample1', e.target.value)} placeholder={t('postExample1Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
-                                    <input type="text" value={formData.postExample2} onChange={(e) => updateForm('postExample2', e.target.value)} placeholder={t('postExample2Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
-                                    <input type="text" value={formData.postExample3} onChange={(e) => updateForm('postExample3', e.target.value)} placeholder={t('postExample3Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                    <input type="text" value={formData.postExample1} onChange={(e) => updateForm('postExample1', e.target.value)} placeholder={t('postExample1Placeholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
+                                    <input type="text" value={formData.postExample2} onChange={(e) => updateForm('postExample2', e.target.value)} placeholder={t('postExample2Placeholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
+                                    <input type="text" value={formData.postExample3} onChange={(e) => updateForm('postExample3', e.target.value)} placeholder={t('postExample3Placeholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
                                 </div>
                             </div>
 
@@ -396,7 +396,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     <div className="relative">
                                         <label htmlFor="aspectRatio" className="block text-sm font-medium text-brand-subtle mb-2">{t('aspectRatioLabel')}</label>
                                         {(outputType === 'image' || isAudioOnly) ? (
-                                        <select id="aspectRatio" value={formData.aspectRatio} onChange={(e) => updateForm('aspectRatio', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text" disabled={isAudioOnly}>
+                                        <select id="aspectRatio" value={formData.aspectRatio} onChange={(e) => updateForm('aspectRatio', e.target.value)} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text" disabled={isAudioOnly}>
                                             <option value="1:1">{t('aspectRatio_1_1')}</option>
                                             <option value="9:16">{t('aspectRatio_9_16')}</option>
                                             <option value="16:9">{t('aspectRatio_16_9')}</option>
@@ -404,16 +404,16 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                             <option value="3:4">{t('aspectRatio_3_4')}</option>
                                         </select>
                                         ) : (
-                                        <div className="w-full px-3 py-2 border border-slate-600 bg-slate-800 rounded-md text-brand-subtle">
+                                        <div className="w-full px-3 py-2 border border-brand-border bg-brand-hover-bg rounded-md text-brand-subtle">
                                             {t('aspectRatio_9_16_video')}
                                         </div>
                                         )}
                                         {aiSuggestedFields.aspectRatio && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
                                     </div>
-                                    <div className="relative"><label htmlFor="negativePrompt" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('negativePromptLabel')}<HelpTooltip text={t('tooltipNegativePrompt')} /></span></label><input type="text" id="negativePrompt" value={formData.negativePrompt} onChange={(e) => updateForm('negativePrompt', e.target.value)} placeholder={t('negativePromptPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />{aiSuggestedFields.negativePrompt && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
-                                    <div className="relative"><label htmlFor="maskTemplate" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('maskTemplateLabel')}<HelpTooltip text={t('tooltipMaskTemplate')} /></span></label><select id="maskTemplate" value={formData.maskTemplate} onChange={(e) => updateForm('maskTemplate', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"><option value="Nenhum">{t('maskTemplateNone')}</option><option value="Moderno com Círculo">{t('maskTemplateModernCircle')}</option><option value="Grunge com Pinceladas">{t('maskTemplateGrungeBrush')}</option><option value="Minimalista com Linhas">{t('maskTemplateMinimalLines')}</option><option value="minhaLogo">{t('maskTemplateMyLogo')}</option></select>{aiSuggestedFields.maskTemplate && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    <div className="relative"><label htmlFor="negativePrompt" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('negativePromptLabel')}<HelpTooltip text={t('tooltipNegativePrompt')} /></span></label><input type="text" id="negativePrompt" value={formData.negativePrompt} onChange={(e) => updateForm('negativePrompt', e.target.value)} placeholder={t('negativePromptPlaceholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />{aiSuggestedFields.negativePrompt && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    <div className="relative"><label htmlFor="maskTemplate" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('maskTemplateLabel')}<HelpTooltip text={t('tooltipMaskTemplate')} /></span></label><select id="maskTemplate" value={formData.maskTemplate} onChange={(e) => updateForm('maskTemplate', e.target.value)} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"><option value="Nenhum">{t('maskTemplateNone')}</option><option value="Moderno com Círculo">{t('maskTemplateModernCircle')}</option><option value="Grunge com Pinceladas">{t('maskTemplateGrungeBrush')}</option><option value="Minimalista com Linhas">{t('maskTemplateMinimalLines')}</option><option value="minhaLogo">{t('maskTemplateMyLogo')}</option></select>{aiSuggestedFields.maskTemplate && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
                                     {formData.maskTemplate === 'minhaLogo' && (<><input type="file" ref={logoInputRef} onChange={(e) => handleFileChange(e, 'logoImage')} accept="image/*" className="hidden" /><ImageUploadArea label={t('uploadLogoImage')} uploadedImage={formData.logoImage} onUploadClick={() => logoInputRef.current?.click()} onRemoveClick={() => removeImage('logoImage')} /></>)}
-                                    <div className="relative"><label htmlFor="colorPalette" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('colorPaletteLabel')}<HelpTooltip text={t('tooltipColorPalette')} /></span></label><input type="text" id="colorPalette" value={formData.colorPalette} onChange={(e) => updateForm('colorPalette', e.target.value)} placeholder={t('colorPalettePlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />{aiSuggestedFields.colorPalette && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    <div className="relative"><label htmlFor="colorPalette" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('colorPaletteLabel')}<HelpTooltip text={t('tooltipColorPalette')} /></span></label><input type="text" id="colorPalette" value={formData.colorPalette} onChange={(e) => updateForm('colorPalette', e.target.value)} placeholder={t('colorPalettePlaceholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />{aiSuggestedFields.colorPalette && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
                                     <div><input type="file" ref={userSelfieInputRef} onChange={(e) => handleFileChange(e, 'userSelfie')} accept="image/*" className="hidden" /><ImageUploadArea label={t('uploadSelfie')} uploadedImage={formData.userSelfie} onUploadClick={() => setIsSelfieModalOpen(true)} onRemoveClick={() => removeImage('userSelfie')} /></div>
                                 </div>
                             </div>
@@ -425,7 +425,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                         {!isAudioOnly && (
                                             <div className="relative">
                                                 <label htmlFor="videoDuration" className="block text-sm font-medium text-brand-subtle mb-2">{t('videoDurationLabel')}</label>
-                                                <select id="videoDuration" value={formData.videoDuration} onChange={(e) => updateForm('videoDuration', e.target.value as ProductFormData['videoDuration'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                <select id="videoDuration" value={formData.videoDuration} onChange={(e) => updateForm('videoDuration', e.target.value as ProductFormData['videoDuration'])} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
                                                     <option value="5s">5 {t('seconds')}</option>
                                                     <option value="8s">8 {t('seconds')}</option>
                                                 </select>
@@ -436,7 +436,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                             <label htmlFor="audioType" className="block text-sm font-medium text-brand-subtle mb-2">
                                                 <span className="flex items-center">{t('audioTypeLabel')} <HelpTooltip text={t('tooltipElevenLabs')} /></span>
                                             </label>
-                                            <select id="audioType" value={formData.audioType} onChange={(e) => updateForm('audioType', e.target.value as ProductFormData['audioType'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                            <select id="audioType" value={formData.audioType} onChange={(e) => updateForm('audioType', e.target.value as ProductFormData['audioType'])} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
                                                 <option value="narration">{t('audioTypeNarration')}</option>
                                                 <option value="dialogue">{t('audioTypeDialogue')}</option>
                                                 <option value="elevenlabs">{t('audioTypeElevenLabs')}</option>
@@ -446,12 +446,12 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     </div>
 
                                     {isAudioOnly && (
-                                        <div className="animate-fade-in space-y-4 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+                                        <div className="animate-fade-in space-y-4 p-4 bg-brand-soft-bg border border-brand-border rounded-lg">
                                             <h4 className="font-semibold text-brand-text">{t('elevenLabsSettings')}</h4>
                                             {!formData.useCustomElevenLabs && (
                                                 <div>
                                                     <label htmlFor="elevenLabsVoiceId" className="block text-sm font-medium text-brand-subtle mb-2">{t('elevenLabsPredefinedVoice')}</label>
-                                                    <select id="elevenLabsVoiceId" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                    <select id="elevenLabsVoiceId" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
                                                         <option value="Rachel">Rachel (Calm, American)</option>
                                                         <option value="Adam">Adam (Deep, American)</option>
                                                         <option value="Antoni">Antoni (Well-rounded, American)</option>
@@ -466,8 +466,8 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                             </div>
                                             {formData.useCustomElevenLabs && (
                                                 <div className="space-y-2 animate-fade-in">
-                                                    <input type="password" value={formData.customElevenLabsApiKey} onChange={(e) => updateForm('customElevenLabsApiKey', e.target.value)} placeholder={t('elevenLabsApiKeyPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
-                                                    <input type="text" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} placeholder={t('elevenLabsVoiceIdPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                                    <input type="password" value={formData.customElevenLabsApiKey} onChange={(e) => updateForm('customElevenLabsApiKey', e.target.value)} placeholder={t('elevenLabsApiKeyPlaceholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
+                                                    <input type="text" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} placeholder={t('elevenLabsVoiceIdPlaceholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
                                                 </div>
                                             )}
                                         </div>
@@ -476,7 +476,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                     {!isAudioOnly && (
                                         <div className="relative">
                                             <label htmlFor="animationStyle" className="block text-sm font-medium text-brand-subtle mb-2">{t('animationStyleLabel')}</label>
-                                            <select id="animationStyle" value={formData.animationStyle} onChange={(e) => updateForm('animationStyle', e.target.value as ProductFormData['animationStyle'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                            <select id="animationStyle" value={formData.animationStyle} onChange={(e) => updateForm('animationStyle', e.target.value as ProductFormData['animationStyle'])} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
                                                 <option value="dynamic">{t('animationStyleDynamic')}</option>
                                                 <option value="elegant">{t('animationStyleElegant')}</option>
                                                 <option value="minimalist">{t('animationStyleMinimalist')}</option>
@@ -491,15 +491,15 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                             <span className="flex items-center">{t('narrationScriptLabel')}<HelpTooltip text={t('tooltipNarrationScript')} /></span>
                                         </label>
                                         <div className="flex space-x-2">
-                                            <textarea id="narrationScript" value={formData.narrationScript} onChange={(e) => updateForm('narrationScript', e.target.value)} placeholder={formData.audioType === 'dialogue' ? t('dialogueScriptPlaceholder') : t('narrationScriptPlaceholder')} rows={4} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500 resize-y" />
-                                            <button type="button" onClick={handleGenerateNarrationScript} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-md text-brand-text self-start disabled:opacity-50" disabled={isLoading}>{t('generate')}</button>
+                                            <textarea id="narrationScript" value={formData.narrationScript} onChange={(e) => updateForm('narrationScript', e.target.value)} placeholder={formData.audioType === 'dialogue' ? t('dialogueScriptPlaceholder') : t('narrationScriptPlaceholder')} rows={4} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle resize-y" />
+                                            <button type="button" onClick={handleGenerateNarrationScript} className="p-2 bg-brand-soft-bg hover:bg-brand-hover-bg rounded-md text-brand-text self-start disabled:opacity-50" disabled={isLoading}>{t('generate')}</button>
                                         </div>
                                     </div>
                                     {!isAudioOnly && (
                                         <>
                                             <div className="relative">
                                                 <label htmlFor="backgroundMusic" className="block text-sm font-medium text-brand-subtle mb-2">{t('backgroundMusicLabel')}</label>
-                                                <select id="backgroundMusic" value={formData.backgroundMusic} onChange={(e) => updateForm('backgroundMusic', e.target.value as ProductFormData['backgroundMusic'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                <select id="backgroundMusic" value={formData.backgroundMusic} onChange={(e) => updateForm('backgroundMusic', e.target.value as ProductFormData['backgroundMusic'])} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
                                                     <option value="none">{t('backgroundMusicNone')}</option>
                                                     <option value="epic">{t('backgroundMusicEpic')}</option>
                                                     <option value="upbeat">{t('backgroundMusicUpbeat')}</option>
@@ -511,7 +511,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                             {formData.backgroundMusic === 'ai_generated' && (
                                                 <div className="relative">
                                                     <label htmlFor="musicDescription" className="block text-sm font-medium text-brand-subtle mb-2">{t('musicDescriptionLabel')}</label>
-                                                    <input type="text" id="musicDescription" value={formData.musicDescription} onChange={(e) => updateForm('musicDescription', e.target.value)} placeholder={t('musicDescriptionPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                                    <input type="text" id="musicDescription" value={formData.musicDescription} onChange={(e) => updateForm('musicDescription', e.target.value)} placeholder={t('musicDescriptionPlaceholder')} className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle" />
                                                     {aiSuggestedFields.musicDescription && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
                                                 </div>
                                             )}
@@ -520,7 +520,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
                                 </div>
                             )}
                             
-                            <div className="border-t border-slate-700 pt-6">
+                            <div className="border-t border-brand-border pt-6">
                                 <AutomationScheduler
                                     schedule={schedule}
                                     setSchedule={onScheduleChange}
@@ -533,7 +533,7 @@ export const ProductInputForm: React.FC<ProductInputFormProps> = ({
 
                 {/* Action Buttons */}
                 <div className="flex justify-between items-center mt-8">
-                    <button onClick={onSaveAccount} className="py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors">{t('saveAccountButton')}</button>
+                    <button onClick={onSaveAccount} className="py-2 px-4 border border-brand-border rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg transition-colors">{t('saveAccountButton')}</button>
                     <button onClick={onFormSubmit} disabled={isLoading} className="py-3 px-6 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">{isLoading ? t('generating') : generationButtonText}</button>
                 </div>
             </div>

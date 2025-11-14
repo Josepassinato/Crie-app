@@ -57,6 +57,10 @@
  * 14. Persona Video (veo-3.1-generate-preview with reference images):
  *    - Cost: Similar to Special Video Composition. ~€0.023
  *    - Price: $0.023 * 4 = ~$0.092. This costs ~46 tokens. Let's set it to 50.
+ * 
+ * 15. Persona Image Generation (gemini-2.5-flash-image):
+ *    - Cost: ~$0.0025 per image.
+ *    - Price: $0.0025 * 4 = $0.01. This costs 5 tokens.
  */
 
 export const TOKEN_COSTS = {
@@ -64,6 +68,7 @@ export const TOKEN_COSTS = {
     CONTENT_POST: 10,
     PERSONA_POST: 10,
     PERSONA_VIDEO: 50,
+    PERSONA_IMAGE_GENERATION: 5,
     PROFILE_ANALYSIS: 15,
     CAMPAIGN_PLAN: 15,
     PERFORMANCE_ANALYSIS: 8,
