@@ -13,9 +13,9 @@ interface State {
 
 class ErrorBoundary extends React.Component<Props, State> {
   // FIX: Replaced the constructor with public class field syntax for state initialization.
-  // The previous implementation was causing linter errors where `this.state`, `this.props`, 
-  // and `this.setState` were not being correctly resolved on the component instance.
-  // This is a more modern and robust way to initialize state in a class component.
+  // This is the modern standard for React class components and correctly
+  // establishes the component's state, resolving all reported errors where `this.state`,
+  // `this.setState`, and `this.props` were not being recognized.
   public state: State = {
     hasError: false,
     error: null,

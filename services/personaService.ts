@@ -27,32 +27,44 @@ const generateImage = async (
     const model = 'gemini-2.5-flash-image';
 
     const scenarioInstruction = formData.scenarioImage
-        ? "Use the provided background image as the setting."
+        ? "Use the provided Background Image as the setting for the scene."
         : `The setting is: "${formData.scenarioDescription}".`;
 
     const prompt = `
     CRITICAL: Generate a single, photorealistic image. The image must be in a 1:1 aspect ratio.
     LANGUAGE: ${language}
 
-    SCENE DESCRIPTION:
-    Create a high-quality, professional advertisement photo.
+    TASK:
+    Create a high-quality, professional advertisement photo by compositing multiple images and instructions.
 
-    PERSONA:
-    The main character is ${persona.prompt}.
+    IMAGE ROLES:
+    1.  **Persona Image (First Image):** This is the reference for the character. You MUST use the face and appearance of the person in this image for the final character.
+    2.  **Product Image (Second Image):** This is the product to be featured in the scene.
+    3.  **Background Image (Third Image, if provided):** This is the background for the scene.
 
-    SCENARIO:
-    ${scenarioInstruction}
+    INSTRUCTIONS:
+    1.  **Character:** Create a character that looks exactly like the person in the **Persona Image**.
+    2.  **Scenario:** ${scenarioInstruction}
+    3.  **Product Integration:** Make the character interact naturally and positively with the **Product Image**. The product should be clearly visible and integrated seamlessly into the scene. For example, the persona could be holding, using, or presenting the product.
+    4.  **Consistency:** The lighting on the character and the product must match the scenario's lighting.
 
-    PRODUCT INTEGRATION:
-    The persona should be interacting naturally and positively with the provided product image. The product should be clearly visible and integrated seamlessly into the scene. For example, the persona could be holding, using, or presenting the product. The lighting on the persona and the product must match the scenario's lighting.
-    
     OVERALL VIBE:
     The final image should look like a professional social media advertisement. It must be clean, appealing, and high-resolution. Avoid any text, logos, or watermarks.
     `;
 
     try {
-        const parts: any[] = [{ text: prompt }];
+        const parts: any[] = [];
 
+        // 1. Persona Image
+        const personaImageData = persona.imageUrl.split(',')[1];
+        parts.push({
+            inlineData: {
+                data: personaImageData,
+                mimeType: 'image/jpeg', // The images in personaImages.ts are JPEGs
+            },
+        });
+
+        // 2. Product Image
         parts.push({
             inlineData: {
                 data: formData.productImage.base64,
@@ -60,6 +72,7 @@ const generateImage = async (
             },
         });
 
+        // 3. Scenario Image (optional)
         if (formData.scenarioImage) {
             parts.push({
                 inlineData: {
@@ -68,6 +81,9 @@ const generateImage = async (
                 },
             });
         }
+
+        // 4. The text prompt
+        parts.push({ text: prompt });
 
         const response = await ai.models.generateContent({
             model: model,

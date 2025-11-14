@@ -246,14 +246,15 @@ export const enhanceVideoPrompt = async (
     - ${assetImages.filter(img => img).length} character/object image(s).
 
     Instructions for your generated prompt:
-    1.  **Incorporate All Images:** Your prompt MUST describe how to use all the provided images. Refer to them descriptively (e.g., "Use the city street image as the background," "Place the man in the trench coat on the left sidewalk").
-    2.  **Describe the Scene Composition:** Detail where the characters/objects from the asset images should be placed within the background scene.
-    3.  **Describe the Action:** What are the characters doing? How are they interacting? Be specific (e.g., "He is looking at his watch with a concerned expression," "They are chatting and laughing").
-    4.  **Describe the Atmosphere and Mood:** What is the feeling of the scene? (e.g., "The mood is mysterious and tense," "The atmosphere is warm and joyful").
-    5.  **Describe Camera Work:** Include details about camera movement, angle, and shot type (e.g., "A slow dolly zoom towards the characters," "A wide-angle shot showing the entire scene," "Close-up on the character's face").
-    6.  **Describe Lighting:** Be specific about the lighting (e.g., "The scene is lit by the soft glow of streetlights," "Golden hour sunlight streams through the window").
+    1.  **Character Fidelity First:** If any of the provided asset images appear to contain a person, the VERY FIRST part of your generated prompt must be an explicit command to maintain facial fidelity. Use a phrase like: "CRITICAL: The person in the video must have the exact face, hair, and appearance of the person in the reference image."
+    2.  **Incorporate All Images:** Your prompt MUST describe how to use all the provided images. Refer to them descriptively (e.g., "Use the city street image as the background," "Place the man in the trench coat on the left sidewalk").
+    3.  **Describe the Scene Composition:** Detail where the characters/objects from the asset images should be placed within the background scene.
+    4.  **Describe the Action:** What are the characters doing? How are they interacting? Be specific (e.g., "He is looking at his watch with a concerned expression," "They are chatting and laughing").
+    5.  **Describe the Atmosphere and Mood:** What is the feeling of the scene? (e.g., "The mood is mysterious and tense," "The atmosphere is warm and joyful").
+    6.  **Describe Camera Work:** Include details about camera movement, angle, and shot type (e.g., "A slow dolly zoom towards the characters," "A wide-angle shot showing the entire scene," "Close-up on the character's face").
+    7.  **Describe Lighting:** Be specific about the lighting (e.g., "The scene is lit by the soft glow of streetlights," "Golden hour sunlight streams through the window").
 
-    Combine all of this into a single, cohesive paragraph.
+    Combine all of this into a single, cohesive paragraph, starting with the fidelity instruction if applicable.
     `;
     
     try {
