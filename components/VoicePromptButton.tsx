@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext } from 'react';
-import { transcribeAndEnhancePrompt } from '../services/audioService';
-import { LanguageContext } from '../contexts/LanguageContext';
+import { transcribeAndEnhancePrompt } from '../services/audioService.ts';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 
 interface VoicePromptButtonProps {
     onPromptGenerated: (text: string) => void;

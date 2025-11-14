@@ -1,7 +1,7 @@
 // components/SelfieCaptureModal.tsx
 import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
-import { UploadedImage } from '../types';
-import { LanguageContext } from '../contexts/LanguageContext';
+import { UploadedImage } from '../types.ts';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 
 interface SelfieCaptureModalProps {
   isOpen: boolean;

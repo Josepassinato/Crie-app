@@ -1,5 +1,5 @@
 import React, { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { SavedAccount, AppMode, ContentFormData, ProductFormData, GeneratedHistoryItem, Schedule } from '../types';
+import { SavedAccount, AppMode, ContentFormData, ProductFormData, GeneratedHistoryItem, Schedule } from '../types.ts';
 
 interface AccountsContextType {
     accounts: Record<string, SavedAccount>;
@@ -39,7 +39,7 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
                     id: TEST_ACCOUNT_ID,
                     name: 'Conta Teste',
                     type: 'content',
-                    formData: { profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, userSelfie: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1', negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '', backgroundMusic: 'none', musicDescription: '', benchmarkProfileUrl: '' }, // Added benchmarkProfileUrl
+                    formData: { profession: '', targetAudience: '', professionalContext: '', postFormat: 'single', carouselSlides: 3, maskTemplate: 'Nenhum', colorPalette: '', logoImage: null, userSelfie: null, postExample1: '', postExample2: '', postExample3: '', profileUrl: '', artisticStyle: 'Padrão', aspectRatio: '1:1', negativePrompt: '', videoDuration: '5s', animationStyle: 'dynamic', narrationScript: '', backgroundMusic: 'none', musicDescription: '', benchmarkProfileUrl: '', audioType: 'narration' }, // Added benchmarkProfileUrl & audioType
                     history: [],
                     schedule: { isEnabled: false, postsPerDay: 1, times: ['09:00'] }
                 };
@@ -47,78 +47,96 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
             // migration for old accounts
             Object.keys(loadedAccounts).forEach(key => {
-                if (!loadedAccounts[key].schedule) {
-                    loadedAccounts[key].schedule = { isEnabled: false, postsPerDay: 1, times: ['09:00'] };
-                }
-                 if (!loadedAccounts[key].formData.artisticStyle) {
-                    loadedAccounts[key].formData.artisticStyle = 'Padrão';
-                }
-                if (loadedAccounts[key].formData.userSelfie === undefined) {
-                    loadedAccounts[key].formData.userSelfie = null;
-                }
-                 if (loadedAccounts[key].formData.aspectRatio === undefined) {
-                    loadedAccounts[key].formData.aspectRatio = '1:1';
-                }
-                if (loadedAccounts[key].formData.negativePrompt === undefined) {
-                    loadedAccounts[key].formData.negativePrompt = '';
-                }
-                if (loadedAccounts[key].formData.profileUrl === undefined) {
-                    loadedAccounts[key].formData.profileUrl = '';
-                }
-                // New migration for benchmarkProfileUrl
-                if ((loadedAccounts[key].formData as ProductFormData).benchmarkProfileUrl === undefined && (loadedAccounts[key].formData as ContentFormData).benchmarkProfileUrl === undefined) { 
-                    (loadedAccounts[key].formData as ProductFormData).benchmarkProfileUrl = '';
-                    (loadedAccounts[key].formData as ContentFormData).benchmarkProfileUrl = '';
-                }
-                if (loadedAccounts[key].type === 'content') {
-                    const formData = loadedAccounts[key].formData as ContentFormData;
-                    if (formData.postFormat === undefined) {
-                        formData.postFormat = 'single';
+                try {
+                    const account = loadedAccounts[key];
+
+                    // DEFINITIVE FIX: If account is malformed or its formData is not a valid object,
+                    // skip it entirely to prevent a startup crash.
+                    if (!account || typeof account.formData !== 'object' || account.formData === null) {
+                        console.warn(`Skipping migration for malformed account with key: ${key}`);
+                        return;
                     }
-                    if (formData.carouselSlides === undefined) {
-                        formData.carouselSlides = 3;
+
+                    const formData = account.formData;
+
+                    if (!account.schedule) {
+                        account.schedule = { isEnabled: false, postsPerDay: 1, times: ['09:00'] };
                     }
-                    if (formData.postExample1 === undefined) {
-                        formData.postExample1 = '';
-                        formData.postExample2 = '';
-                        formData.postExample3 = '';
+                     if (!formData.artisticStyle) {
+                        formData.artisticStyle = 'Padrão';
                     }
-                    if (formData.videoDuration === undefined) {
-                        formData.videoDuration = '5s';
-                        formData.animationStyle = 'dynamic';
-                        formData.narrationScript = '';
-                        formData.backgroundMusic = 'none';
-                        formData.musicDescription = '';
+                    if (formData.userSelfie === undefined) {
+                        formData.userSelfie = null;
                     }
-                }
-                if (loadedAccounts[key].type === 'product') {
-                    const formData = loadedAccounts[key].formData as ProductFormData;
-                     if (formData.videoDuration === undefined) {
-                        formData.videoDuration = '5s';
+                     if (formData.aspectRatio === undefined) {
+                        formData.aspectRatio = '1:1';
                     }
-                    if (formData.animationStyle === undefined) {
-                        formData.animationStyle = 'dynamic';
+                    if (formData.negativePrompt === undefined) {
+                        formData.negativePrompt = '';
                     }
-                     if (formData.narrationScript === undefined) {
-                        formData.narrationScript = '';
+                    if (formData.profileUrl === undefined) {
+                        formData.profileUrl = '';
                     }
-                     if (formData.backgroundMusic === undefined) {
-                        formData.backgroundMusic = 'none';
-                    } else {
-                        // Fix: Specify the correct value type for the map to ensure type compatibility.
-                        const oldToNewMap: Record<string, ProductFormData['backgroundMusic']> = {
-                            'Nenhuma': 'none', 'None': 'none', 'Ninguna': 'none',
-                            'Épica Orquestral': 'epic', 'Epic Orchestral': 'epic',
-                            'Pop Animado': 'upbeat', 'Upbeat Pop': 'upbeat',
-                            'Lo-fi Calmo': 'lofi', 'Chill Lo-fi': 'lofi', 'Lo-fi Relajante': 'lofi'
-                        };
-                        if (oldToNewMap[formData.backgroundMusic]) {
-                            formData.backgroundMusic = oldToNewMap[formData.backgroundMusic];
+                    // New migration for benchmarkProfileUrl
+                    if (formData.benchmarkProfileUrl === undefined) { 
+                        formData.benchmarkProfileUrl = '';
+                    }
+                    if (formData.audioType === undefined) {
+                        formData.audioType = 'narration';
+                    }
+
+
+                    // Robustly migrate video duration regardless of account type
+                    if (formData.videoDuration !== '5s' && formData.videoDuration !== '8s') {
+                        // This catches undefined, null, '10s', '15s', the numbers 10, 15, etc.
+                        formData.videoDuration = '8s'; // Default all invalid cases to a safe, valid value.
+                    }
+                    
+                    if (account.type === 'content') {
+                        const contentFormData = formData as ContentFormData;
+                        if (contentFormData.postFormat === undefined) {
+                            contentFormData.postFormat = 'single';
+                        }
+                        if (contentFormData.carouselSlides === undefined) {
+                            contentFormData.carouselSlides = 3;
+                        }
+                        if (contentFormData.postExample1 === undefined) {
+                            contentFormData.postExample1 = '';
+                            contentFormData.postExample2 = '';
+                            contentFormData.postExample3 = '';
+                        }
+                         if (contentFormData.animationStyle === undefined) contentFormData.animationStyle = 'dynamic';
+                        if (contentFormData.narrationScript === undefined) contentFormData.narrationScript = '';
+                        if (contentFormData.backgroundMusic === undefined) contentFormData.backgroundMusic = 'none';
+                        if (contentFormData.musicDescription === undefined) contentFormData.musicDescription = '';
+                    }
+                    if (account.type === 'product') {
+                        const productFormData = formData as ProductFormData;
+                         if (productFormData.animationStyle === undefined) {
+                            productFormData.animationStyle = 'dynamic';
+                        }
+                         if (productFormData.narrationScript === undefined) {
+                            productFormData.narrationScript = '';
+                        }
+                         if (productFormData.backgroundMusic === undefined) {
+                            productFormData.backgroundMusic = 'none';
+                        }
+                        if (productFormData.musicDescription === undefined) {
+                            productFormData.musicDescription = '';
                         }
                     }
-                    if (formData.musicDescription === undefined) {
-                        formData.musicDescription = '';
+                     // Generic background music migration (can be applied to both)
+                    const oldToNewMap: { [key: string]: string } = {
+                        'Nenhuma': 'none', 'None': 'none', 'Ninguna': 'none',
+                        'Épica Orquestral': 'epic', 'Epic Orchestral': 'epic',
+                        'Pop Animado': 'upbeat', 'Upbeat Pop': 'upbeat',
+                        'Lo-fi Calmo': 'lofi', 'Chill Lo-fi': 'lofi', 'Lo-fi Relajante': 'lofi'
+                    };
+                    if (formData.backgroundMusic && oldToNewMap[formData.backgroundMusic]) {
+                        formData.backgroundMusic = oldToNewMap[formData.backgroundMusic] as any;
                     }
+                } catch (e) {
+                    console.error(`Failed to migrate account with key: ${key}. Skipping to prevent crash.`, e);
                 }
             });
             setAccounts(loadedAccounts);
@@ -171,6 +189,7 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 narrationScript: '',
                 backgroundMusic: 'none',
                 musicDescription: '',
+                audioType: 'narration',
                 ...finalFormData,
             } as ContentFormData;
         } else {
@@ -180,6 +199,7 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 narrationScript: '',
                 backgroundMusic: 'none',
                 musicDescription: '',
+                audioType: 'narration',
                 ...finalFormData,
             } as ProductFormData;
         }

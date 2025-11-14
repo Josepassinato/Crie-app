@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { TOKEN_PACKAGES } from '../lib/tokenCosts';
-import PaymentModal from '../components/PaymentModal';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { AuthContext } from '../contexts/AuthContext';
-import { AppPage } from '../types';
+import { TOKEN_PACKAGES } from '../lib/tokenCosts.ts';
+import PaymentModal from '../components/PaymentModal.tsx';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
+// Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
+import { AuthContext } from '../lib/AuthContext.tsx';
+import { AppPage } from '../types.ts';
 
 interface BuyTokensPageProps {
   setActivePage: (page: AppPage) => void;

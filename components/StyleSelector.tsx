@@ -1,7 +1,7 @@
 // components/StyleSelector.tsx
 import React, { useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { styleTemplates } from '../lib/styleTemplates';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
+import { styleTemplates } from '../lib/styleTemplates.ts';
 
 interface StyleSelectorProps {
     selectedStyle: string;

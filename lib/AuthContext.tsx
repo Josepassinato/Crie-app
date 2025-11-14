@@ -1,6 +1,6 @@
 import React, { createContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { User } from '../types';
-import { initializeFirebaseServices } from '../firebase';
+import { User } from '../types.ts';
+import { initializeFirebaseServices } from '../components/firebase.ts';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,

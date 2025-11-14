@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { AppMode } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
+import { AppMode } from '../types.ts';
 
 interface SaveAccountModalProps {
     isOpen: boolean;

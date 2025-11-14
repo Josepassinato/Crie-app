@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { AccountsContext } from '../contexts/AccountsContext';
-// Fix: Import SavedAccount to use for type assertion.
-import { AppMode, SavedAccount } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
+import { AccountsContext } from '../contexts/AccountsContext.tsx';
+// FIX: Import `SavedAccount` to provide correct type information for accounts.
+import { AppMode, SavedAccount } from '../types.ts';
 
 interface AccountManagerProps {
     appMode?: AppMode;
@@ -18,8 +18,9 @@ const AccountManager: React.FC<AccountManagerProps> = ({ appMode, showAll = fals
         deleteAccount 
     } = useContext(AccountsContext);
 
-    // Fix: Add type assertion to correctly type the result of Object.values.
-    const filteredAccounts = (Object.values(accounts) as SavedAccount[]).filter(acc => showAll || acc.type === appMode);
+    // FIX: Add explicit type `SavedAccount` to the filter callback parameter to fix type inference issues.
+    // Reverted: Removed explicit type assertion, relying on inference.
+    const filteredAccounts = Object.values(accounts).filter((acc: SavedAccount) => showAll || acc.type === appMode);
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -41,7 +42,8 @@ const AccountManager: React.FC<AccountManagerProps> = ({ appMode, showAll = fals
                     className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                 >
                     <option value="new-post">{t('newPost')}</option>
-                    {filteredAccounts.map(account => (
+                    {/* FIX: Add explicit type to map parameter to resolve inference issue. */}
+                    {filteredAccounts.map((account: SavedAccount) => (
                         <option key={account.id} value={account.id}>
                             {account.name} ({account.type === 'content' ? t('accountTypePersonality') : t('accountTypeBusiness')})
                         </option>

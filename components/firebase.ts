@@ -1,7 +1,7 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
-import { firebaseConfig } from './firebaseConfig';
+import { firebaseConfig } from '../firebaseConfig.ts';
 
 // Helper to check if a config object seems valid
 const isConfigValid = (config: any): boolean => {

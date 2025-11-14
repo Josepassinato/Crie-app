@@ -1,22 +1,25 @@
 import React, { useContext, useState } from 'react';
-import { AuthContext } from '../contexts/AuthContext';
-import { LanguageContext } from '../contexts/LanguageContext';
+// Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
+import { AuthContext } from '../lib/AuthContext.tsx';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 import { Language, AppPage } from '../types.ts';
-// Fix: Add file extension to fix module resolution error.
-import { useAppState } from '../contexts/AppStateContext.tsx';
+// Fix: Correct module import path and use useContext for AppStateContext.
+import { AppStateContext } from '../contexts/AppStateContext.tsx';
 import WhatsappNotificationManager from './WhatsappNotificationManager.tsx';
 
 const Header: React.FC = () => {
     const { currentUser, logout } = useContext(AuthContext);
     const { language, setLanguage, t } = useContext(LanguageContext);
-    const { activePage, setActivePage } = useAppState();
+    const appState = useContext(AppStateContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    if (!appState) return null; // Guard clause while context initializes
+    const { activePage, setActivePage } = appState;
 
     const navItems: { id: AppPage; label: string }[] = [
         { id: 'creator', label: t('creatorPage') || 'Creator' },
         { id: 'analyzer', label: t('analyzerPage') || 'Analyzer' },
         { id: 'trafficManager', label: t('trafficManagerPage') || 'Traffic Manager' },
-        // { id: 'strategy', label: t('strategyPage') || 'Strategy AI' }, // REMOVED
     ];
     if (currentUser?.isAdmin) {
         navItems.push({ id: 'admin', label: 'Admin' });
@@ -34,12 +37,12 @@ const Header: React.FC = () => {
 
     return (
         <header className="bg-brand-surface/80 backdrop-blur-sm sticky top-0 z-40 border-b border-slate-700">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container mx-auto px-6 sm:px-8 lg:px-12">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo and Nav */}
                     <div className="flex items-center space-x-8">
                         <div className="flex-shrink-0">
-                            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">crie-app</h1>
+                            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">crie-app</h1>
                         </div>
                         <nav className="hidden md:flex space-x-4">
                             {navItems.map((item) => (
@@ -48,8 +51,8 @@ const Header: React.FC = () => {
                                     onClick={() => setActivePage(item.id)}
                                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                         activePage === item.id 
-                                        ? 'bg-brand-primary/10 text-brand-primary' 
-                                        : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-text'
+                                        ? 'bg-brand-primary/10 text-brand-primary font-semibold' 
+                                        : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text'
                                     }`}
                                 >
                                     {item.label}
@@ -61,9 +64,9 @@ const Header: React.FC = () => {
                     {/* Right Side */}
                     <div className="flex items-center space-x-2 sm:space-x-4">
                         <div className="hidden sm:flex items-center space-x-2">
-                             <span className="text-sm font-medium text-brand-text">{currentUser?.tokens.toLocaleString()}</span>
+                             <span className="text-base font-semibold text-brand-light-text">{currentUser?.tokens.toLocaleString()}</span>
                              <span className="text-sm text-brand-subtle">{t('tokens')}</span>
-                             <button onClick={() => setActivePage('buyTokens')} className="ml-2 px-3 py-1 text-xs font-semibold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-full transition-colors">
+                             <button onClick={() => setActivePage('buyTokens')} className="ml-2 px-3 py-1.5 text-xs font-semibold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-full transition-colors shadow-sm hover:shadow-md">
                                 + {t('buyMore')}
                              </button>
                         </div>
@@ -73,14 +76,14 @@ const Header: React.FC = () => {
                             <option>Español</option>
                         </select>
                         <WhatsappNotificationManager />
-                        <button onClick={logout} className="p-2 rounded-full text-brand-subtle hover:bg-slate-700/50 hover:text-brand-text">
+                        <button onClick={logout} className="p-2 rounded-full text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
                         {/* Hamburger button */}
                         <div className="md:hidden flex items-center">
-                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-brand-subtle hover:text-brand-text hover:bg-slate-700/50" aria-controls="mobile-menu" aria-expanded={isMenuOpen}>
+                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-brand-subtle hover:text-brand-light-text hover:bg-slate-700/50" aria-controls="mobile-menu" aria-expanded={isMenuOpen}>
                                 <span className="sr-only">Open main menu</span>
                                 {isMenuOpen ? (
                                     <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -107,7 +110,7 @@ const Header: React.FC = () => {
                                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
                                     activePage === item.id 
                                     ? 'bg-brand-primary/10 text-brand-primary' 
-                                    : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-text'
+                                    : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text'
                                 }`}
                             >
                                 {item.label}

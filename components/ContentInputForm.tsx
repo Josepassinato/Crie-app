@@ -1,442 +1,563 @@
-import React, { useContext, useState } from 'react';
-import { ContentFormData, UploadedImage, MediaType } from '../types.ts';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { AuthContext } from '../contexts/AuthContext';
-import { TOKEN_COSTS, VIDEO_COSTS } from '../lib/tokenCosts.ts';
+// components/ContentInputForm.tsx
+import React, { useState, useContext, useCallback, useEffect, useRef } from 'react';
+import { ContentFormData, MediaType, UploadedImage, CreativeSuggestions, Schedule } from '../types.ts';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
+import { AppStateContext } from '../contexts/AppStateContext.tsx';
 import VoicePromptButton from './VoicePromptButton.tsx';
-import StyleSelector from './StyleSelector.tsx';
 import SelfieCaptureModal from './SelfieCaptureModal.tsx';
-// Fix: Import generateContentNarrationScript from contentMarketingService and generateCreativeSuggestions from geminiService.
+import StyleSelector from './StyleSelector.tsx';
 import { generateContentNarrationScript } from '../services/contentMarketingService.ts';
 import { generateCreativeSuggestions } from '../services/geminiService.ts';
-import { useAppState } from '../contexts/AppStateContext.tsx'; // Import useAppState to get handleTokenCost
+import { TOKEN_COSTS, VIDEO_COSTS } from '../lib/tokenCosts.ts';
+import AutomationScheduler from './AutomationScheduler.tsx';
+import ApiKeySelector from './ApiKeySelector.tsx';
+
+// Helper component for a more prominent image upload area
+const ImageUploadArea: React.FC<{
+    label: string;
+    uploadedImage: UploadedImage | null;
+    onUploadClick: () => void;
+    onRemoveClick: () => void;
+}> = ({ label, uploadedImage, onUploadClick, onRemoveClick }) => {
+    const { t } = useContext(LanguageContext);
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-brand-subtle mb-2">{label}</label>
+            <div
+                className="relative flex justify-center items-center w-full h-32 px-6 py-4 border-2 border-slate-600 border-dashed rounded-md cursor-pointer hover:border-brand-primary transition-colors"
+                onClick={onUploadClick}
+            >
+                {uploadedImage ? (
+                    <>
+                        <img src={`data:${uploadedImage.mimeType};base64,${uploadedImage.base64}`} alt={label} className="h-full w-full object-contain rounded-md" />
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveClick();
+                            }}
+                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs opacity-75 hover:opacity-100 transition-opacity"
+                            aria-label={`Remove ${label}`}
+                        >
+                            &times;
+                        </button>
+                    </>
+                ) : (
+                    <div className="text-center">
+                        <svg className="mx-auto h-8 w-8 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" /></svg>
+                        <h3 className="mt-2 text-sm font-medium text-brand-subtle">{t('uploadAreaTitle')}</h3>
+                        <p className="mt-1 text-xs text-slate-500">{t('uploadAreaSubtitle')}</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const HelpTooltip: React.FC<{ text: string }> = ({ text }) => (
+    <div className="relative inline-flex items-center group ml-1">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-subtle cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+        </svg>
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal z-10 pointer-events-none">
+            {text}
+        </div>
+    </div>
+);
+
 
 interface ContentInputFormProps {
-    formState: ContentFormData;
-    setFormState: (state: any) => void;
-    outputType: MediaType;
-    setOutputType: (type: MediaType) => void;
-    onSubmit: () => void;
-    onClear: () => void;
+    formData: ContentFormData;
+    onFormChange: (formData: ContentFormData) => void;
+    onFormSubmit: () => void;
     isLoading: boolean;
-    onOpenSaveModal: () => void;
+    outputType: MediaType;
+    onOutputTypeChange: (type: MediaType) => void;
+    onSaveAccount: () => void;
+    schedule: Schedule;
+    onScheduleChange: (schedule: Schedule) => void;
+    isAutomationDisabled: boolean;
 }
 
-const ContentInputForm: React.FC<ContentInputFormProps> = ({ formState, setFormState, outputType, setOutputType, onSubmit, onClear, isLoading, onOpenSaveModal }) => {
+export const ContentInputForm: React.FC<ContentInputFormProps> = ({
+    formData, onFormChange, onFormSubmit, isLoading, outputType, onOutputTypeChange, onSaveAccount,
+    schedule, onScheduleChange, isAutomationDisabled
+}) => {
     const { t, language } = useContext(LanguageContext);
-    const { currentUser } = useContext(AuthContext);
-    // Fix: 'handleTokenCost' is now correctly included in AppStateContextType.
-    const { handleTokenCost } = useAppState(); // Get handleTokenCost from AppStateContext
-
+    const appState = useContext(AppStateContext);
     const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
-    const [isNarrationLoading, setIsNarrationLoading] = useState(false);
-    const [showSpecialSettings, setShowSpecialSettings] = useState(false);
-    const [isSuggestionLoading, setIsSuggestionLoading] = useState(false); // New state for suggestions
+    const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+    const [aiSuggestedFields, setAiSuggestedFields] = useState<Record<string, boolean>>({});
+    const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
 
-    React.useEffect(() => {
-        if (outputType === 'video' && !['9:16', '16:9'].includes(formState.aspectRatio)) {
-            setFormState((prevState: ContentFormData) => ({ ...prevState, aspectRatio: '9:16' }));
-        }
-    }, [outputType, formState.aspectRatio, setFormState]);
-
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        // Convert carouselSlides to number
-        const newValue = name === 'carouselSlides' ? parseInt(value, 10) : value;
-        setFormState({ ...formState, [name]: newValue });
-    };
-
-    const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormState({
-                    ...formState,
-                    logoImage: {
-                        base64: (reader.result as string).split(',')[1],
-                        mimeType: file.type,
-                        name: file.name,
-                    }
-                });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleSelfieConfirm = (selfie: UploadedImage) => {
-        setFormState({ ...formState, userSelfie: selfie });
-    };
+    const logoInputRef = useRef<HTMLInputElement>(null);
+    const userSelfieInputRef = useRef<HTMLInputElement>(null);
     
-     const handleGenerateNarration = async () => {
-        setIsNarrationLoading(true);
+    if (!appState) return null;
+    const { handleError, handleTokenCost } = appState;
+
+    const updateForm = useCallback((field: keyof ContentFormData, value: any) => {
+        onFormChange({ ...formData, [field]: value });
+    }, [formData, onFormChange]);
+    
+    useEffect(() => {
+        // When switching to video, always default to 9:16 for Reels/Stories.
+        if (outputType === 'video' && formData.audioType !== 'elevenlabs') {
+            updateForm('aspectRatio', '9:16');
+        }
+    }, [outputType, formData.audioType, updateForm]);
+
+    const handleSingleImageUpload = (file: File, field: 'logoImage' | 'userSelfie') => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (reader.result) {
+                updateForm(field, {
+                    base64: (reader.result as string).split(',')[1],
+                    mimeType: file.type,
+                    name: file.name,
+                });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, field: 'logoImage' | 'userSelfie') => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        handleSingleImageUpload(file, field);
+        if (event.target) event.target.value = '';
+    };
+
+    const removeImage = useCallback((field: 'logoImage' | 'userSelfie') => {
+        updateForm(field, null);
+    }, [updateForm]);
+
+
+    const handleVoicePromptGenerated = useCallback((text: string, field: keyof ContentFormData) => {
+        updateForm(field, text);
+    }, [updateForm]);
+    
+    const handleGenerateNarrationScript = useCallback(async () => {
+        if (!formData.profession || !formData.professionalContext || !formData.videoDuration) {
+            handleError(new Error('narrationScriptMissingFields'), 'narrationScriptApiError');
+            return;
+        }
+        if (!handleTokenCost(TOKEN_COSTS.CONTENT_POST / 2)) return; // Assuming half cost for just script
+
         try {
             const script = await generateContentNarrationScript(
-                formState.profession,
-                formState.targetAudience, // This field will now be hidden by default
-                formState.professionalContext,
-                formState.videoDuration,
-                language
+                formData.profession,
+                formData.targetAudience,
+                formData.professionalContext,
+                formData.videoDuration,
+                language,
+                formData.audioType
             );
-            setFormState({ ...formState, narrationScript: script });
-        } catch (error) {
-            console.error("Failed to generate narration:", error);
-        } finally {
-            setIsNarrationLoading(false);
+            updateForm('narrationScript', script);
+        } catch (err) {
+            handleError(err as Error, 'narrationScriptApiError');
         }
-    };
+    }, [formData, handleError, handleTokenCost, language, updateForm]);
     
-    const handleGenerateAISuggestions = async () => {
-        if (!handleTokenCost(TOKEN_COSTS.CREATIVE_SUGGESTIONS_ANALYSIS)) return;
+    const handleGenerateAISuggestions = useCallback(async () => {
         setIsSuggestionLoading(true);
         try {
+            if (!handleTokenCost(TOKEN_COSTS.CREATIVE_SUGGESTIONS_ANALYSIS)) {
+                setIsSuggestionLoading(false);
+                return;
+            }
+
             const suggestions = await generateCreativeSuggestions(
                 {
-                    profession: formState.profession,
-                    profileUrl: formState.profileUrl,
-                    benchmarkProfileUrl: formState.benchmarkProfileUrl,
+                    profession: formData.profession,
+                    professionalContext: formData.professionalContext,
+                    profileUrl: formData.profileUrl,
+                    benchmarkProfileUrl: formData.benchmarkProfileUrl,
                 },
                 outputType,
                 language
             );
 
-            // Apply suggestions, prioritizing existing user input
-            setFormState((prev: ContentFormData) => ({
-                ...prev,
-                targetAudience: suggestions.targetAudience || prev.targetAudience,
-                postFormat: suggestions.postFormat || prev.postFormat,
-                carouselSlides: suggestions.carouselSlides || prev.carouselSlides,
-                artisticStyle: suggestions.artisticStyle || prev.artisticStyle,
-                aspectRatio: suggestions.aspectRatio || prev.aspectRatio,
-                negativePrompt: suggestions.negativePrompt || prev.negativePrompt,
-                maskTemplate: suggestions.maskTemplate || prev.maskTemplate,
-                colorPalette: suggestions.colorPalette || prev.colorPalette,
-                videoDuration: suggestions.videoDuration || prev.videoDuration,
-                animationStyle: suggestions.animationStyle || prev.animationStyle,
-                backgroundMusic: suggestions.backgroundMusic || prev.backgroundMusic,
-                musicDescription: suggestions.musicDescription || prev.musicDescription,
-            }));
-        } catch (error: any) {
-            console.error("Failed to generate AI suggestions:", error);
-            alert(t(error.message || 'creativeSuggestionsApiError'));
+            const updatedAiSuggestedFields: Record<string, boolean> = {};
+            const newFormData = { ...formData };
+            for (const key in suggestions) {
+                const fieldKey = key as keyof CreativeSuggestions;
+                const value = suggestions[fieldKey];
+                if (value != null && value !== '' && !(newFormData as any)[fieldKey]) {
+                    (newFormData as any)[fieldKey] = value;
+                    updatedAiSuggestedFields[fieldKey] = true;
+                }
+            }
+            onFormChange(newFormData);
+            setAiSuggestedFields(updatedAiSuggestedFields);
+            setTimeout(() => setAiSuggestedFields({}), 5000);
+
+        } catch (err) {
+            handleError(err as Error, 'creativeSuggestionsApiError');
         } finally {
             setIsSuggestionLoading(false);
         }
-    };
+    }, [formData, outputType, language, handleError, handleTokenCost, onFormChange]);
 
-
-    const cost = outputType === 'video' 
-        ? VIDEO_COSTS[formState.videoDuration as keyof typeof VIDEO_COSTS]
-        : TOKEN_COSTS.CONTENT_POST * (formState.postFormat === 'carousel' ? formState.carouselSlides : 1);
-
-    const buttonText = currentUser?.isAdmin
-        ? t('generate')
-        : `${t('generateContentPost')} (${cost} ${t('tokens')})`;
-
+    const isAudioOnly = formData.audioType === 'elevenlabs';
+    let tokenCost;
+    if (isAudioOnly) {
+        tokenCost = TOKEN_COSTS.ELEVENLABS_AUDIO_GENERATION;
+    } else if (outputType === 'image') {
+        tokenCost = TOKEN_COSTS.CONTENT_POST;
+    } else {
+        tokenCost = VIDEO_COSTS[formData.videoDuration];
+    }
+    const generationButtonText = t('startGenerationWithCost', { cost: tokenCost });
 
     return (
-        <>
-        <div className="space-y-6 animate-fade-in">
-            <div>
-                <label htmlFor="profession" className="block text-sm font-medium text-brand-subtle mb-2">{t('professionLabel')}</label>
-                <input type="text" name="profession" id="profession" value={formState.profession} onChange={handleInputChange} placeholder={t('professionPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-            </div>
-            <div>
-                 <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="professionalContext" className="block text-sm font-medium text-brand-subtle">{t('contextLabel')}</label>
-                    <VoicePromptButton
-                        onPromptGenerated={(text) => setFormState({ ...formState, professionalContext: text })}
-                        context={formState.professionalContext}
-                        ariaLabel={t('generatePromptWithAudio')}
+        <div className="space-y-8">
+            <div className="space-y-4">
+                {/* Basic Fields */}
+                <div>
+                    <label htmlFor="profession" className="block text-sm font-medium text-brand-subtle mb-2">
+                        {t('professionLabel')}
+                    </label>
+                    <input
+                        type="text"
+                        id="profession"
+                        value={formData.profession}
+                        onChange={(e) => updateForm('profession', e.target.value)}
+                        placeholder={t('professionPlaceholder')}
+                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
                     />
                 </div>
-                <textarea name="professionalContext" id="professionalContext" rows={2} value={formState.professionalContext} onChange={handleInputChange} placeholder={t('contextPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-            </div>
-            <div>
-                <label htmlFor="profileUrl" className="block text-sm font-medium text-brand-subtle mb-2">{t('profileUrlForAnalysis')}</label>
-                <input type="url" name="profileUrl" id="profileUrl" value={formState.profileUrl} onChange={handleInputChange} placeholder={t('profileUrlPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-            </div>
-            {/* New: Benchmark Instagram Profile URL */}
-            <div>
-                <label htmlFor="benchmarkProfileUrl" className="block text-sm font-medium text-brand-subtle mb-2">{t('benchmarkProfileUrlLabel')}</label>
-                <input type="url" name="benchmarkProfileUrl" id="benchmarkProfileUrl" value={formState.benchmarkProfileUrl || ''} onChange={handleInputChange} placeholder={t('benchmarkProfileUrlPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-            </div>
-            
-            {/* Special Settings Toggle Button */}
-            <div className="pt-4 border-t border-slate-700/50">
-                <button
-                    type="button"
-                    onClick={() => setShowSpecialSettings(!showSpecialSettings)}
-                    className="w-full flex justify-between items-center py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-md text-brand-text font-semibold transition-colors"
-                >
-                    <span>{t('specialSettings')}</span>
-                    <svg
-                        className={`h-5 w-5 transition-transform duration-200 ${showSpecialSettings ? 'rotate-180' : 'rotate-0'}`}
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-            </div>
+                <div>
+                    <label htmlFor="targetAudience" className="block text-sm font-medium text-brand-subtle mb-2">
+                        <span className="flex items-center">
+                            {t('targetAudienceLabel')}
+                            <HelpTooltip text={t('tooltipTargetAudience')} />
+                        </span>
+                    </label>
+                    <input
+                        type="text"
+                        id="targetAudience"
+                        value={formData.targetAudience}
+                        onChange={(e) => updateForm('targetAudience', e.target.value)}
+                        placeholder={t('targetAudiencePlaceholder')}
+                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="professionalContext" className="block text-sm font-medium text-brand-subtle mb-2">
+                        {t('professionalContextLabel')}
+                    </label>
+                    <div className="relative">
+                        <textarea
+                            id="professionalContext"
+                            value={formData.professionalContext}
+                            onChange={(e) => updateForm('professionalContext', e.target.value)}
+                            placeholder={t('professionalContextPlaceholder')}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500 pr-10 resize-y"
+                        />
+                        <div className="absolute top-2 right-2">
+                            <VoicePromptButton 
+                                onPromptGenerated={(text) => handleVoicePromptGenerated(text, 'professionalContext')}
+                                context={t('professionalContextLabel')}
+                                ariaLabel={t('voiceInputFor') + t('professionalContextLabel')}
+                            />
+                        </div>
+                    </div>
+                </div>
 
-            {/* Special Settings Content */}
-            {showSpecialSettings && (
-                <div className="space-y-6 animate-fade-in pt-4 border-t border-slate-700/50">
-                    {/* New: Generate AI Suggestions Button */}
+                {/* Output Type Toggle */}
+                <div className="flex space-x-4">
                     <button
-                        type="button"
-                        onClick={handleGenerateAISuggestions}
-                        disabled={isSuggestionLoading || isLoading}
-                        className="w-full py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 focus:ring-offset-brand-bg disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                        onClick={() => onOutputTypeChange('image')}
+                        className={`px-6 py-2 rounded-full text-base font-medium transition-colors ${
+                            outputType === 'image' && !isAudioOnly
+                                ? 'bg-brand-secondary text-white shadow-md'
+                                : 'bg-slate-700/50 text-brand-subtle hover:bg-slate-700'
+                        }`}
+                        disabled={isAudioOnly}
                     >
-                        {isSuggestionLoading ? (
-                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                        {t('outputFormatImage')}
+                    </button>
+                    <button
+                        onClick={() => onOutputTypeChange('video')}
+                        className={`px-6 py-2 rounded-full text-base font-medium transition-colors ${
+                            outputType === 'video' && !isAudioOnly
+                                ? 'bg-brand-secondary text-white shadow-md'
+                                : 'bg-slate-700/50 text-brand-subtle hover:bg-slate-700'
+                        }`}
+                        disabled={isAudioOnly}
+                    >
+                        {t('outputFormatVideo')}
+                    </button>
+                </div>
+
+                {outputType === 'image' && !isAudioOnly && (
+                    <div className="animate-fade-in space-y-4">
+                        <div className="relative">
+                            <label htmlFor="postFormat" className="block text-sm font-medium text-brand-subtle mb-2">{t('postFormatLabel')}</label>
+                            <select
+                                id="postFormat"
+                                value={formData.postFormat}
+                                onChange={(e) => updateForm('postFormat', e.target.value as 'single' | 'carousel')}
+                                className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                            >
+                                <option value="single">{t('postFormatSingle')}</option>
+                                <option value="carousel">{t('postFormatCarousel')}</option>
+                            </select>
+                            {aiSuggestedFields.postFormat && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                        </div>
+                        {formData.postFormat === 'carousel' && (
+                            <div className="animate-fade-in relative">
+                                <label htmlFor="carouselSlides" className="block text-sm font-medium text-brand-subtle mb-2">{t('carouselSlidesLabel')}</label>
+                                <input
+                                    type="number"
+                                    id="carouselSlides"
+                                    value={formData.carouselSlides}
+                                    onChange={(e) => updateForm('carouselSlides', Math.max(2, Math.min(5, parseInt(e.target.value, 10) || 2)))}
+                                    min="2"
+                                    max="5"
+                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                                />
+                                {aiSuggestedFields.carouselSlides && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                            </div>
                         )}
-                        <span>{t('generateAISuggestions')} ({TOKEN_COSTS.CREATIVE_SUGGESTIONS_ANALYSIS} {t('tokens')})</span>
+                    </div>
+                )}
+                
+                {/* Advanced Settings */}
+                <div className="border-t border-slate-700 pt-6">
+                    <button
+                        onClick={() => setIsAdvancedSettingsOpen(!isAdvancedSettingsOpen)}
+                        className="w-full flex justify-between items-center text-left text-xl font-bold text-brand-text mb-4"
+                        aria-expanded={isAdvancedSettingsOpen}
+                    >
+                        <span>{t('advancedSettings')}</span>
+                        <svg
+                            className={`w-6 h-6 transform transition-transform ${isAdvancedSettingsOpen ? 'rotate-180' : ''}`}
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
 
-                    {/* Target Audience */}
-                    <div>
-                        <label htmlFor="targetAudience" className="block text-sm font-medium text-brand-subtle mb-2">{t('targetAudienceLabel')}</label>
-                        <input type="text" name="targetAudience" id="targetAudience" value={formState.targetAudience} onChange={handleInputChange} placeholder={t('targetAudienceContentPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-                    </div>
-                
-                    {/* Post Format Selection */}
-                    <div className="space-y-4">
-                        <h3 className="text-md font-semibold text-brand-text">{t('postFormatTitle')}</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className={`${outputType === 'video' ? 'opacity-50' : ''}`}>
-                                <label htmlFor="postFormat" className="block text-sm font-medium text-brand-subtle mb-2">{t('format')}</label>
-                                <select name="postFormat" id="postFormat" value={outputType === 'video' ? 'single' : formState.postFormat} onChange={handleInputChange} disabled={outputType === 'video'} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text disabled:cursor-not-allowed">
-                                    <option value="single">{t('singlePost')}</option>
-                                    <option value="carousel">{t('carouselPost')}</option>
-                                </select>
-                                {outputType === 'video' && <p className="text-xs text-slate-500 mt-1">{t('carouselVideoDisabled')}</p>}
-                            </div>
-                            {formState.postFormat === 'carousel' && outputType === 'image' && (
-                                <div className="animate-fade-in">
-                                    <label htmlFor="carouselSlides" className="block text-sm font-medium text-brand-subtle mb-2">{t('numberOfSlides')}</label>
-                                    <select name="carouselSlides" id="carouselSlides" value={formState.carouselSlides} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                        <option value={3}>3</option>
-                                        <option value={4}>4</option>
-                                        <option value={5}>5</option>
-                                        <option value={6}>6</option>
-                                        <option value={7}>7</option>
-                                    </select>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Writing Personalization */}
-                    <div className="space-y-4 pt-4 border-t border-slate-700/50">
-                        <h3 className="text-md font-semibold text-brand-text">{t('writingPersonalizationTitle')}</h3>
-                        <p className="text-sm text-brand-subtle -mt-2">{t('writingPersonalizationDesc')}</p>
-                        <div>
-                            <label htmlFor="postExample1" className="block text-sm font-medium text-brand-subtle mb-2">{t('postExampleLabel')} 1</label>
-                            <textarea name="postExample1" id="postExample1" rows={2} value={formState.postExample1} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md text-brand-text"/>
-                        </div>
-                        <div>
-                            <label htmlFor="postExample2" className="block text-sm font-medium text-brand-subtle mb-2">{t('postExampleLabel')} 2</label>
-                            <textarea name="postExample2" id="postExample2" rows={2} value={formState.postExample2} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md text-brand-text"/>
-                        </div>
-                        <div>
-                            <label htmlFor="postExample3" className="block text-sm font-medium text-brand-subtle mb-2">{t('postExampleLabel')} 3</label>
-                            <textarea name="postExample3" id="postExample3" rows={2} value={formState.postExample3} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md text-brand-text"/>
-                        </div>
-                    </div>
-
-                    {/* Creative Customizations */}
-                    <div className="space-y-4 pt-4 border-t border-slate-700/50">
-                        <StyleSelector
-                            selectedStyle={formState.artisticStyle}
-                            onStyleChange={(style) => setFormState({ ...formState, artisticStyle: style })}
-                        />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {isAdvancedSettingsOpen && (
+                        <div className="space-y-4 animate-fade-in">
                             <div>
-                                <label htmlFor="aspectRatio" className="block text-sm font-medium text-brand-subtle mb-2">{t('aspectRatioLabel')}</label>
-                                <select name="aspectRatio" id="aspectRatio" value={formState.aspectRatio} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                    {outputType === 'image' && <option value="1:1">1:1 (Square)</option>}
-                                    <option value="9:16">9:16 (Vertical)</option>
-                                    <option value="16:9">16:9 (Horizontal)</option>
-                                    {outputType === 'image' && <option value="4:3">4:3 (Classic)</option>}
-                                    {outputType === 'image' && <option value="3:4">3:4 (Portrait)</option>}
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="negativePrompt" className="block text-sm font-medium text-brand-subtle mb-2">{t('negativePromptLabel')}</label>
-                                <input type="text" name="negativePrompt" id="negativePrompt" value={formState.negativePrompt} onChange={handleInputChange} placeholder={t('negativePromptPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-                            </div>
-                            <div>
-                                <label htmlFor="maskTemplate" className="block text-sm font-medium text-brand-subtle mb-2">{t('maskTemplateLabel')}</label>
-                                <select name="maskTemplate" id="maskTemplate" value={formState.maskTemplate} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                    <option>{t('maskNone')}</option>
-                                    <option>{t('maskModern')}</option>
-                                    <option>{t('maskGrunge')}</option>
-                                    <option>{t('maskMinimalist')}</option>
-                                    <option value="minhaLogo">{t('maskMyLogo')}</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="colorPalette" className="block text-sm font-medium text-brand-subtle mb-2">{t('colorPaletteLabel')}</label>
-                                <input type="text" name="colorPalette" id="colorPalette" value={formState.colorPalette} onChange={handleInputChange} placeholder={t('colorPalettePlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-brand-subtle mb-2">{t('logoUploadLabel')}</label>
-                            <div className="mt-2 flex items-center gap-x-3">
-                                {formState.logoImage ? (
-                                    <img src={`data:${formState.logoImage.mimeType};base64,${formState.logoImage.base64}`} alt="Logo Preview" className="h-12 w-12 rounded-md bg-slate-700 object-contain" />
-                                ) : (
-                                    <svg className="h-12 w-12 text-gray-500" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clipRule="evenodd" /></svg>
-                                )}
-                                <label htmlFor="logo-upload" className="rounded-md bg-slate-800 px-2.5 py-1.5 text-sm font-semibold text-brand-subtle shadow-sm ring-1 ring-inset ring-slate-600 hover:bg-slate-700">
-                                   <span>{formState.logoImage ? t('changeLogo') : t('uploadLogo')}</span>
-                                   <input id="logo-upload" name="logo-upload" type="file" className="sr-only" onChange={handleLogoChange} accept="image/*"/>
+                                <label htmlFor="profileUrl" className="block text-sm font-medium text-brand-subtle mb-2">
+                                    {t('socialProfileUrl')}
                                 </label>
+                                <input
+                                    type="url"
+                                    id="profileUrl"
+                                    value={formData.profileUrl}
+                                    onChange={(e) => updateForm('profileUrl', e.target.value)}
+                                    placeholder={t('profileUrlPlaceholder')}
+                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                />
                             </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-brand-subtle mb-2">{t('includeSelfieLabel')}</label>
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setIsSelfieModalOpen(true)} className="flex items-center gap-2 rounded-md bg-slate-800 px-3 py-2 text-sm font-semibold text-brand-subtle shadow-sm ring-1 ring-inset ring-slate-600 hover:bg-slate-700">
-                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.776 48.776 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
-                                   <span>{formState.userSelfie ? t('changeLogo') : t('includeSelfieLabel')}</span>
-                                </button>
-                                {formState.userSelfie && (
-                                    <div className="relative group">
-                                        <img src={`data:${formState.userSelfie.mimeType};base64,${formState.userSelfie.base64}`} alt="Selfie Preview" className="h-12 w-12 rounded-md object-cover" />
-                                        <button onClick={() => setFormState({ ...formState, userSelfie: null })} className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </button>
-                                        <div className="absolute top-0 right-0 -mt-2 -mr-2 w-4 h-4 rounded-full bg-red-600 group-hover:hidden"></div>
-                                    </div>
+                            <div>
+                                <label htmlFor="benchmarkProfileUrl" className="block text-sm font-medium text-brand-subtle mb-2">
+                                    {t('benchmarkProfileUrl')}
+                                </label>
+                                <input
+                                    type="url"
+                                    id="benchmarkProfileUrl"
+                                    value={formData.benchmarkProfileUrl || ''}
+                                    onChange={(e) => updateForm('benchmarkProfileUrl', e.target.value)}
+                                    placeholder={t('benchmarkProfileUrlPlaceholder')}
+                                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                />
+                            </div>
+                            <button
+                                onClick={handleGenerateAISuggestions}
+                                disabled={isSuggestionLoading || isLoading}
+                                className="w-full py-2 px-4 border border-brand-primary/50 text-brand-primary/90 hover:bg-brand-primary/10 rounded-md shadow-sm text-sm font-medium transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSuggestionLoading ? (
+                                    <>
+                                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        <span>{t('generating')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M9.375 3.375A3 3 0 006.75 6v1.5a.75.75 0 01-.75.75H4.5a.75.75 0 010-1.5v-1.5c0-.966.784-1.75 1.75-1.75h1.5zm1.5-1.5a.75.75 0 00-1.5 0V3h-1.5A.75.75 0 006 3.75h-.75a.75.75 0 00-.75.75v.75a.75.75 0 00.75.75H6a.75.75 0 00.75-.75V6a.75.75 0 00-1.5 0v1.5a.75.75 0 01-.75.75H4.5a.75.75 0 010-1.5v-1.5c0-.966.784-1.75 1.75-1.75h1.5zM12 2.25a.75.75 0 00-1.5 0V3h-1.5A.75.75 0 006 3.75h-.75a.75.75 0 00-.75.75v.75a.75.75 0 00.75.75H6a.75.75 0 00.75-.75V6a.75.75 0 00-1.5 0v1.5a.75.75 0 01-.75.75H4.5a.75.75 0 010-1.5v-1.5c0-.966.784-1.75 1.75-1.75h1.5z" /><path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3.5-3.5a.75.75 0 10-1.06 1.06l2.22 2.22H9.75a.75.75 0 000 1.5h4.19l-2.22 2.22a.75.75 0 101.06 1.06l3.5-3.5z" clipRule="evenodd" /></svg>
+                                        <span>{t('generateAISuggestions')}</span>
+                                    </>
                                 )}
+                            </button>
+                            {/* Writing Personalization */}
+                            <div>
+                                <h3 className="text-lg font-semibold text-brand-text mb-2 flex items-center">{t('writingPersonalization')} <HelpTooltip text={t('tooltipWritingPersonalization')} /></h3>
+                                <p className="text-sm text-brand-subtle mb-4">{t('writingPersonalizationDescription')}</p>
+                                <div className="space-y-3">
+                                    <input type="text" value={formData.postExample1} onChange={(e) => updateForm('postExample1', e.target.value)} placeholder={t('postExample1Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                    <input type="text" value={formData.postExample2} onChange={(e) => updateForm('postExample2', e.target.value)} placeholder={t('postExample2Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                    <input type="text" value={formData.postExample3} onChange={(e) => updateForm('postExample3', e.target.value)} placeholder={t('postExample3Placeholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Output Format Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-brand-subtle mb-2">{t('outputFormat')}</label>
-                        <div className="flex rounded-md shadow-sm">
-                            <button onClick={() => setOutputType('image')} className={`relative inline-flex items-center justify-center w-1/2 rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${outputType === 'image' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>{t('image')}</button>
-                            <button onClick={() => setOutputType('video')} className={`relative -ml-px inline-flex items-center justify-center w-1/2 rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${outputType === 'video' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>{t('video')}</button>
-                        </div>
-                    </div>
-
-                    {outputType === 'video' && (
-                        <div className="space-y-6 pt-4 border-t border-slate-700/50 animate-fade-in">
-                            <div className="space-y-4">
-                                <h3 className="text-md font-semibold text-brand-text">{t('videoStyleOptions')}</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-brand-subtle mb-2">{t('videoDurationLabel')}</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {(Object.keys(VIDEO_COSTS) as Array<keyof typeof VIDEO_COSTS>).map((duration) => (
-                                                <button
-                                                    key={duration}
-                                                    type="button"
-                                                    onClick={() => handleInputChange({ target: { name: 'videoDuration', value: duration } } as any)}
-                                                    className={`relative inline-flex flex-col items-center justify-center w-full rounded-md p-2 text-sm ring-1 ring-inset ring-slate-600 focus:z-10 transition-colors ${formState.videoDuration === duration ? 'bg-brand-primary text-slate-900 ring-brand-primary' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}
-                                                >
-                                                    <span className="font-bold text-base">{duration}</span>
-                                                    <span className="text-xs opacity-80">{VIDEO_COSTS[duration]} {t('tokens')}</span>
-                                                </button>
-                                            ))}
+                            {/* Creative Customizations */}
+                            <div>
+                                <h3 className="text-lg font-semibold text-brand-text mb-2">{t('creativeCustomizations')}</h3>
+                                <p className="text-sm text-brand-subtle mb-4">{t('creativeCustomizationsDescription')}</p>
+                                <div className="space-y-3">
+                                    <div className="relative">
+                                         <StyleSelector selectedStyle={formData.artisticStyle} onStyleChange={(style) => updateForm('artisticStyle', style)} />
+                                        {aiSuggestedFields.artisticStyle && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                    </div>
+                                    <div className="relative">
+                                        <label htmlFor="aspectRatio" className="block text-sm font-medium text-brand-subtle mb-2">{t('aspectRatioLabel')}</label>
+                                        {(outputType === 'image' || isAudioOnly) ? (
+                                            <select id="aspectRatio" value={formData.aspectRatio} onChange={(e) => updateForm('aspectRatio', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text" disabled={isAudioOnly}>
+                                                <option value="1:1">{t('aspectRatio_1_1')}</option>
+                                                <option value="9:16">{t('aspectRatio_9_16')}</option>
+                                                <option value="16:9">{t('aspectRatio_16_9')}</option>
+                                                <option value="4:3">{t('aspectRatio_4_3')}</option>
+                                                <option value="3:4">{t('aspectRatio_3_4')}</option>
+                                            </select>
+                                        ) : (
+                                            <div className="w-full px-3 py-2 border border-slate-600 bg-slate-800 rounded-md text-brand-subtle">
+                                                {t('aspectRatio_9_16_video')}
+                                            </div>
+                                        )}
+                                        {aiSuggestedFields.aspectRatio && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                    </div>
+                                    <div className="relative"><label htmlFor="negativePrompt" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('negativePromptLabel')}<HelpTooltip text={t('tooltipNegativePrompt')} /></span></label><input type="text" id="negativePrompt" value={formData.negativePrompt} onChange={(e) => updateForm('negativePrompt', e.target.value)} placeholder={t('negativePromptPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />{aiSuggestedFields.negativePrompt && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    <div className="relative"><label htmlFor="maskTemplate" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('maskTemplateLabel')}<HelpTooltip text={t('tooltipMaskTemplate')} /></span></label><select id="maskTemplate" value={formData.maskTemplate} onChange={(e) => updateForm('maskTemplate', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"><option value="Nenhum">{t('maskTemplateNone')}</option><option value="Moderno com Círculo">{t('maskTemplateModernCircle')}</option><option value="Grunge com Pinceladas">{t('maskTemplateGrungeBrush')}</option><option value="Minimalista com Linhas">{t('maskTemplateMinimalLines')}</option><option value="minhaLogo">{t('maskTemplateMyLogo')}</option></select>{aiSuggestedFields.maskTemplate && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    {formData.maskTemplate === 'minhaLogo' && (<><input type="file" ref={logoInputRef} onChange={(e) => handleFileChange(e, 'logoImage')} accept="image/*" className="hidden" /><ImageUploadArea label={t('uploadLogoImage')} uploadedImage={formData.logoImage} onUploadClick={() => logoInputRef.current?.click()} onRemoveClick={() => removeImage('logoImage')} /></>)}
+                                    <div className="relative"><label htmlFor="colorPalette" className="block text-sm font-medium text-brand-subtle mb-2"><span className="flex items-center">{t('colorPaletteLabel')}<HelpTooltip text={t('tooltipColorPalette')} /></span></label><input type="text" id="colorPalette" value={formData.colorPalette} onChange={(e) => updateForm('colorPalette', e.target.value)} placeholder={t('colorPalettePlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />{aiSuggestedFields.colorPalette && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}</div>
+                                    <div><input type="file" ref={userSelfieInputRef} onChange={(e) => handleFileChange(e, 'userSelfie')} accept="image/*" className="hidden" /><ImageUploadArea label={t('uploadSelfie')} uploadedImage={formData.userSelfie} onUploadClick={() => setIsSelfieModalOpen(true)} onRemoveClick={() => removeImage('userSelfie')} /></div>
+                                </div>
+                            </div>
+                            {(outputType === 'video' || isAudioOnly) && (
+                                <div className="space-y-4 animate-fade-in">
+                                <h3 className="text-lg font-semibold text-brand-text mb-2">{t('videoSpecificSettings')}</h3>
+                                {outputType === 'video' && <ApiKeySelector />}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {!isAudioOnly && (
+                                        <div className="relative">
+                                            <label htmlFor="videoDuration" className="block text-sm font-medium text-brand-subtle mb-2">{t('videoDurationLabel')}</label>
+                                            <select id="videoDuration" value={formData.videoDuration} onChange={(e) => updateForm('videoDuration', e.target.value as ContentFormData['videoDuration'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                <option value="5s">5 {t('seconds')}</option>
+                                                <option value="8s">8 {t('seconds')}</option>
+                                            </select>
+                                            {aiSuggestedFields.videoDuration && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label htmlFor="animationStyle" className="block text-sm font-medium text-brand-subtle mb-2">{t('animationStyleLabel')}</label>
-                                        <select name="animationStyle" id="animationStyle" value={formState.animationStyle} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                            <option value="dynamic">{t('styleDynamic')}</option>
-                                            <option value="elegant">{t('styleElegant')}</option>
-                                            <option value="minimalist">{t('styleMinimalist')}</option>
-                                            <option value="cinematic">{t('styleCinematic')}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Audio Customizations */}
-                            <div className="space-y-4 pt-4 border-t border-slate-700/50">
-                                <h3 className="text-md font-semibold text-brand-text">{t('videoAudioOptions')}</h3>
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <label htmlFor="narrationScript" className="block text-sm font-medium text-brand-subtle">{t('narrationScriptLabel')}</label>
-                                        <button onClick={handleGenerateNarration} disabled={isNarrationLoading} className="text-xs text-brand-primary hover:text-brand-secondary disabled:opacity-50 flex items-center">
-                                            {isNarrationLoading ? (
-                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                            ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                                            )}
-                                            {t('generateNarrationAi')}
-                                        </button>
-                                    </div>
-                                    <textarea id="narrationScript" name="narrationScript" rows={3} value={formState.narrationScript} onChange={handleInputChange} placeholder={t('narrationScriptPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"/>
-                                </div>
-                                <div>
-                                    <label htmlFor="backgroundMusic" className="block text-sm font-medium text-brand-subtle mb-2">{t('backgroundMusicLabel')}</label>
-                                    <select name="backgroundMusic" id="backgroundMusic" value={formState.backgroundMusic} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text">
-                                        <option value="none">{t('musicNone')}</option>
-                                        <option value="epic">{t('musicEpic')}</option>
-                                        <option value="upbeat">{t('musicUpbeat')}</option>
-                                        <option value="lofi">{t('musicLofi')}</option>
-                                        <option value="ai_generated">{t('musicAiGenerated')}</option>
-                                    </select>
-                                </div>
-                                {formState.backgroundMusic === 'ai_generated' && (
-                                    <div className="animate-fade-in">
-                                        <label htmlFor="musicDescription" className="block text-sm font-medium text-brand-subtle mb-2">
-                                            {t('musicDescriptionLabel')}
+                                    )}
+                                    <div className="relative">
+                                        <label htmlFor="audioType" className="block text-sm font-medium text-brand-subtle mb-2">
+                                            <span className="flex items-center">{t('audioTypeLabel')} <HelpTooltip text={t('tooltipElevenLabs')} /></span>
                                         </label>
-                                        <textarea
-                                            id="musicDescription"
-                                            name="musicDescription"
-                                            rows={2}
-                                            value={formState.musicDescription}
-                                            onChange={handleInputChange}
-                                            placeholder={t('musicDescriptionPlaceholder')}
-                                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition text-brand-text"
-                                        />
+                                        <select id="audioType" value={formData.audioType} onChange={(e) => updateForm('audioType', e.target.value as ContentFormData['audioType'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                            <option value="narration">{t('audioTypeNarration')}</option>
+                                            <option value="dialogue">{t('audioTypeDialogue')}</option>
+                                            <option value="elevenlabs">{t('audioTypeElevenLabs')}</option>
+                                        </select>
+                                        {aiSuggestedFields.audioType && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                    </div>
+                                </div>
+                                
+                                {isAudioOnly && (
+                                    <div className="animate-fade-in space-y-4 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+                                        <h4 className="font-semibold text-brand-text">{t('elevenLabsSettings')}</h4>
+                                        {!formData.useCustomElevenLabs && (
+                                            <div>
+                                                <label htmlFor="elevenLabsVoiceId" className="block text-sm font-medium text-brand-subtle mb-2">{t('elevenLabsPredefinedVoice')}</label>
+                                                <select id="elevenLabsVoiceId" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                    <option value="Rachel">Rachel (Calm, American)</option>
+                                                    <option value="Adam">Adam (Deep, American)</option>
+                                                    <option value="Antoni">Antoni (Well-rounded, American)</option>
+                                                    <option value="Arnold">Arnold (Crisp, American)</option>
+                                                    <option value="Bella">Bella (Warm, American)</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center">
+                                            <input id="useCustomElevenLabs" type="checkbox" checked={formData.useCustomElevenLabs} onChange={(e) => updateForm('useCustomElevenLabs', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-primary" />
+                                            <label htmlFor="useCustomElevenLabs" className="ml-2 block text-sm text-brand-subtle">{t('elevenLabsUseCustomAccount')}</label>
+                                        </div>
+                                        {formData.useCustomElevenLabs && (
+                                            <div className="space-y-2 animate-fade-in">
+                                                <input type="password" value={formData.customElevenLabsApiKey} onChange={(e) => updateForm('customElevenLabsApiKey', e.target.value)} placeholder={t('elevenLabsApiKeyPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                                <input type="text" value={formData.elevenLabsVoiceId} onChange={(e) => updateForm('elevenLabsVoiceId', e.target.value)} placeholder={t('elevenLabsVoiceIdPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
+
+                                {!isAudioOnly && (
+                                    <div className="relative">
+                                        <label htmlFor="animationStyle" className="block text-sm font-medium text-brand-subtle mb-2">{t('animationStyleLabel')}</label>
+                                        <select id="animationStyle" value={formData.animationStyle} onChange={(e) => updateForm('animationStyle', e.target.value as ContentFormData['animationStyle'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                            <option value="dynamic">{t('animationStyleDynamic')}</option>
+                                            <option value="elegant">{t('animationStyleElegant')}</option>
+                                            <option value="minimalist">{t('animationStyleMinimalist')}</option>
+                                            <option value="cinematic">{t('animationStyleCinematic')}</option>
+                                        </select>
+                                        {aiSuggestedFields.animationStyle && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                    </div>
+                                )}
+                                <div className="relative">
+                                    <label htmlFor="narrationScript" className="block text-sm font-medium text-brand-subtle mb-2">
+                                        {/* FIX: Use renamed translation keys */}
+                                        <span className="flex items-center">{t('narrationScriptLabel')}<HelpTooltip text={t('tooltipNarrationScript')} /></span>
+                                    </label>
+                                    <div className="flex space-x-2">
+                                        <textarea id="narrationScript" value={formData.narrationScript} onChange={(e) => updateForm('narrationScript', e.target.value)} placeholder={formData.audioType === 'dialogue' ? t('dialogueScriptPlaceholder') : t('narrationScriptPlaceholder')} rows={4} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500 resize-y" />
+                                        <button type="button" onClick={handleGenerateNarrationScript} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-md text-brand-text self-start disabled:opacity-50" disabled={isLoading}>{t('generate')}</button>
+                                    </div>
+                                </div>
+                                {!isAudioOnly && (
+                                    <>
+                                        <div className="relative">
+                                            <label htmlFor="backgroundMusic" className="block text-sm font-medium text-brand-subtle mb-2">{t('backgroundMusicLabel')}</label>
+                                            <select id="backgroundMusic" value={formData.backgroundMusic} onChange={(e) => updateForm('backgroundMusic', e.target.value as ContentFormData['backgroundMusic'])} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text">
+                                                <option value="none">{t('backgroundMusicNone')}</option>
+                                                <option value="epic">{t('backgroundMusicEpic')}</option>
+                                                <option value="upbeat">{t('backgroundMusicUpbeat')}</option>
+                                                <option value="lofi">{t('backgroundMusicLofi')}</option>
+                                                <option value="ai_generated">{t('backgroundMusicAIGenerated')}</option>
+                                            </select>
+                                            {aiSuggestedFields.backgroundMusic && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                        </div>
+                                        {formData.backgroundMusic === 'ai_generated' && (
+                                            <div className="relative">
+                                                <label htmlFor="musicDescription" className="block text-sm font-medium text-brand-subtle mb-2">{t('musicDescriptionLabel')}</label>
+                                                <input type="text" id="musicDescription" value={formData.musicDescription} onChange={(e) => updateForm('musicDescription', e.target.value)} placeholder={t('musicDescriptionPlaceholder')} className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500" />
+                                                {aiSuggestedFields.musicDescription && <span className="absolute top-0 right-0 -mt-2 -mr-2 text-xs text-brand-success animate-pop-in">{t('aiSuggested')}</span>}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>)}
+                            
+                            <div className="border-t border-slate-700 pt-6">
+                                <AutomationScheduler
+                                    schedule={schedule}
+                                    setSchedule={onScheduleChange}
+                                    isDisabled={isAutomationDisabled}
+                                />
                             </div>
                         </div>
                     )}
                 </div>
-            )}
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <button
-                    onClick={onSubmit}
-                    disabled={isLoading}
-                    className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary focus:ring-offset-brand-bg disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                    {isLoading ? t('generating') : buttonText}
-                </button>
-                 <button
-                    onClick={onClear}
-                    disabled={isLoading}
-                    className="w-full sm:w-auto py-3 px-6 border border-slate-600 rounded-md text-lg font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50"
-                >
-                    {t('clear')}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center mt-8">
+                    <button onClick={onSaveAccount} className="py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors">{t('saveAccountButton')}</button>
+                    <button onClick={onFormSubmit} disabled={isLoading} className="py-3 px-6 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">{isLoading ? t('generating') : generationButtonText}</button>
+                </div>
             </div>
+
+            <SelfieCaptureModal
+                isOpen={isSelfieModalOpen}
+                onClose={() => setIsSelfieModalOpen(false)}
+                onSelfieConfirm={(selfie) => {
+                    updateForm('userSelfie', selfie);
+                }}
+            />
         </div>
-        <SelfieCaptureModal 
-            isOpen={isSelfieModalOpen}
-            onClose={() => setIsSelfieModalOpen(false)}
-            onSelfieConfirm={handleSelfieConfirm}
-        />
-        </>
     );
 };
-
-export default ContentInputForm;

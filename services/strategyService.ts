@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { SavedAccount, GeneratedHistoryItem, HolisticStrategyResult, ContentMarketingPost, ProductPostContent, AnalysisResult, CampaignPlan, PerformanceReport } from "../types.ts";
+import { SavedAccount, GeneratedHistoryItem, HolisticStrategyResult, ContentMarketingPost, ProductPostContent, AnalysisResult, CampaignPlan, PerformanceReport, CampaignPerformanceAnalysisResult } from "../types.ts";
 
 const getGoogleAI = () => {
     const apiKey = process.env.API_KEY;
@@ -30,8 +30,9 @@ const formatHistoryForPrompt = (history: GeneratedHistoryItem[]): string => {
                  const campaignData = item.data as CampaignPlan;
                  return `- Created a campaign plan. Objective: "${campaignData.campaignStructure.objective}". Guideline: "${campaignData.creativesAndCopy.guidelines}".`;
             case 'performanceFeedback':
-                 const feedbackData = item.data as string;
-                 return `- Analyzed ad performance. Feedback: "${feedbackData.substring(0, 150)}..."`;
+                 // FIX: Correctly access the `performanceSummary` property of the `CampaignPerformanceAnalysisResult` object.
+                 const feedbackData = item.data as CampaignPerformanceAnalysisResult;
+                 return `- Analyzed ad performance. Feedback: "${feedbackData.performanceSummary.substring(0, 150)}..."`;
             default:
                 return '';
         }
@@ -109,8 +110,9 @@ const formatHistoryForPerformanceAnalysis = (history: GeneratedHistoryItem[]): s
                  const campaignData = item.data as CampaignPlan;
                  return `[${date}] Campaign Planned: Objective was "${campaignData.campaignStructure.objective}".`;
             case 'performanceFeedback':
-                 const feedbackData = item.data as string;
-                 return `[${date}] Campaign Performance Analyzed: AI feedback was: "${feedbackData.substring(0, 150)}..."`;
+                 // FIX: Correctly access the `performanceSummary` property of the `CampaignPerformanceAnalysisResult` object.
+                 const feedbackData = item.data as CampaignPerformanceAnalysisResult;
+                 return `[${date}] Campaign Performance Analyzed: AI feedback was: "${feedbackData.performanceSummary.substring(0, 150)}..."`;
             default:
                 return null; // Ignore posts for this specific analysis
         }

@@ -37,7 +37,7 @@ export const generateCampaignPlan = async (form: TrafficPlanForm, language: stri
     try {
         const response = await ai.models.generateContent({
             model: model,
-            contents: prompt,
+            contents: [{text: prompt}],
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -84,7 +84,7 @@ export const generateCampaignPlan = async (form: TrafficPlanForm, language: stri
                 },
             },
         });
-        const result = JSON.parse(response.text);
+        const result = JSON.parse(response.text.trim());
         return result;
     } catch (error) {
         console.error("Error generating campaign plan:", error);
@@ -172,7 +172,7 @@ export const generateOrganicContentPlan = async (form: OrganicGrowthForm, langua
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: prompt,
+            contents: [{text: prompt}],
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: {
@@ -187,7 +187,7 @@ export const generateOrganicContentPlan = async (form: OrganicGrowthForm, langua
                 }
             }
         });
-        return JSON.parse(response.text);
+        return JSON.parse(response.text.trim());
     } catch (error) {
         console.error("Error generating organic content plan:", error);
         throw new Error("organicContentPlanError");

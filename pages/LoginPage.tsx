@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../contexts/AuthContext';
-import { LanguageContext } from '../contexts/LanguageContext';
+// Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
+import { AuthContext } from '../lib/AuthContext.tsx';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 
 const LoginPage: React.FC = () => {
   const { login, signup, activateTestMode } = useContext(AuthContext);

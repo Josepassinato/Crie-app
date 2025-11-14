@@ -1,24 +1,23 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Header from './components/Header.tsx';
+// Fix: Ensure all page components are correctly imported as modules.
+import LandingPage from './pages/LandingPage.tsx';
 import CreatorPage from './pages/CreatorPage.tsx';
 import AnalyzerPage from './pages/AnalyzerPage.tsx';
-// Fix: Add file extension to fix module resolution error.
 import TrafficManagerPage from './pages/TrafficManagerPage.tsx';
-// Fix: Changed import from default to named export to resolve module resolution error.
-// import { StrategyPage } from './pages/StrategyPage.tsx'; // REMOVED
-import LandingPage from './pages/LandingPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import BuyTokensPage from './pages/BuyTokensPage.tsx';
-import { AuthContext } from './contexts/AuthContext';
-// Fix: Add file extension to fix module resolution error.
-import { useAppState } from './contexts/AppStateContext.tsx';
+// Fix: Corrected the import path for AuthContext from './contexts/AuthContext.tsx' to './lib/AuthContext.tsx'.
+import { AuthContext } from './lib/AuthContext.tsx';
+// Fix: Correct module import path and use useContext for AppStateContext.
+import { AppStateContext } from './contexts/AppStateContext.tsx';
 import InteractionChoicePage from './pages/InteractionChoicePage.tsx';
 import VoiceAgentPage from './pages/VoiceAgentPage.tsx';
 
 const AppContent: React.FC = () => {
     const { currentUser, loading } = React.useContext(AuthContext);
-    const { activePage, setActivePage } = useAppState();
+    const appState = useContext(AppStateContext);
     
     // State for pre-login flow
     const [preLoginView, setPreLoginView] = React.useState<'landing' | 'login'>('landing');
@@ -33,6 +32,10 @@ const AppContent: React.FC = () => {
             setViewMode('choice');
         }
     }, [currentUser]);
+    
+    if (!appState) return null; // Guard clause while context initializes
+    const { activePage, setActivePage } = appState;
+
 
     const renderPage = () => {
         switch (activePage) {
@@ -42,8 +45,6 @@ const AppContent: React.FC = () => {
                 return <AnalyzerPage />;
             case 'trafficManager':
                 return <TrafficManagerPage />;
-            // case 'strategy': // REMOVED
-            //     return <StrategyPage />; // REMOVED
             case 'admin':
                 return <AdminPage />;
             case 'buyTokens':
@@ -85,7 +86,7 @@ const AppContent: React.FC = () => {
         <div className="min-h-screen bg-brand-bg text-brand-text font-sans">
             <Header />
             <main>
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-10">
                     {renderPage()}
                 </div>
             </main>

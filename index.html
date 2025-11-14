@@ -17,18 +17,40 @@
               'brand-bg': '#0f172a', // slate-900
               'brand-text': '#e2e8f0', // slate-200
               'brand-subtle': '#94a3b8', // slate-400
+              'brand-success': '#4ade80', // green-400
+              'brand-warning': '#facc15', // yellow-400
+              'brand-error': '#ef4444', // red-500
+              'brand-soft-bg': '#1a2036', // Slightly lighter than brand-bg for subtle contrast
+              'brand-light-text': '#f1f5f9', // slate-100 for brighter text
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-in-out',
+              'pulse-light': 'pulseLight 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'pop-in': 'popIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards',
+              'bounce-subtle': 'bounceSubtle 1s infinite',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: 0, transform: 'translateY(10px)' },
                 '100%': { opacity: 1, transform: 'translateY(0)' },
               },
+              pulseLight: {
+                '0%, 100%': { opacity: 0.7, transform: 'scale(1)' },
+                '50%': { opacity: 1, transform: 'scale(1.03)' },
+              },
+              popIn: {
+                '0%': { opacity: 0, transform: 'scale(0.8)' },
+                '100%': { opacity: 1, transform: 'scale(1)' },
+              },
+              bounceSubtle: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '25%': { transform: 'translateY(-5px)' },
+                '50%': { transform: 'translateY(0)' },
+                '75%': { transform: 'translateY(-2px)' },
+              }
             },
           },
         },

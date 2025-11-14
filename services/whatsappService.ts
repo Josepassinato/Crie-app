@@ -3,7 +3,7 @@
 // This is a simulated service. In a real application, this would
 // interact with a backend service connected to the WhatsApp Business API.
 
-import { WhatsappConnectionState } from "../types";
+import { WhatsappConnectionState } from "../types.ts";
 
 /**
  * Sends a notification message.

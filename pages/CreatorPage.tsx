@@ -1,164 +1,288 @@
-import React from 'react';
-// Fix: Changed import from default to named export to resolve module resolution error.
+import React, { useContext, useEffect, useState } from 'react';
+import { AppStateContext } from '../contexts/AppStateContext.tsx';
+import { AccountsContext } from '../contexts/AccountsContext.tsx';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 import { ProductInputForm } from '../components/ProductInputForm.tsx';
-import ContentInputForm from '../components/ContentInputForm.tsx';
+import { ContentInputForm } from '../components/ContentInputForm.tsx';
+import PersonaCreatorForm from '../components/PersonaCreatorForm.tsx';
 import OutputDisplay from '../components/OutputDisplay.tsx';
-import SaveAccountModal from '../components/SaveAccountModal.tsx';
 import AccountManager from '../components/AccountManager.tsx';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { AccountsContext } from '../contexts/AccountsContext';
 import HistoryPanel from '../components/HistoryPanel.tsx';
-import AutomationScheduler from '../components/AutomationScheduler.tsx';
-// Fix: Add file extension to fix module resolution error.
-import { useAppState } from '../contexts/AppStateContext.tsx';
-// Fix: Import Schedule type to resolve 'Cannot find name 'Schedule'' error.
-import { Schedule } from '../types';
+import SaveAccountModal from '../components/SaveAccountModal.tsx';
+import SpecialCreatorForm from '../components/SpecialCreatorForm.tsx';
+import { GeneratedHistoryItem, ProductFormData, ContentFormData, Schedule, AppMode } from '../types.ts';
+
+// Copied from AppStateContext to have a reset reference without modifying context file
+const initialProductFormData: ProductFormData = {
+    productName: '',
+    productDescription: '',
+    marketingVibe: '',
+    productImage: null,
+    maskTemplate: 'Nenhum',
+    colorPalette: '',
+    logoImage: null,
+    userSelfie: null,
+    artisticStyle: 'Padrão',
+    aspectRatio: '1:1',
+    negativePrompt: '',
+    videoDuration: '5s',
+    animationStyle: 'dynamic',
+    narrationScript: '',
+    backgroundMusic: 'none',
+    musicDescription: '',
+    postExample1: '',
+    postExample2: '',
+    postExample3: '',
+    profileUrl: '',
+    benchmarkProfileUrl: '',
+    audioType: 'narration',
+    // FIX: Add missing elevenLabs properties to match the ProductFormData type.
+    elevenLabsVoiceId: 'Rachel',
+    useCustomElevenLabs: false,
+    customElevenLabsApiKey: '',
+    // FIX: Add missing startImage property to match the ProductFormData type.
+    startImage: null,
+};
+
+// Copied from AppStateContext to have a reset reference without modifying context file
+const initialContentFormData: ContentFormData = {
+    profession: '',
+    targetAudience: '',
+    professionalContext: '',
+    postFormat: 'single',
+    carouselSlides: 3,
+    maskTemplate: 'Nenhum',
+    colorPalette: '',
+    logoImage: null,
+    userSelfie: null,
+    postExample1: '',
+    postExample2: '',
+    postExample3: '',
+    artisticStyle: 'Padrão',
+    aspectRatio: '1:1',
+    negativePrompt: '',
+    videoDuration: '5s',
+    animationStyle: 'dynamic',
+    narrationScript: '',
+    backgroundMusic: 'none',
+    musicDescription: '',
+    profileUrl: '',
+    benchmarkProfileUrl: '',
+    audioType: 'narration',
+    // FIX: Add missing elevenLabs properties to match the ContentFormData type.
+    elevenLabsVoiceId: 'Rachel',
+    useCustomElevenLabs: false,
+    customElevenLabsApiKey: '',
+    // FIX: Add missing startImage property to match the ContentFormData type.
+    startImage: null,
+};
+
+type CreatorTab = 'standard' | 'special' | 'personas';
 
 const CreatorPage: React.FC = () => {
-    const { t } = React.useContext(LanguageContext);
-    const { 
+    const { t } = useContext(LanguageContext);
+    const appState = useContext(AppStateContext);
+    
+    const {
         accounts,
         selectedAccountId,
         saveAccount,
-        updateAccountSchedule,
-    } = React.useContext(AccountsContext);
-    
+        updateAccountSchedule
+    } = useContext(AccountsContext);
+
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<CreatorTab>('standard');
+
+    if (!appState) return null; // Guard clause while context initializes
     const {
         appMode, setAppMode,
         outputType, setOutputType,
         productFormState, setProductFormState,
         contentFormState, setContentFormState,
         generatedContent, setGeneratedContent,
-        isLoading,
-        error,
-        handleProductSubmit,
-        handleContentSubmit,
-        clearForm,
-        contextualPrompt, setContextualPrompt,
-    } = useAppState();
+        isLoading, error, setError,
+        handleProductSubmit, handleContentSubmit,
+    } = appState;
 
-    const [isSaveModalOpen, setIsSaveModalOpen] = React.useState(false);
-
-    const [tempSchedule, setTempSchedule] = React.useState<Schedule>({
-        isEnabled: false,
-        postsPerDay: 1,
-        times: ['09:00'],
-    });
-
-    const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
-    const currentSchedule = selectedAccount ? selectedAccount.schedule : tempSchedule;
-
-    React.useEffect(() => {
-        if (contextualPrompt) {
-            setAppMode('content');
-            setContentFormState(prev => ({
-                ...prev,
-                professionalContext: `${t('basedOnAnalysis')}:\n"${contextualPrompt}"`
-            }));
-            setContextualPrompt(null);
+    useEffect(() => {
+        if (selectedAccountId && selectedAccountId !== 'new-post' && accounts[selectedAccountId]) {
+            const account = accounts[selectedAccountId];
+            setAppMode(account.type);
+            if (account.type === 'product') {
+                setProductFormState(account.formData as ProductFormData);
+                setContentFormState(initialContentFormData); // Reset other form
+            } else {
+                setContentFormState(account.formData as ContentFormData);
+                setProductFormState(initialProductFormData); // Reset other form
+            }
+            setGeneratedContent(null);
+            setError(null);
+        } else if (selectedAccountId === 'new-post') {
+            // Manually reset both forms when switching to 'new-post'
+            setProductFormState(initialProductFormData);
+            setContentFormState(initialContentFormData);
+            setGeneratedContent(null);
+            setError(null);
         }
-    }, [contextualPrompt, setAppMode, setContentFormState, setContextualPrompt, t]);
+    }, [selectedAccountId, accounts, setAppMode, setProductFormState, setContentFormState, setGeneratedContent, setError]);
 
+    const handleSelectHistoryItem = (item: GeneratedHistoryItem) => {
+        // FIX: Removed check for 'personaVideo' as it is not a valid type in GeneratedHistoryItem. This comparison would always be false.
+        if (item.type === 'productPost' || item.type === 'contentPost' || item.type === 'specialVideo' || item.type === 'personaPost') {
+            setGeneratedContent(item.data);
+        }
+    };
 
-    
-    const handleSaveAccount = (accountName: string) => {
+    const handleSaveAccount = () => {
+        if (selectedAccountId && selectedAccountId !== 'new-post') {
+             alert("Alterações em contas salvas são aplicadas, mas não salvas permanentemente nesta versão. Salve como uma nova conta se desejar.");
+        } else {
+            setIsSaveModalOpen(true);
+        }
+    };
+
+    const confirmSaveAccount = (accountName: string) => {
         const formData = appMode === 'product' ? productFormState : contentFormState;
         saveAccount(accountName, appMode, formData);
         setIsSaveModalOpen(false);
     };
 
+    const selectedAccount = selectedAccountId ? accounts[selectedAccountId] : null;
+    const isAutomationDisabled = !selectedAccountId || selectedAccountId === 'new-post';
+    const schedule = selectedAccount?.schedule || { isEnabled: false, postsPerDay: 1, times: ['09:00'] };
+
     const handleScheduleChange = (newSchedule: Schedule) => {
         if (selectedAccountId && selectedAccountId !== 'new-post') {
             updateAccountSchedule(selectedAccountId, newSchedule);
-        } else {
-            setTempSchedule(newSchedule);
         }
     };
+    
+    const handleSetAppMode = (mode: AppMode) => {
+        if (mode !== appMode) {
+             setProductFormState(initialProductFormData);
+             setContentFormState(initialContentFormData);
+             setGeneratedContent(null);
+             setError(null);
+             setAppMode(mode);
+        }
+    };
+    
+    const renderStandardCreator = () => (
+         <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+            {/* Mode Toggle */}
+            <div className="flex justify-center items-center mb-8 border border-slate-700 rounded-full p-1 max-w-sm mx-auto bg-slate-900/50">
+                <button
+                    onClick={() => handleSetAppMode('content')}
+                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'content' ? 'bg-brand-primary text-slate-900' : 'text-brand-subtle hover:bg-slate-700'}`}
+                >
+                    {t('accountTypePersonality')}
+                </button>
+                <button
+                    onClick={() => handleSetAppMode('product')}
+                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'product' ? 'bg-brand-primary text-slate-900' : 'text-brand-subtle hover:bg-slate-700'}`}
+                >
+                    {t('accountTypeBusiness')}
+                </button>
+            </div>
+             <div>
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-2">
+                    {appMode === 'content' ? t('accountTypePersonality') : t('accountTypeBusiness')}
+                </h2>
+                <p className="text-brand-subtle mb-6">
+                    {appMode === 'content' ? t('creatorPageContentSubtitle') : t('creatorPageProductSubtitle')}
+                </p>
+            </div>
+            {appMode === 'product' ? (
+                <ProductInputForm
+                    formData={productFormState}
+                    onFormChange={setProductFormState}
+                    onFormSubmit={handleProductSubmit}
+                    isLoading={isLoading}
+                    outputType={outputType}
+                    onOutputTypeChange={setOutputType}
+                    onSaveAccount={handleSaveAccount}
+                    schedule={schedule}
+                    onScheduleChange={handleScheduleChange}
+                    isAutomationDisabled={isAutomationDisabled}
+                />
+            ) : (
+                <ContentInputForm
+                    formData={contentFormState}
+                    onFormChange={setContentFormState}
+                    onFormSubmit={handleContentSubmit}
+                    isLoading={isLoading}
+                    outputType={outputType}
+                    onOutputTypeChange={setOutputType}
+                    onSaveAccount={handleSaveAccount}
+                    schedule={schedule}
+                    onScheduleChange={handleScheduleChange}
+                    isAutomationDisabled={isAutomationDisabled}
+                />
+            )}
+        </div>
+    );
 
     return (
         <>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-1 space-y-8">
-                    <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700">
-                        <AccountManager
-                            appMode={appMode}
-                        />
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Creator Tabs */}
+                    <div className="border-b border-slate-700">
+                        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button
+                                onClick={() => setActiveTab('standard')}
+                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                    activeTab === 'standard'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                }`}
+                            >
+                                {t('creatorTabStandard')}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('personas')}
+                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                    activeTab === 'personas'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                }`}
+                            >
+                                {t('creatorTabPersonas')}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('special')}
+                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                    activeTab === 'special'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                }`}
+                            >
+                                {t('creatorTabSpecial')}
+                            </button>
+                        </nav>
                     </div>
-                    <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700">
-                         <div>
-                            <label className="block text-sm font-medium text-brand-subtle mb-2">
-                                {t('creationMode')}
-                            </label>
-                            <div className="flex rounded-md shadow-sm">
-                                <button onClick={() => { setAppMode('content'); }} className={`relative inline-flex items-center justify-center w-1/2 rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${appMode === 'content' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>
-                                    {t('contentPost')}
-                                </button>
-                                <button onClick={() => { setAppMode('product'); }} className={`relative -ml-px inline-flex items-center justify-center w-1/2 rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-600 focus:z-10 ${appMode === 'product' ? 'bg-brand-primary text-slate-900' : 'bg-slate-800 text-brand-subtle hover:bg-slate-700'}`}>
-                                    {t('productPost')}
-                                </button>
-                            </div>
-                        </div>
 
-                        <div className="mt-6">
-                        {appMode === 'product' ? (
-                            <ProductInputForm 
-                                formState={productFormState}
-                                setFormState={setProductFormState}
-                                outputType={outputType}
-                                setOutputType={setOutputType}
-                                onSubmit={handleProductSubmit}
-                                onClear={() => clearForm(true)}
-                                isLoading={isLoading}
-                                onOpenSaveModal={() => setIsSaveModalOpen(true)}
-                            />
-                        ) : (
-                            <ContentInputForm 
-                                formState={contentFormState}
-                                setFormState={setContentFormState}
-                                outputType={outputType}
-                                setOutputType={setOutputType}
-                                onSubmit={handleContentSubmit}
-                                onClear={() => clearForm(true)}
-                                isLoading={isLoading}
-                                onOpenSaveModal={() => setIsSaveModalOpen(true)}
-                            />
-                        )}
-                        </div>
-                    </div>
-                     {appMode === 'content' && (
-                        <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 animate-fade-in">
-                            <AutomationScheduler
-                                schedule={currentSchedule}
-                                setSchedule={handleScheduleChange}
-                            />
-                        </div>
-                    )}
-                    <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700">
-                        <HistoryPanel
-                          onSelectHistoryItem={(item) => {
-                             if (item.type === 'contentPost' || item.type === 'productPost') {
-                                 setGeneratedContent(item.data);
-                             }
-                          }}
-                        />
-                    </div>
+                    {activeTab === 'standard' && renderStandardCreator()}
+                    {activeTab === 'personas' && <PersonaCreatorForm />}
+                    {activeTab === 'special' && <SpecialCreatorForm />}
                 </div>
 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-1 space-y-8">
+                    <AccountManager appMode={appMode} />
                     <OutputDisplay
                         generatedContent={generatedContent}
                         isLoading={isLoading}
-                        error={error}
+                        error={error ? t(error) : null}
                         appMode={appMode}
                         outputType={outputType}
                     />
+                    <HistoryPanel onSelectHistoryItem={handleSelectHistoryItem} />
                 </div>
             </div>
-            
             <SaveAccountModal
                 isOpen={isSaveModalOpen}
                 onClose={() => setIsSaveModalOpen(false)}
-                onSave={handleSaveAccount}
+                onSave={confirmSaveAccount}
                 accountType={appMode}
             />
         </>

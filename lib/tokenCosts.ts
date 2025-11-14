@@ -37,23 +37,48 @@
  * 9. Creative Suggestions Analysis (gemini-2.5-pro with Google Search):
  *    - Cost: Medium complexity, includes search grounding. Estimate ~$0.005.
  *    - Price: $0.005 * 4 = $0.02. This costs 10 tokens.
+ * 
+ * 10. Special Video Composition (gemini-2.5-flash-image + veo):
+ *     - Cost: Image comp (~$0.003) + Video (~$0.02) = ~$0.023
+ *     - Price: $0.023 * 4 = ~$0.092. This costs ~46 tokens. Let's set it to 50.
+ *
+ * 11. Prompt Enhancement (gemini-2.5-pro):
+ *     - Cost: ~$0.001 for a medium complexity text/image reasoning task.
+ *     - Price: $0.001 * 4 = $0.004. This costs 2 tokens.
+ * 
+ * 12. ElevenLabs Audio Generation:
+ *     - Cost: ~$0.002 for a short script.
+ *     - Price: $0.002 * 4 = $0.008. Let's set it to 5 tokens.
+ * 
+ * 13. Persona Post (gemini-2.5-flash-image for image, gemini-2.5-flash for text):
+ *    - Cost: Image (~$0.0025) + Text (~$0.0005) = ~$0.003
+ *    - Price: $0.003 * 4 = $0.012. This costs 6 tokens. Let's set it to 10.
+ * 
+ * 14. Persona Video (veo-3.1-generate-preview with reference images):
+ *    - Cost: Similar to Special Video Composition. ~€0.023
+ *    - Price: $0.023 * 4 = ~$0.092. This costs ~46 tokens. Let's set it to 50.
  */
 
 export const TOKEN_COSTS = {
     PRODUCT_IMAGE: 5,
     CONTENT_POST: 10,
+    PERSONA_POST: 10,
+    PERSONA_VIDEO: 50,
     PROFILE_ANALYSIS: 15,
     CAMPAIGN_PLAN: 15,
     PERFORMANCE_ANALYSIS: 8,
     STRATEGY_ANALYSIS: 20,
     ACCOUNT_PERFORMANCE_ANALYSIS: 20,
-    CREATIVE_SUGGESTIONS_ANALYSIS: 10, // New token cost
+    CREATIVE_SUGGESTIONS_ANALYSIS: 10,
+    SPECIAL_VIDEO_COMPOSITION: 50,
+    LIVE_CONVERSATION_START: 15, // FIX: Added token cost for initiating a live conversation.
+    PROMPT_ENHANCEMENT: 2,
+    ELEVENLABS_AUDIO_GENERATION: 5,
 };
 
 export const VIDEO_COSTS = {
     '5s': 20,
-    '10s': 35,
-    '15s': 50,
+    '8s': 30,
 };
 
 export const TOKEN_PACKAGES = {

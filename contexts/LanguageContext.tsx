@@ -1,6 +1,6 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
-import { translations } from '../lib/translations';
-import { Language } from '../types';
+import React, { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { translations } from '../lib/translations.ts';
+import { Language } from '../types.ts';
 
 // Updated type to accept replacements
 type LanguageContextType = {
@@ -19,25 +19,39 @@ const getInitialLanguage = (): Language => {
     const browserLang = navigator.language.split('-')[0];
     if (browserLang === 'es') return 'Español';
     if (browserLang === 'en') return 'English';
-    return 'Português';
+    return 'Português'; // Default to Portuguese if no match
 };
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('appLanguage');
+    if (storedLanguage && ['Português', 'English', 'Español'].includes(storedLanguage)) {
+      setLanguage(storedLanguage as Language);
+    }
+  }, []);
+
+  // Save language to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('appLanguage', language);
+  }, [language]);
 
   const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
     let translation = translations[language][key] || key;
     if (replacements) {
-        Object.keys(replacements).forEach(rKey => {
-            const regex = new RegExp(`\\{${rKey}\\}`, 'g');
-            translation = translation.replace(regex, String(replacements[rKey]));
-        });
+      for (const placeholder in replacements) {
+        translation = translation.replace(`{${placeholder}}`, String(replacements[placeholder]));
+      }
     }
     return translation;
   }, [language]);
 
+  const value = { language, setLanguage, t };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

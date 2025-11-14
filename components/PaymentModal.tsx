@@ -1,6 +1,6 @@
 // Fix: Create the payment modal component for the token purchase flow.
 import React, { useState, useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 
 interface PaymentModalProps {
     isOpen: boolean;

@@ -1,41 +1,33 @@
-
-import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useCallback, ReactNode, useEffect } from 'react';
 import {
     AppPage, AppMode, MediaType, ProductFormData, ContentFormData,
     GeneratedContent, AnalysisResult, AnalyzerFormData,
     TrafficPlanForm, CampaignPlan, UploadedImage, CampaignPerformanceAnalysisResult,
     OrganicGrowthForm, OrganicContentPlan, HolisticStrategyResult, PerformanceReport,
-    WhatsappConnectionState,
-    SpecialCreatorFormData,
-    PersonaCreatorFormData,
-    ProductPostContent
-} from '../types.ts';
-import { AuthContext } from '../lib/AuthContext.tsx';
-import { LanguageContext } from './LanguageContext.tsx';
-import { AccountsContext } from './AccountsContext.tsx';
+    WhatsappConnectionState
+} from './types.ts';
+// Fix: Corrected the import path for AuthContext from './AuthContext.tsx' to './lib/AuthContext.tsx'.
+import { AuthContext } from './lib/AuthContext.tsx';
+import { LanguageContext } from './contexts/LanguageContext.tsx';
+import { AccountsContext } from './contexts/AccountsContext.tsx';
 import {
     generateProductPost,
     generateContentMarketingPost
-} from '../services/contentMarketingService.ts';
-import { generatePersonaPost } from '../services/personaService.ts';
-import { PERSONA_TEMPLATES } from '../lib/personaTemplates.ts';
+} from './services/contentMarketingService.ts';
 import {
     analyzeSocialProfile,
-} from '../services/analyzerService.ts';
+} from './services/analyzerService.ts';
 import {
     generateCampaignPlan, analyzeCampaignPerformance, generateOrganicContentPlan
-} from '../services/trafficManagerService.ts';
+} from './services/trafficManagerService.ts';
 import {
     generateHolisticStrategy, analyzeAccountPerformance
-} from '../services/strategyService.ts';
-import { sendWhatsappNotification } from '../services/whatsappService.ts';
-import { TOKEN_COSTS, VIDEO_COSTS } from '../lib/tokenCosts.ts';
-import { generateCompositeVideo } from '../services/videoService.ts';
-import { generateElevenLabsAudio } from '../services/elevenLabsService.ts';
-import { sanitizePromptForVideo } from '../services/geminiService.ts';
-
+} from './services/strategyService.ts';
+import { sendWhatsappNotification } from './services/whatsappService.ts';
+import { TOKEN_COSTS, VIDEO_COSTS } from './lib/tokenCosts.ts';
 
 // Initial form states
+// FIX: Added missing elevenLabs properties to conform to the ProductFormData type.
 const initialProductFormData: ProductFormData = {
     productName: '',
     productDescription: '',
@@ -65,6 +57,7 @@ const initialProductFormData: ProductFormData = {
     startImage: null,
 };
 
+// FIX: Added missing elevenLabs properties to conform to the ContentFormData type.
 const initialContentFormData: ContentFormData = {
     profession: '',
     targetAudience: '',
@@ -95,24 +88,6 @@ const initialContentFormData: ContentFormData = {
     startImage: null,
 };
 
-const initialSpecialCreatorFormData: SpecialCreatorFormData = {
-    prompt: '',
-    backgroundImage: null,
-    assetImages: [],
-    videoDuration: '5s',
-    animationStyle: 'dynamic',
-    backgroundMusic: 'none',
-    musicDescription: '',
-};
-
-const initialPersonaCreatorFormData: PersonaCreatorFormData = {
-    selectedPersona: 'persona1',
-    productImage: null,
-    scenarioDescription: '',
-    scenarioImage: null,
-};
-
-
 const initialAnalyzerFormData: AnalyzerFormData = {
     profileUrl: '',
     feedImages: [],
@@ -134,7 +109,6 @@ const initialOrganicGrowthForm: OrganicGrowthForm = {
     contentFormat: 'blog',
 };
 
-type SubmissionType = 'product' | 'content' | 'special' | 'personaPost';
 
 interface AppStateContextType {
     // UI State
@@ -154,17 +128,10 @@ interface AppStateContextType {
     setProductFormState: (data: ProductFormData) => void;
     contentFormState: ContentFormData;
     setContentFormState: (data: ContentFormData) => void;
-    specialCreatorFormState: { formData: SpecialCreatorFormData };
-    setSpecialCreatorFormState: React.Dispatch<React.SetStateAction<{ formData: SpecialCreatorFormData }>>;
-    personaCreatorFormState: PersonaCreatorFormData;
-    setPersonaCreatorFormState: (data: PersonaCreatorFormData) => void;
     generatedContent: GeneratedContent | null;
     setGeneratedContent: (content: GeneratedContent | null) => void;
     handleProductSubmit: () => Promise<void>;
     handleContentSubmit: () => Promise<void>;
-    handleSpecialCreatorSubmit: () => Promise<void>;
-    handlePersonaSubmit: () => Promise<void>;
-    handleRetryWithSanitizedPrompt: () => Promise<void>;
     clearForm: (clearOutputToo?: boolean) => void;
     updateCreatorFormField: (mode: AppMode, field: keyof (ProductFormData | ContentFormData), value: any) => void;
 
@@ -225,6 +192,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const accountsContext = useContext(AccountsContext);
 
     if (!authContext || !languageContext || !accountsContext) {
+        // This can happen if the context providers are not set up correctly.
+        // It's a safeguard against the circular dependency issue causing context to be `{}`
         return <div>Loading contexts...</div>;
     }
 
@@ -239,13 +208,10 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [contextualPrompt, setContextualPrompt] = useState<string | null>(null);
-    const [lastSubmissionType, setLastSubmissionType] = useState<SubmissionType | null>(null);
 
     // Creator Page States
     const [productFormState, setProductFormState] = useState<ProductFormData>(initialProductFormData);
     const [contentFormState, setContentFormState] = useState<ContentFormData>(initialContentFormData);
-    const [specialCreatorFormState, setSpecialCreatorFormState] = useState({ formData: initialSpecialCreatorFormData });
-    const [personaCreatorFormState, setPersonaCreatorFormState] = useState<PersonaCreatorFormData>(initialPersonaCreatorFormData);
     const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
 
     // Analyzer Page States
@@ -315,53 +281,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const updateCreatorFormField = useCallback((mode: AppMode, field: keyof (ProductFormData | ContentFormData), value: any) => {
         if (mode === 'product') {
-            setProductFormState(prev => ({ ...prev, [field as any]: value }));
+            setProductFormState(prev => ({ ...prev, [field]: value }));
         } else {
-            setContentFormState(prev => ({ ...prev, [field as any]: value }));
+            setContentFormState(prev => ({ ...prev, [field]: value }));
         }
     }, []);
 
-    const handleElevenLabsSubmit = async (formData: ProductFormData | ContentFormData) => {
-        setError(null);
-        setIsLoading(true);
-        setGeneratedContent(null);
-
-        if (!handleTokenCost(TOKEN_COSTS.ELEVENLABS_AUDIO_GENERATION)) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const audioUrl = await generateElevenLabsAudio(
-                formData.narrationScript,
-                formData.elevenLabsVoiceId,
-                formData.useCustomElevenLabs ? formData.customElevenLabsApiKey : undefined
-            );
-
-            const content: ProductPostContent = { // Using ProductPostContent as a generic container for audio
-                productName: 'ElevenLabs Audio',
-                postText: formData.narrationScript,
-                mediaUrl: audioUrl,
-                mediaType: 'audio',
-                script: formData.narrationScript,
-            };
-            setGeneratedContent(content);
-
-        } catch (err: any) {
-            handleError(err, 'elevenLabsApiError');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
     const handleProductSubmit = useCallback(async () => {
-        if (productFormState.audioType === 'elevenlabs') {
-            await handleElevenLabsSubmit(productFormState);
-            return;
-        }
-
-        setLastSubmissionType('product');
         setError(null);
         setIsLoading(true);
         setGeneratedContent(null);
@@ -394,12 +320,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, [productFormState, outputType, language, handleTokenCost, handleError, selectedAccountId, addHistoryItem, accounts, whatsappState, t]);
 
     const handleContentSubmit = useCallback(async () => {
-        if (contentFormState.audioType === 'elevenlabs') {
-            await handleElevenLabsSubmit(contentFormState);
-            return;
-        }
-        
-        setLastSubmissionType('content');
         setError(null);
         setIsLoading(true);
         setGeneratedContent(null);
@@ -430,123 +350,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             setIsLoading(false);
         }
     }, [contentFormState, outputType, language, handleTokenCost, handleError, selectedAccountId, addHistoryItem, accounts, whatsappState, t]);
-
-    const handleSpecialCreatorSubmit = useCallback(async () => {
-        setLastSubmissionType('special');
-        setError(null);
-        setIsLoading(true);
-        setGeneratedContent(null);
-        
-        if (!handleTokenCost(TOKEN_COSTS.SPECIAL_VIDEO_COMPOSITION)) {
-            setIsLoading(false);
-            return;
-        }
-        
-        try {
-            const videoUrl = await generateCompositeVideo(
-                specialCreatorFormState.formData.prompt,
-                specialCreatorFormState.formData.backgroundImage,
-                specialCreatorFormState.formData.assetImages
-            );
-
-            const content: ProductPostContent = {
-                productName: "Special Video",
-                postText: specialCreatorFormState.formData.prompt,
-                mediaUrl: videoUrl,
-                mediaType: 'video',
-                originalAspectRatio: '16:9', // Mark it as special
-            };
-
-            setGeneratedContent(content);
-
-             if (selectedAccountId) {
-                addHistoryItem(selectedAccountId, {
-                    id: Date.now().toString(),
-                    type: 'specialVideo',
-                    timestamp: new Date().toISOString(),
-                    data: content,
-                    accountName: accounts[selectedAccountId]?.name || 'new-post',
-                });
-            }
-        } catch (err: any) {
-            handleError(err as Error, err.message); // Pass specific error message key
-        } finally {
-            setIsLoading(false);
-        }
-
-    }, [specialCreatorFormState, handleTokenCost, handleError, addHistoryItem, selectedAccountId, accounts]);
-    
-    const handlePersonaSubmit = useCallback(async () => {
-        setLastSubmissionType('personaPost');
-        setError(null);
-        setIsLoading(true);
-        setGeneratedContent(null);
-
-        if (!handleTokenCost(TOKEN_COSTS.PERSONA_POST)) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const persona = PERSONA_TEMPLATES[personaCreatorFormState.selectedPersona];
-            const content = await generatePersonaPost(persona, personaCreatorFormState, language);
-            setGeneratedContent(content);
-            if (selectedAccountId) {
-                addHistoryItem(selectedAccountId, {
-                    id: Date.now().toString(),
-                    type: 'personaPost',
-                    timestamp: new Date().toISOString(),
-                    data: content,
-                    accountName: accounts[selectedAccountId]?.name || 'new-post',
-                });
-            }
-        } catch (err: any) {
-            handleError(err as Error, 'personaGenerationError');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [personaCreatorFormState, language, handleTokenCost, handleError, selectedAccountId, addHistoryItem, accounts]);
-    
-    const handleRetryWithSanitizedPrompt = useCallback(async () => {
-        if (!lastSubmissionType) return;
-
-        setError(null);
-        setIsLoading(true);
-        setGeneratedContent(null);
-
-        try {
-            switch (lastSubmissionType) {
-                case 'product': {
-                    const originalPrompt = productFormState.narrationScript;
-                    const sanitized = await sanitizePromptForVideo(originalPrompt);
-                    setProductFormState(prev => ({...prev, narrationScript: sanitized}));
-                    setTimeout(() => handleProductSubmit(), 100);
-                    break;
-                }
-                case 'content': {
-                    const originalPrompt = contentFormState.narrationScript;
-                    const sanitized = await sanitizePromptForVideo(originalPrompt);
-                    setContentFormState(prev => ({...prev, narrationScript: sanitized}));
-                    setTimeout(() => handleContentSubmit(), 100);
-                    break;
-                }
-                case 'special': {
-                    const originalPrompt = specialCreatorFormState.formData.prompt;
-                    const sanitized = await sanitizePromptForVideo(originalPrompt);
-                    setSpecialCreatorFormState(prev => ({ ...prev, formData: { ...prev.formData, prompt: sanitized } }));
-                    setTimeout(() => handleSpecialCreatorSubmit(), 100);
-                    break;
-                }
-                default:
-                    setIsLoading(false);
-                    break;
-            }
-        } catch (err: any) {
-            handleError(err as Error);
-            setIsLoading(false);
-        }
-    }, [lastSubmissionType, productFormState, contentFormState, specialCreatorFormState, personaCreatorFormState, handleProductSubmit, handleContentSubmit, handleSpecialCreatorSubmit, handleError]);
-
 
     // --- Analyzer Page Actions ---
     const handleProfileAnalysisSubmit = useCallback(async () => {
@@ -585,7 +388,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 });
             }
         } catch (err: any) {
-            handleError(err as Error, 'analyzerApiError');
+            handleError(err, 'analyzerApiError');
         } finally {
             setIsAnalyzerLoading(false);
         }
@@ -619,7 +422,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 accountName: account.name,
             });
         } catch (err: any) {
-            handleError(err as Error, 'strategyApiError');
+            handleError(err, 'strategyApiError');
         } finally {
             setIsStrategyLoading(false);
         }
@@ -653,7 +456,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 accountName: account.name,
             });
         } catch (err: any) {
-            handleError(err as Error, 'performanceApiError');
+            handleError(err, 'performanceApiError');
         } finally {
             setIsPerformanceReportLoading(false);
         }
@@ -698,7 +501,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 });
             }
         } catch (err: any) {
-            handleError(err as Error, 'trafficPlanError');
+            handleError(err, 'trafficPlanError');
         } finally {
             setIsCampaignPlanLoading(false);
         }
@@ -733,7 +536,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 });
             }
         } catch (err: any) {
-            handleError(err as Error, 'trafficAnalysisImageError');
+            handleError(err, 'trafficAnalysisImageError');
         } finally {
             setIsCampaignPerformanceLoading(false);
         }
@@ -768,7 +571,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 });
             }
         } catch (err: any) {
-            handleError(err as Error, 'organicContentPlanError');
+            handleError(err, 'organicContentPlanError');
         } finally {
             setIsOrganicGrowthLoading(false);
         }
@@ -792,7 +595,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     
     const value: AppStateContextType = {
         activePage, setActivePage, appMode, setAppMode, outputType, setOutputType, isLoading, error, contextualPrompt, setContextualPrompt,
-        productFormState, setProductFormState, contentFormState, setContentFormState, specialCreatorFormState, setSpecialCreatorFormState, personaCreatorFormState, setPersonaCreatorFormState, generatedContent, setGeneratedContent, handleProductSubmit, handleContentSubmit, handleSpecialCreatorSubmit, handlePersonaSubmit, handleRetryWithSanitizedPrompt, clearForm, updateCreatorFormField,
+        productFormState, setProductFormState, contentFormState, setContentFormState, generatedContent, setGeneratedContent, handleProductSubmit, handleContentSubmit, clearForm, updateCreatorFormField,
         analyzerFormState, setAnalyzerFormState, analysisResult, setAnalysisResult, isAnalyzerLoading, strategyResult, setStrategyResult, isStrategyLoading, performanceReport, setPerformanceReport, isPerformanceReportLoading, handleProfileAnalysisSubmit, handleStrategySubmit, handlePerformanceReportSubmit,
         trafficPlanForm, setTrafficPlanForm, trafficAnalysisImage, setTrafficAnalysisImage, campaignPlan, setCampaignPlan, isCampaignPlanLoading, campaignPerformanceFeedback, setCampaignPerformanceFeedback, isCampaignPerformanceLoading, organicGrowthForm, setOrganicGrowthForm, organicContentPlan, setOrganicContentPlan, isOrganicGrowthLoading, handleCampaignPlanSubmit, handleCampaignPerformanceSubmit, handleOrganicGrowthSubmit, handleChannelToggle,
         handleError, handleTokenCost,

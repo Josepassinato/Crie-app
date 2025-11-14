@@ -1,12 +1,11 @@
 // components/WhatsappNotificationManager.tsx
 import React, { useState, useContext } from 'react';
-// Fix: Add file extension to fix module resolution error.
-import { useAppState } from '../contexts/AppStateContext';
-import { LanguageContext } from '../contexts/LanguageContext';
+import { AppStateContext } from '../contexts/AppStateContext.tsx';
+import { LanguageContext } from '../contexts/LanguageContext.tsx';
 
 const WhatsappNotificationManager: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { whatsappState, whatsappQrCode, connectWhatsapp, disconnectWhatsapp } = useAppState();
+    const { whatsappState, whatsappQrCode, connectWhatsapp, disconnectWhatsapp } = useContext(AppStateContext);
     const { t } = useContext(LanguageContext);
 
     const handleDisconnect = () => {
