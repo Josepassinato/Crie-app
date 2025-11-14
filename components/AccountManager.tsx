@@ -39,7 +39,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ appMode, showAll = fals
                 <select
                     value={selectedAccountId || 'new-post'}
                     onChange={(e) => selectAccount(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                 >
                     <option value="new-post">{t('newPost')}</option>
                     {/* FIX: Add explicit type to map parameter to resolve inference issue. */}
@@ -52,7 +52,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ appMode, showAll = fals
                 <button
                     onClick={handleDelete}
                     disabled={!selectedAccountId || selectedAccountId === 'new-post'}
-                    className="p-2.5 bg-red-800/50 hover:bg-red-800/80 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     aria-label={t('deleteAccount')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

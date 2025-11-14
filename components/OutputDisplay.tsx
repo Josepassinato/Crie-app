@@ -19,7 +19,7 @@ const Spinner: React.FC<{ message: string; subtext: string; }> = ({ message, sub
         <svg className="h-10 w-10 text-brand-secondary animate-bounce-subtle" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 13v-2H6v2H8zm6-2v2h-2v-2h2zm-3-5v6h-2V6h2zm-3 0v6H6V6h2zM15 6h-2v6h2V6zM5 6v6H3V6h2z" /></svg>
       </div>
     </div>
-    <p className="text-xl font-semibold text-brand-light-text animate-pulse">{message}</p>
+    <p className="text-xl font-semibold text-brand-text animate-pulse">{message}</p>
     <p className="text-sm text-brand-subtle">{subtext}</p>
   </div>
 );
@@ -31,7 +31,7 @@ const Placeholder: React.FC<{appMode: AppMode}> = ({ appMode }) => {
 
     return (
         <div className="flex flex-col items-center justify-center h-full text-center text-brand-subtle">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-brand-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <h3 className="text-xl font-semibold text-brand-text">{title}</h3>
@@ -203,15 +203,15 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
                 )}
             </div>
             {content.mediaType === 'image' && (
-                <img src={content.mediaUrl} alt={t('generatedPromotionalAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+                <img src={content.mediaUrl} alt={t('generatedPromotionalAlt')} className="w-full rounded-lg shadow-lg border border-brand-border" />
             )}
             {content.mediaType === 'video' && (
-                <video src={currentVideoUrl} controls autoPlay loop muted className="w-full rounded-lg shadow-lg border border-slate-700" >
+                <video src={currentVideoUrl} controls autoPlay loop muted className="w-full rounded-lg shadow-lg border border-brand-border" >
                 {t('videoTagError')}
                 </video>
             )}
             {content.mediaType === 'audio' && (
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                <div className="p-4 bg-brand-soft-bg rounded-lg border border-brand-border">
                     <audio src={content.mediaUrl} controls className="w-full">
                         {t('audioTagError')}
                     </audio>
@@ -220,7 +220,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
         </div>
 
         {isSpecialVideo && !adaptedVideoUrl && !content.adaptedMediaUrl && (
-             <div className="border-t border-slate-700 pt-4 mt-4 text-center">
+             <div className="border-t border-brand-border pt-4 mt-4 text-center">
                 <button
                     onClick={() => handleAdaptVideo(content.mediaUrl)}
                     disabled={isAdapting}
@@ -234,7 +234,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
         {content.script && (
             <div>
                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-3">{t('videoScript')}</h3>
-                <div className="bg-slate-900/50 p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 font-mono">
+                <div className="bg-brand-soft-bg p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-brand-border font-mono">
                     {content.script}
                 </div>
             </div>
@@ -244,7 +244,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
             <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{t('postText')}</h3>
              {/* Share button might need more complex logic for different video versions */}
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 font-mono">
+            <div className="bg-brand-soft-bg p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-brand-border font-mono">
                 {content.postText || (isSpecialVideo ? t('tooltipVideoPromptComposite') : '')}
             </div>
         </div>
@@ -274,11 +274,11 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
                     <span>{isDownloading ? t('saving') : t('saveMedia')}</span>
                 </button>
             </div>
-            <img src={content.mediaUrl} alt={t('generatedPromotionalAlt')} className="w-full rounded-lg shadow-lg border border-slate-700" />
+            <img src={content.mediaUrl} alt={t('generatedPromotionalAlt')} className="w-full rounded-lg shadow-lg border border-brand-border" />
         </div>
         <div>
             <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-3">{t('postText')}</h3>
-            <div className="bg-slate-900/50 p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-slate-700 font-mono">
+            <div className="bg-brand-soft-bg p-4 rounded-md whitespace-pre-wrap text-brand-subtle text-sm border border-brand-border font-mono">
                 {content.postText}
             </div>
         </div>
@@ -308,7 +308,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
     if (error) {
         const isSafetyError = error === t('videoGenerationError');
         return (
-            <div className="text-center text-brand-error p-4 bg-red-900/20 border border-red-500/30 rounded-md animate-pop-in space-y-4">
+            <div className="text-center text-brand-error p-4 bg-red-500/10 border border-red-500/20 rounded-md animate-pop-in space-y-4">
                 <p>{error}</p>
                 {isSafetyError && appState && (
                     <button
@@ -328,11 +328,11 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
       return (
         <div className="space-y-6 animate-fade-in">
           {showSuccess && (
-            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-brand-bg/90 z-50 animate-pop-in">
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-brand-surface/90 z-50 animate-pop-in">
                 <div className="text-center text-brand-success flex flex-col items-center gap-4">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 animate-bounce-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <p className="text-3xl font-bold">{t('generationSuccess')}</p>
-                    <p className="text-lg">{t('contentReadyToShare')}</p>
+                    <p className="text-lg text-brand-subtle">{t('contentReadyToShare')}</p>
                 </div>
             </div>
           )}
@@ -348,7 +348,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedContent, isLoadi
   };
 
   return (
-    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl min-h-[500px] flex flex-col justify-center border border-slate-700 relative overflow-hidden">
+    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl min-h-[500px] flex flex-col justify-center border border-brand-border relative overflow-hidden">
       {renderContent()}
     </div>
   );

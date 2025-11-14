@@ -47,7 +47,7 @@ const BuyTokensPage: React.FC<BuyTokensPageProps> = ({ setActivePage }) => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {packages.map((pkg) => (
-                        <div key={pkg.name} className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-slate-700 flex flex-col text-center">
+                        <div key={pkg.name} className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-brand-border flex flex-col text-center">
                             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{pkg.name}</h2>
                             <p className="text-4xl font-extrabold my-4 text-brand-text">{pkg.amount} <span className="text-lg font-medium text-brand-subtle">Tokens</span></p>
                             <p className="text-brand-subtle flex-grow">{pkg.description}</p>

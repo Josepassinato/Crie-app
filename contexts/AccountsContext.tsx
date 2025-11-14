@@ -241,7 +241,29 @@ export const AccountsProvider: React.FC<{ children: ReactNode }> = ({ children }
             const accountToUpdate = prevAccounts[accountId];
             if (!accountToUpdate) return prevAccounts;
 
-            const updatedHistory = [item, ...accountToUpdate.history];
+            // Add the new item to the beginning of the history
+            const newHistory = [item, ...accountToUpdate.history];
+
+            // Define the types of posts we want to limit
+            const postTypesToLimit: GeneratedHistoryItem['type'][] = [
+                'productPost', 
+                'contentPost', 
+                'specialVideo', 
+                'personaPost'
+            ];
+
+            // Separate the posts to be limited from other history items
+            const postsToLimit = newHistory.filter(h => postTypesToLimit.includes(h.type));
+            const otherHistoryItems = newHistory.filter(h => !postTypesToLimit.includes(h.type));
+
+            // If we have more than 3 posts of the specified types, keep only the 3 newest
+            const limitedPosts = postsToLimit.length > 3 ? postsToLimit.slice(0, 3) : postsToLimit;
+
+            // Combine the limited posts with the other items and re-sort by timestamp to maintain order
+            const updatedHistory = [...limitedPosts, ...otherHistoryItems].sort(
+                (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+            
             const updatedAccount = { ...accountToUpdate, history: updatedHistory };
             const updatedAccounts = { ...prevAccounts, [accountId]: updatedAccount };
             

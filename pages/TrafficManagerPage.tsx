@@ -86,7 +86,7 @@ const TrafficManagerPage: React.FC = () => {
     const isAnyLoading = isCampaignPlanLoading || isCampaignPerformanceLoading || isOrganicGrowthLoading;
 
     const renderCampaignPlanner = () => (
-        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
             <h2 className="text-xl font-bold text-brand-text mb-6">{t('campaignPlannerTitle')}</h2>
             <div className="space-y-4">
                 <div>
@@ -99,7 +99,7 @@ const TrafficManagerPage: React.FC = () => {
                         value={trafficPlanForm.productService}
                         onChange={(e) => updateTrafficForm('productService', e.target.value)}
                         placeholder={t('productServicePlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div>
@@ -112,7 +112,7 @@ const TrafficManagerPage: React.FC = () => {
                         value={trafficPlanForm.targetAudience}
                         onChange={(e) => updateTrafficForm('targetAudience', e.target.value)}
                         placeholder={t('targetAudienceForCampaignPlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div>
@@ -125,7 +125,7 @@ const TrafficManagerPage: React.FC = () => {
                         value={trafficPlanForm.objective}
                         onChange={(e) => updateTrafficForm('objective', e.target.value)}
                         placeholder={t('objectivePlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -139,7 +139,7 @@ const TrafficManagerPage: React.FC = () => {
                             value={trafficPlanForm.budget}
                             onChange={(e) => updateTrafficForm('budget', e.target.value)}
                             placeholder={t('budgetPlaceholder')}
-                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                            className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                         />
                     </div>
                     <div>
@@ -152,7 +152,7 @@ const TrafficManagerPage: React.FC = () => {
                             value={trafficPlanForm.duration}
                             onChange={(e) => updateTrafficForm('duration', e.target.value)}
                             placeholder={t('durationPlaceholder')}
-                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                            className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                         />
                     </div>
                 </div>
@@ -169,7 +169,7 @@ const TrafficManagerPage: React.FC = () => {
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                     trafficPlanForm.channels.includes(channel)
                                         ? 'bg-brand-secondary text-white shadow-md'
-                                        : 'bg-slate-700/50 text-brand-subtle hover:bg-slate-700'
+                                        : 'bg-brand-soft-bg text-brand-subtle hover:bg-brand-hover-bg'
                                 }`}
                             >
                                 {t(`channels${channel}`)}
@@ -186,9 +186,9 @@ const TrafficManagerPage: React.FC = () => {
                 </button>
             </div>
             {campaignPlan && (
-                <div className="mt-8 pt-8 border-t border-slate-700 animate-fade-in">
+                <div className="mt-8 pt-8 border-t border-brand-border animate-fade-in">
                     <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-4">{t('campaignPlanTitle')}</h3>
-                    <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono space-y-4">
+                    <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono space-y-4">
                         <p><strong>{t('campaignStructure')}:</strong></p>
                         <ul className="list-disc list-inside ml-4 space-y-1">
                             <li><strong>{t('campaignStructureName')}:</strong> {campaignPlan.campaignStructure.name}</li>
@@ -220,7 +220,7 @@ const TrafficManagerPage: React.FC = () => {
     );
 
     const renderCampaignPerformance = () => (
-        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
             <h2 className="text-xl font-bold text-brand-text mb-6">{t('campaignPerformanceAnalysisTitle')}</h2>
             <div className="space-y-4">
                 <div>
@@ -228,7 +228,7 @@ const TrafficManagerPage: React.FC = () => {
                         {t('adsScreenshotLabel')}
                     </label>
                     {trafficAnalysisImage ? (
-                        <div className="relative w-32 h-32 mx-auto mb-2 rounded-md overflow-hidden border border-slate-600">
+                        <div className="relative w-32 h-32 mx-auto mb-2 rounded-md overflow-hidden border border-brand-border">
                             <img src={`data:${trafficAnalysisImage.mimeType};base64,${trafficAnalysisImage.base64}`} alt="Ads screenshot" className="w-full h-full object-cover" />
                             <button
                                 type="button"
@@ -250,7 +250,7 @@ const TrafficManagerPage: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => adsFileInputRef.current?.click()}
-                                className="w-full py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors"
+                                className="w-full py-2 px-4 border border-brand-border rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg transition-colors"
                             >
                                 {t('uploadAdsScreenshot')}
                             </button>
@@ -266,9 +266,9 @@ const TrafficManagerPage: React.FC = () => {
                 </button>
             </div>
             {campaignPerformanceFeedback && (
-                <div className="mt-8 pt-8 border-t border-slate-700 animate-fade-in">
+                <div className="mt-8 pt-8 border-t border-brand-border animate-fade-in">
                     <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-4">{t('performanceSummary')}</h3>
-                    <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono space-y-4">
+                    <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono space-y-4">
                         <p>{campaignPerformanceFeedback.performanceSummary}</p>
                         <p className="font-bold text-brand-text">{t('stepByStepGuide')}:</p>
                         <ol className="list-decimal list-inside ml-4 space-y-1">
@@ -283,7 +283,7 @@ const TrafficManagerPage: React.FC = () => {
     );
 
     const renderOrganicGrowthPlanner = () => (
-        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+        <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
             <h2 className="text-xl font-bold text-brand-text mb-6">{t('organicGrowthPlannerTitle')}</h2>
             <div className="space-y-4">
                 <div>
@@ -296,7 +296,7 @@ const TrafficManagerPage: React.FC = () => {
                         value={organicGrowthForm.mainKeyword}
                         onChange={(e) => updateOrganicForm('mainKeyword', e.target.value)}
                         placeholder={t('mainKeywordPlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ const TrafficManagerPage: React.FC = () => {
                         value={organicGrowthForm.targetAudience}
                         onChange={(e) => updateOrganicForm('targetAudience', e.target.value)}
                         placeholder={t('targetAudienceForCampaignPlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     />
                 </div>
                 <div>
@@ -320,7 +320,7 @@ const TrafficManagerPage: React.FC = () => {
                         id="contentFormat"
                         value={organicGrowthForm.contentFormat}
                         onChange={(e) => updateOrganicForm('contentFormat', e.target.value as OrganicGrowthForm['contentFormat'])}
-                        className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                        className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                     >
                         <option value="blog">{t('contentFormatBlog')}</option>
                         <option value="youtube">{t('contentFormatYoutube')}</option>
@@ -337,9 +337,9 @@ const TrafficManagerPage: React.FC = () => {
                 </button>
             </div>
             {organicContentPlan && (
-                <div className="mt-8 pt-8 border-t border-slate-700 animate-fade-in">
+                <div className="mt-8 pt-8 border-t border-brand-border animate-fade-in">
                     <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mb-4">{t('organicContentPlanTitle')}</h3>
-                    <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono space-y-4">
+                    <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono space-y-4">
                         <p><strong>{t('optimizedTitles')}:</strong></p>
                         <ul className="list-disc list-inside ml-4 space-y-1">
                             {organicContentPlan.optimizedTitles.map((title, idx) => (
@@ -382,13 +382,13 @@ const TrafficManagerPage: React.FC = () => {
                             <svg className="h-10 w-10 text-brand-secondary animate-bounce-subtle" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 13v-2H6v2H8zm6-2v2h-2v-2h2zm-3-5v6h-2V6h2zm-3 0v6H6V6h2zM15 6h-2v6h2V6zM5 6v6H3V6h2z" /></svg>
                         </div>
                     </div>
-                    <p className="text-xl font-semibold text-brand-light-text animate-pulse">{message}</p>
+                    <p className="text-xl font-semibold text-brand-text animate-pulse">{message}</p>
                     <p className="text-sm text-brand-subtle">{subtext}</p>
                 </div>
             );
         }
         if (error) {
-            return <div className="text-center text-brand-error p-4 bg-red-900/20 border border-red-500/30 rounded-md animate-pop-in">{t(error)}</div>;
+            return <div className="text-center text-brand-error p-4 bg-red-500/10 border border-red-500/20 rounded-md animate-pop-in">{t(error)}</div>;
         }
         // If results exist, prioritize displaying them based on activeTab
         if (activeTab === 'planner' && campaignPlan) return renderCampaignPlanner();
@@ -398,7 +398,7 @@ const TrafficManagerPage: React.FC = () => {
         // Default placeholder if no results and not loading/error
         return (
             <div className="flex flex-col items-center justify-center h-full text-center text-brand-subtle">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-brand-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM12 10a1 1 0 100-2 1 1 0 000 2z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 14c-1.657 0-3 .895-3 2v1h6v-1c0-1.105-1.343-2-3-2z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 11.171V15a2 2 0 002 2h10a2 2 0 002-2v-3.829a2 2 0 00-.586-1.414l-2.828-2.829A2 2 0 0013.172 6H10.828a2 2 0 00-1.414.586L6.586 9.757A2 2 0 006 11.171z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 10h-2m-3 0H7m-3 0h-.01" />
                 </svg>
                 <h3 className="text-xl font-semibold text-brand-text">{t('campaignPlannerTitle')}</h3>
@@ -410,14 +410,14 @@ const TrafficManagerPage: React.FC = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-                <div className="border-b border-slate-700 mb-6">
+                <div className="border-b border-brand-border mb-6">
                     <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                         <button
                             onClick={() => setActiveTab('planner')}
                             className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-lg transition-colors ${
                                 activeTab === 'planner'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                             }`}
                         >
                             {t('campaignPlannerTitle')}
@@ -427,7 +427,7 @@ const TrafficManagerPage: React.FC = () => {
                             className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-lg transition-colors ${
                                 activeTab === 'performance'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                             }`}
                         >
                             {t('campaignPerformanceAnalysisTitle')}
@@ -437,7 +437,7 @@ const TrafficManagerPage: React.FC = () => {
                             className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-lg transition-colors ${
                                 activeTab === 'organic'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                             }`}
                         >
                             {t('organicGrowthPlannerTitle')}
@@ -451,7 +451,7 @@ const TrafficManagerPage: React.FC = () => {
 
             <div className="lg:col-span-1 space-y-8">
                 <AccountManager />
-                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 min-h-[500px] flex flex-col justify-center relative overflow-hidden">
+                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border min-h-[500px] flex flex-col justify-center relative overflow-hidden">
                     {renderContent()}
                 </div>
                 <HistoryPanel onSelectHistoryItem={handleSelectHistoryItem} />

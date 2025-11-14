@@ -36,7 +36,7 @@ const Header: React.FC = () => {
 
 
     return (
-        <header className="bg-brand-surface/80 backdrop-blur-sm sticky top-0 z-40 border-b border-slate-700">
+        <header className="bg-brand-surface/80 backdrop-blur-sm sticky top-0 z-40 border-b border-brand-border">
             <div className="container mx-auto px-6 sm:px-8 lg:px-12">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo and Nav */}
@@ -52,7 +52,7 @@ const Header: React.FC = () => {
                                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                         activePage === item.id 
                                         ? 'bg-brand-primary/10 text-brand-primary font-semibold' 
-                                        : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text'
+                                        : 'text-brand-subtle hover:bg-brand-hover-bg hover:text-brand-text'
                                     }`}
                                 >
                                     {item.label}
@@ -64,26 +64,26 @@ const Header: React.FC = () => {
                     {/* Right Side */}
                     <div className="flex items-center space-x-2 sm:space-x-4">
                         <div className="hidden sm:flex items-center space-x-2">
-                             <span className="text-base font-semibold text-brand-light-text">{currentUser?.tokens.toLocaleString()}</span>
+                             <span className="text-base font-semibold text-brand-text">{currentUser?.tokens.toLocaleString()}</span>
                              <span className="text-sm text-brand-subtle">{t('tokens')}</span>
                              <button onClick={() => setActivePage('buyTokens')} className="ml-2 px-3 py-1.5 text-xs font-semibold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-full transition-colors shadow-sm hover:shadow-md">
                                 + {t('buyMore')}
                              </button>
                         </div>
-                         <select onChange={handleLanguageChange} value={language} className="bg-slate-800 border-slate-600 rounded-md text-sm text-brand-subtle focus:ring-brand-primary">
+                         <select onChange={handleLanguageChange} value={language} className="bg-brand-input-bg border-brand-border rounded-md text-sm text-brand-subtle focus:ring-brand-primary">
                             <option>Português</option>
                             <option>English</option>
                             <option>Español</option>
                         </select>
                         <WhatsappNotificationManager />
-                        <button onClick={logout} className="p-2 rounded-full text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text transition-colors">
+                        <button onClick={logout} className="p-2 rounded-full text-brand-subtle hover:bg-brand-hover-bg hover:text-brand-text transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
                         {/* Hamburger button */}
                         <div className="md:hidden flex items-center">
-                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-brand-subtle hover:text-brand-light-text hover:bg-slate-700/50" aria-controls="mobile-menu" aria-expanded={isMenuOpen}>
+                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-brand-subtle hover:text-brand-text hover:bg-brand-hover-bg" aria-controls="mobile-menu" aria-expanded={isMenuOpen}>
                                 <span className="sr-only">Open main menu</span>
                                 {isMenuOpen ? (
                                     <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -110,7 +110,7 @@ const Header: React.FC = () => {
                                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
                                     activePage === item.id 
                                     ? 'bg-brand-primary/10 text-brand-primary' 
-                                    : 'text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text'
+                                    : 'text-brand-subtle hover:bg-brand-hover-bg hover:text-brand-text'
                                 }`}
                             >
                                 {item.label}
@@ -118,7 +118,7 @@ const Header: React.FC = () => {
                         ))}
                     </div>
                     {/* Token info for mobile */}
-                    <div className="sm:hidden pt-4 pb-3 border-t border-slate-700">
+                    <div className="sm:hidden pt-4 pb-3 border-t border-brand-border">
                         <div className="flex items-center justify-between px-5">
                             <div>
                                 <span className="text-base font-medium text-brand-text">{currentUser?.tokens.toLocaleString()}</span>

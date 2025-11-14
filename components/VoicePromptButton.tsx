@@ -113,12 +113,12 @@ const VoicePromptButton: React.FC<VoicePromptButtonProps> = ({ onPromptGenerated
             <button
                 type="button"
                 onClick={status === 'recording' ? handleStopRecording : handleStartRecording}
-                className="p-2 rounded-full text-brand-subtle bg-slate-700 hover:bg-slate-600 hover:text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                className="p-2 rounded-full text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg hover:text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary"
                 aria-label={ariaLabel}
             >
                 {renderIcon()}
             </button>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-1.5 text-xs font-medium text-white bg-slate-900 border-brand-border rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                 {getTooltip()}
             </div>
         </div>

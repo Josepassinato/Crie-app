@@ -12,15 +12,17 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Replaced the constructor with public class field syntax for state initialization.
-  // This is the modern standard for React class components and correctly
-  // establishes the component's state, resolving all reported errors where `this.state`,
-  // `this.setState`, and `this.props` were not being recognized.
-  public state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null,
-  };
+  // Fix: Replaced class property for state with a constructor.
+  // This ensures wider compatibility with different build tools and resolves type errors
+  // where inherited properties like `props` and methods like `setState` were not found.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+    };
+  }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
@@ -39,23 +41,23 @@ class ErrorBoundary extends React.Component<Props, State> {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          backgroundColor: '#0f172a',
-          color: '#e2e8f0',
+          backgroundColor: '#f8fafc', // brand-bg
+          color: '#1e293b', // brand-text
           fontFamily: 'Inter, sans-serif',
           padding: '1rem',
         }}>
           <div style={{
             maxWidth: '600px',
             width: '100%',
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
+            backgroundColor: '#ffffff', // brand-surface
+            border: '1px solid #e2e8f0', // brand-border
             borderRadius: '0.5rem',
             padding: '2rem',
             textAlign: 'center',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
           }}>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#ef4444' }}>Ocorreu um erro inesperado</h1>
-            <p style={{ marginTop: '1rem', color: '#94a3b8' }}>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#dc2626' }}>Ocorreu um erro inesperado</h1>
+            <p style={{ marginTop: '1rem', color: '#64748b' }}>
               O aplicativo encontrou um problema e não pôde continuar. Isso pode ser causado por dados de contas salvas que foram corrompidos.
             </p>
             <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
@@ -71,7 +73,7 @@ class ErrorBoundary extends React.Component<Props, State> {
                 }}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  backgroundColor: '#ef4444',
+                  backgroundColor: '#dc2626',
                   color: 'white',
                   border: 'none',
                   borderRadius: '0.375rem',
@@ -85,8 +87,8 @@ class ErrorBoundary extends React.Component<Props, State> {
                 onClick={() => window.location.reload()}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  backgroundColor: '#475569',
-                  color: 'white',
+                  backgroundColor: '#cbd5e1',
+                  color: '#334155',
                   border: 'none',
                   borderRadius: '0.375rem',
                   fontWeight: '600',
@@ -96,10 +98,10 @@ class ErrorBoundary extends React.Component<Props, State> {
                 Tentar Recarregar
               </button>
             </div>
-            <details style={{ marginTop: '2rem', color: '#94a3b8', textAlign: 'left' }}>
+            <details style={{ marginTop: '2rem', color: '#64748b', textAlign: 'left' }}>
               <summary style={{ cursor: 'pointer', fontWeight: '500' }}>Detalhes do Erro</summary>
               <pre style={{
-                backgroundColor: '#0f172a',
+                backgroundColor: '#f1f5f9',
                 padding: '1rem',
                 borderRadius: '0.375rem',
                 marginTop: '0.5rem',
@@ -108,6 +110,7 @@ class ErrorBoundary extends React.Component<Props, State> {
                 fontSize: '0.75rem',
                 maxHeight: '200px',
                 overflowY: 'auto',
+                color: '#475569',
               }}>
                 {this.state.error && this.state.error.toString()}
                 <br />

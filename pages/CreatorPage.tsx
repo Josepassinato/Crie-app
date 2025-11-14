@@ -168,18 +168,18 @@ const CreatorPage: React.FC = () => {
     };
     
     const renderStandardCreator = () => (
-         <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+         <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
             {/* Mode Toggle */}
-            <div className="flex justify-center items-center mb-8 border border-slate-700 rounded-full p-1 max-w-sm mx-auto bg-slate-900/50">
+            <div className="flex justify-center items-center mb-8 border border-brand-border rounded-full p-1 max-w-sm mx-auto bg-brand-soft-bg">
                 <button
                     onClick={() => handleSetAppMode('content')}
-                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'content' ? 'bg-brand-primary text-slate-900' : 'text-brand-subtle hover:bg-slate-700'}`}
+                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'content' ? 'bg-brand-primary text-white' : 'text-brand-subtle hover:bg-brand-hover-bg'}`}
                 >
                     {t('accountTypePersonality')}
                 </button>
                 <button
                     onClick={() => handleSetAppMode('product')}
-                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'product' ? 'bg-brand-primary text-slate-900' : 'text-brand-subtle hover:bg-slate-700'}`}
+                    className={`w-1/2 py-2 px-4 rounded-full text-sm font-semibold transition-colors ${appMode === 'product' ? 'bg-brand-primary text-white' : 'text-brand-subtle hover:bg-brand-hover-bg'}`}
                 >
                     {t('accountTypeBusiness')}
                 </button>
@@ -227,14 +227,14 @@ const CreatorPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                     {/* Creator Tabs */}
-                    <div className="border-b border-slate-700">
+                    <div className="border-b border-brand-border">
                         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                             <button
                                 onClick={() => setActiveTab('standard')}
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
                                     activeTab === 'standard'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                                 }`}
                             >
                                 {t('creatorTabStandard')}
@@ -244,7 +244,7 @@ const CreatorPage: React.FC = () => {
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
                                     activeTab === 'personas'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                                 }`}
                             >
                                 {t('creatorTabPersonas')}
@@ -254,7 +254,7 @@ const CreatorPage: React.FC = () => {
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
                                     activeTab === 'special'
                                     ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-500'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                                 }`}
                             >
                                 {t('creatorTabSpecial')}

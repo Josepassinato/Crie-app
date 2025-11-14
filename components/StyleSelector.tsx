@@ -21,7 +21,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleCha
                 name="artisticStyle"
                 value={selectedStyle}
                 onChange={(e) => onStyleChange(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
             >
                 {Object.keys(styleTemplates).map(styleKey => (
                     <option key={styleKey} value={styleKey}>

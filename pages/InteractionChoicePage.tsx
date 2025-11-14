@@ -23,7 +23,7 @@ const InteractionChoicePage: React.FC<InteractionChoicePageProps> = ({ onSelectD
                     {/* Dashboard Option */}
                     <button
                         onClick={onSelectDashboard}
-                        className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 hover:border-brand-primary hover:scale-105 transition-all duration-300 group"
+                        className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border hover:border-brand-primary hover:scale-105 transition-all duration-300 group"
                     >
                         <div className="flex flex-col items-center justify-center h-full">
                             <svg className="h-16 w-16 mb-4 text-brand-subtle group-hover:text-brand-primary transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -37,7 +37,7 @@ const InteractionChoicePage: React.FC<InteractionChoicePageProps> = ({ onSelectD
                     {/* Voice Agent Option */}
                     <button
                         onClick={onSelectVoiceAgent}
-                        className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 hover:border-brand-secondary hover:scale-105 transition-all duration-300 group"
+                        className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border hover:border-brand-secondary hover:scale-105 transition-all duration-300 group"
                     >
                         <div className="flex flex-col items-center justify-center h-full">
                             <svg className="h-16 w-16 mb-4 text-brand-subtle group-hover:text-brand-secondary transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

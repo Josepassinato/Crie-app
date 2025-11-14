@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 text-brand-text font-sans">
-      <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 max-w-sm w-full">
+      <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border max-w-sm w-full">
         <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">
             crie-app
@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-mail"
-              className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+              className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
               required
             />
           </div>
@@ -79,7 +79,7 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
-              className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+              className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
               required
             />
           </div>
@@ -90,16 +90,16 @@ const LoginPage: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirmar Senha"
-                    className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                    className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                     required
                 />
             </div>
            )}
-           {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary focus:ring-offset-brand-bg transition-opacity disabled:opacity-50"
+            className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary focus:ring-offset-brand-surface transition-opacity disabled:opacity-50"
           >
             {loading ? "Processando..." : (isLoginView ? 'Entrar' : 'Cadastrar')}
           </button>
@@ -109,8 +109,8 @@ const LoginPage: React.FC = () => {
                 {isLoginView ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
             </button>
         </div>
-        <div className="mt-6 border-t border-slate-700 pt-4">
-             <button onClick={activateTestMode} className="w-full text-center text-sm text-brand-subtle hover:text-brand-primary bg-slate-700/50 hover:bg-slate-700 py-2 rounded-md transition-colors">
+        <div className="mt-6 border-t border-brand-border pt-4">
+             <button onClick={activateTestMode} className="w-full text-center text-sm text-brand-subtle hover:text-brand-primary bg-brand-soft-bg hover:bg-brand-hover-bg py-2 rounded-md transition-colors">
                 Acessar para Testes
             </button>
         </div>

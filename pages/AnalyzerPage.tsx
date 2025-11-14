@@ -119,7 +119,7 @@ const AnalyzerPage: React.FC = () => {
         return (
             <div className="space-y-6 animate-fade-in">
                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{t('analysisSummary')}</h3>
-                <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono">
+                <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono">
                     <p className="mb-4"><strong>{t('performanceSummary')}:</strong> {analysisResult.performanceSummary}</p>
                     <p className="mb-4"><strong>{t('audienceProfile')}:</strong> {analysisResult.audienceProfile}</p>
                     <p className="mb-4"><strong>{t('brandArchetype')}:</strong> {analysisResult.brandArchetype}</p>
@@ -139,7 +139,7 @@ const AnalyzerPage: React.FC = () => {
         return (
             <div className="space-y-6 animate-fade-in">
                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{t('holisticStrategyTitle')}</h3>
-                <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono">
+                <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono">
                     <p className="mb-4"><strong>{t('overallDiagnosis')}:</strong> {strategyResult.overallDiagnosis}</p>
                     <p className="mb-4"><strong>{t('strategicPillars')}:</strong></p>
                     <ul className="list-disc list-inside mt-2 space-y-1 mb-4">
@@ -169,7 +169,7 @@ const AnalyzerPage: React.FC = () => {
         return (
             <div className="space-y-6 animate-fade-in">
                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{t('performanceReportTitle')}</h3>
-                <div className="bg-slate-900/50 p-4 rounded-md text-brand-subtle text-sm border border-slate-700 font-mono">
+                <div className="bg-brand-soft-bg p-4 rounded-md text-brand-subtle text-sm border border-brand-border font-mono">
                     <p className="mb-4"><strong>{t('reportOverview')}:</strong> {performanceReport.quantitativeSummary.reportOverview}</p>
                     <p className="mb-4"><strong>{t('totalPosts')}:</strong> {performanceReport.quantitativeSummary.totalPosts}</p>
                     <p className="mb-4"><strong>{t('totalCampaigns')}:</strong> {performanceReport.quantitativeSummary.totalCampaigns}</p>
@@ -189,7 +189,7 @@ const AnalyzerPage: React.FC = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
                     <h2 className="text-xl font-bold text-brand-text mb-6">{t('analyzeProfile')}</h2>
                     <div className="space-y-4">
                         <div>
@@ -202,7 +202,7 @@ const AnalyzerPage: React.FC = () => {
                                 value={analyzerFormState.profileUrl}
                                 onChange={(e) => updateForm('profileUrl', e.target.value)}
                                 placeholder={t('profileUrlPlaceholder')}
-                                className="w-full px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-slate-500"
+                                className="w-full px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text placeholder-brand-subtle"
                             />
                         </div>
 
@@ -212,7 +212,7 @@ const AnalyzerPage: React.FC = () => {
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {analyzerFormState.feedImages.map((img, index) => (
-                                    <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-slate-600">
+                                    <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-brand-border">
                                         <img src={`data:${img.mimeType};base64,${img.base64}`} alt={`Feed screenshot ${index + 1}`} className="w-full h-full object-cover" />
                                         <button
                                             type="button"
@@ -235,7 +235,7 @@ const AnalyzerPage: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors"
+                                className="w-full py-2 px-4 border border-brand-border rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg transition-colors"
                             >
                                 {t('uploadFeedImages')}
                             </button>
@@ -246,7 +246,7 @@ const AnalyzerPage: React.FC = () => {
                                 {t('analyticsScreenshot')}
                             </label>
                             {analyzerFormState.analyticsImage ? (
-                                <div className="relative w-32 h-32 mx-auto mb-2 rounded-md overflow-hidden border border-slate-600">
+                                <div className="relative w-32 h-32 mx-auto mb-2 rounded-md overflow-hidden border border-brand-border">
                                     <img src={`data:${analyzerFormState.analyticsImage.mimeType};base64,${analyzerFormState.analyticsImage.base64}`} alt="Analytics screenshot" className="w-full h-full object-cover" />
                                     <button
                                         type="button"
@@ -268,7 +268,7 @@ const AnalyzerPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => analyticsFileInputRef.current?.click()}
-                                        className="w-full py-2 px-4 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-slate-700/50 hover:bg-slate-700 transition-colors"
+                                        className="w-full py-2 px-4 border border-brand-border rounded-md shadow-sm text-sm font-medium text-brand-subtle bg-brand-soft-bg hover:bg-brand-hover-bg transition-colors"
                                     >
                                         {t('uploadAnalyticsImage')}
                                     </button>
@@ -288,9 +288,9 @@ const AnalyzerPage: React.FC = () => {
                 </div>
 
                 {analysisResult && (
-                    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700">
+                    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border">
                         {renderAnalysisResult()}
-                        <div className="mt-8 pt-6 border-t border-slate-700 space-y-4">
+                        <div className="mt-8 pt-6 border-t border-brand-border space-y-4">
                             <h3 className="text-xl font-bold text-brand-text">{t('nextSteps')}</h3>
                             <button
                                 onClick={handleStrategySubmit}
@@ -316,7 +316,7 @@ const AnalyzerPage: React.FC = () => {
 
             <div className="lg:col-span-1 space-y-8">
                 <AccountManager />
-                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 min-h-[500px] flex flex-col justify-center relative overflow-hidden">
+                <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border min-h-[500px] flex flex-col justify-center relative overflow-hidden">
                     {isAnyAnalysisLoading ? (
                         <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                             <div className="relative">
@@ -325,7 +325,7 @@ const AnalyzerPage: React.FC = () => {
                                     <svg className="h-10 w-10 text-brand-secondary animate-bounce-subtle" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 13v-2H6v2H8zm6-2v2h-2v-2h2zm-3-5v6h-2V6h2zm-3 0v6H6V6h2zM15 6h-2v6h2V6zM5 6v6H3V6h2z" /></svg>
                                 </div>
                             </div>
-                            <p className="text-xl font-semibold text-brand-light-text animate-pulse">
+                            <p className="text-xl font-semibold text-brand-text animate-pulse">
                                 {isAnalyzerLoading && t('analyzingProfileMessage')}
                                 {isStrategyLoading && t('holisticStrategyGenerating')}
                                 {isPerformanceReportLoading && t('performanceReportGenerating')}
@@ -337,7 +337,7 @@ const AnalyzerPage: React.FC = () => {
                             </p>
                         </div>
                     ) : error ? (
-                        <div className="text-center text-brand-error p-4 bg-red-900/20 border border-red-500/30 rounded-md animate-pop-in">{t(error)}</div>
+                        <div className="text-center text-brand-error p-4 bg-red-500/10 border border-red-500/20 rounded-md animate-pop-in">{t(error)}</div>
                     ) : (
                         <div className="space-y-6">
                             {renderAnalysisResult()}
@@ -345,7 +345,7 @@ const AnalyzerPage: React.FC = () => {
                             {renderPerformanceReport()}
                             {!analysisResult && !strategyResult && !performanceReport && (
                                 <div className="flex flex-col items-center justify-center h-full text-center text-brand-subtle">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mb-4 text-brand-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                     <h3 className="text-xl font-semibold text-brand-text">{t('analysisSummaryPlaceholderTitle')}</h3>

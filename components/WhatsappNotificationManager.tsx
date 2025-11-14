@@ -22,13 +22,13 @@ const WhatsappNotificationManager: React.FC = () => {
             case 'connected':
                 return {
                     icon: <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />,
-                    color: 'text-green-400 hover:text-green-300',
+                    color: 'text-green-500 hover:text-green-600',
                     tooltip: t('whatsappConnected')
                 };
             case 'connecting':
                  return {
                     icon: <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" />,
-                    color: 'text-yellow-400 animate-pulse',
+                    color: 'text-amber-500 animate-pulse',
                     tooltip: t('whatsappConnecting')
                 };
             case 'disconnected':
@@ -54,7 +54,7 @@ const WhatsappNotificationManager: React.FC = () => {
                         </div>
                         <h3 className="mt-4 text-xl font-semibold leading-6 text-brand-text">{t('whatsappConnectionSuccess')}</h3>
                         <p className="mt-2 text-brand-subtle">{t('whatsappConnectionStatus')}</p>
-                        <button onClick={handleDisconnect} className="mt-6 w-full rounded-md bg-red-800/80 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700">{t('whatsappDisconnect')}</button>
+                        <button onClick={handleDisconnect} className="mt-6 w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">{t('whatsappDisconnect')}</button>
                     </div>
                 );
             case 'connecting':
@@ -65,7 +65,7 @@ const WhatsappNotificationManager: React.FC = () => {
                             {whatsappQrCode ? (
                                 <img src={whatsappQrCode} alt="QR Code" className="w-48 h-48 rounded-lg bg-white p-2 animate-fade-in" />
                             ) : (
-                                <div className="w-48 h-48 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <div className="w-48 h-48 rounded-lg bg-brand-soft-bg flex items-center justify-center">
                                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
                                 </div>
                             )}
@@ -97,14 +97,14 @@ const WhatsappNotificationManager: React.FC = () => {
                         {icon}
                     </svg>
                 </button>
-                 <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-slate-900 border border-slate-700 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                 <div className="absolute bottom-full right-0 mb-2 w-max px-2 py-1 text-xs font-medium text-white bg-slate-900 border-brand-border rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                     {tooltip}
                 </div>
             </div>
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in" onClick={() => setIsModalOpen(false)}>
-                    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+                    <div className="bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border max-w-sm w-full" onClick={e => e.stopPropagation()}>
                         {renderModalContent()}
                     </div>
                 </div>

@@ -343,14 +343,14 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
 
     return (
         <div className="min-h-screen bg-brand-bg text-brand-text font-sans flex flex-col items-center py-10 px-4">
-            <div className="w-full max-w-2xl bg-brand-surface p-8 rounded-lg shadow-2xl border border-slate-700 space-y-6">
+            <div className="w-full max-w-2xl bg-brand-surface p-8 rounded-lg shadow-2xl border border-brand-border space-y-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">
                         {t('voiceAgentTitle')}
                     </h1>
                     <button
                         onClick={handleExitConversation}
-                        className="p-2 rounded-full text-brand-subtle hover:bg-slate-700/50 hover:text-brand-light-text transition-colors"
+                        className="p-2 rounded-full text-brand-subtle hover:bg-brand-hover-bg hover:text-brand-text transition-colors"
                         aria-label={t('voiceAgentExit')}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -370,7 +370,7 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                                 cleanupSession().then(() => startConversation());
                             }
                         }}
-                        className="px-3 py-2 border border-slate-600 bg-slate-900 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
+                        className="px-3 py-2 border border-brand-border bg-brand-input-bg rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary transition duration-150 text-brand-text"
                         disabled={isApiConnecting || isMicrophoneActive}
                     >
                         {VOICE_NAMES.map(name => (
@@ -379,14 +379,14 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                     </select>
                 </div>
 
-                <div className="bg-slate-900/50 p-4 rounded-md min-h-[300px] max-h-[500px] overflow-y-auto border border-slate-700">
+                <div className="bg-brand-soft-bg p-4 rounded-md min-h-[300px] max-h-[500px] overflow-y-auto border border-brand-border">
                     {transcript.length === 0 && !isApiConnecting && !isMicrophoneActive && (
                         <p className="text-brand-subtle text-center italic">{t('voiceAgentInitialInstruction')}</p>
                     )}
                     {transcript.map((msg, index) => (
                         <div key={index} className={`mb-3 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                             <span className={`inline-block p-2 rounded-lg ${
-                                msg.role === 'user' ? 'bg-brand-primary/20 text-brand-light-text' : 'bg-slate-700/50 text-brand-subtle'
+                                msg.role === 'user' ? 'bg-brand-primary/20 text-brand-text' : 'bg-brand-hover-bg text-brand-subtle'
                             }`}>
                                 {msg.text}
                             </span>
@@ -396,14 +396,14 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                          <div className="mb-3">
                             {currentInputTranscription && (
                                 <div className="text-right">
-                                    <span className="inline-block p-2 rounded-lg bg-brand-primary/10 text-brand-light-text italic animate-pulse-fade-in-out">
+                                    <span className="inline-block p-2 rounded-lg bg-brand-primary/10 text-brand-text italic animate-pulse-fade-in-out">
                                         {currentInputTranscription}
                                     </span>
                                 </div>
                             )}
                             {currentOutputTranscription && (
                                 <div className="text-left">
-                                    <span className="inline-block p-2 rounded-lg bg-slate-800/50 text-brand-subtle italic animate-pulse-fade-in-out">
+                                    <span className="inline-block p-2 rounded-lg bg-brand-hover-bg/50 text-brand-subtle italic animate-pulse-fade-in-out">
                                         {currentOutputTranscription}
                                     </span>
                                 </div>

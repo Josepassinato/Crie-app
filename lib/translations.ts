@@ -121,14 +121,19 @@ export const translations: Record<Language, Record<string, string>> = {
     tooltipNarrationScript: 'Este texto será usado para gerar a narração do seu vídeo ou o áudio da ElevenLabs.',
 
     // API Key Selector
-    apiKeySelectorTitle: 'Ação Necessária: Selecione a Chave de API',
-    apiKeySelectorInfo: 'Para gerar vídeos com Veo, você precisa selecionar uma chave de API com um projeto do Google Cloud associado e faturamento ativo.',
+    apiKeySelectorTitle: 'Ação Necessária: Chave de API Gemini',
+    apiKeySelectorInfo: 'Para gerar vídeos, você precisa de uma chave de API do Google AI Studio.',
+    apiKeySelectorInfo2: 'Certifique-se de que ela está associada a um projeto com faturamento ativo.',
+    getApiKeyHere: 'Obtenha sua chave aqui.',
     apiKeySelectorBillingInfo: 'Saiba mais sobre faturamento.',
-    apiKeySelectorButton: 'Selecionar Chave de API',
+    apiKeySelectorButton: 'Selecionar Chave de API', // Deprecated but kept for safety
+    pasteApiKeyHere: 'Cole sua chave de API aqui...',
+    changeApiKey: 'Alterar Chave',
+    removeApiKey: 'Remover Chave',
     apiKeySelectorSuccess: 'Chave de API selecionada com sucesso.',
     apiKeyVerifying: 'Verificando chave de API...',
     apiKeyVerified: 'Chave de API Verificada e Pronta!',
-    apiKeyInvalidError: 'A chave de API selecionada é inválida ou não tem as permissões necessárias. Por favor, selecione outra.',
+    apiKeyInvalidError: 'A chave de API é inválida ou não tem as permissões necessárias. Por favor, verifique e tente novamente.',
 
 
     // Personas
@@ -347,6 +352,7 @@ export const translations: Record<Language, Record<string, string>> = {
     cancel: 'Cancelar',
     processingPayment: 'Processando...',
     pay: 'Pagar',
+    buyTokensPackage: 'Comprar {amount} Tokens',
 
     // Account Manager
     accountManagerTitle: 'Gerenciador de Contas',
@@ -415,6 +421,17 @@ export const translations: Record<Language, Record<string, string>> = {
     voiceAgentStopConversation: 'Parar conversa',
     voiceAgentConfirmSetCreatorPrompt: 'Entendido. Enviei o prompt para o seu painel do criador.',
     voiceSessionHistoryTitle: 'Sessão com Agente de Voz',
+
+    // Admin Page
+    adminApiKeyManagementTitle: 'Gerenciamento de Chave de API',
+    adminApiKeyManagementDescription: 'Gerencie a chave de API do Google Gemini usada para as funcionalidades de geração de vídeo em toda a aplicação. Esta chave é compartilhada por todos os usuários.',
+    adminStripeTitle: 'Configuração de Pagamentos (Stripe)',
+    adminStripeDescription: 'Para receber pagamentos pela venda de tokens, insira suas chaves de API do Stripe abaixo. Toda a configuração de contas bancárias (para Brasil, EUA, etc.) e faturamento é gerenciada de forma segura no seu painel da Stripe.',
+    adminStripeDashboardButton: 'Acessar Painel da Stripe',
+    adminStripePublishableKeyLabel: 'Chave Publicável do Stripe (Publishable Key)',
+    adminStripeSecretKeyLabel: 'Chave Secreta do Stripe (Secret Key)',
+    adminStripeSecretKeyWarning: 'AVISO: Em produção, a chave secreta NUNCA deve ser armazenada no frontend. Ela deve ser mantida segura em seu backend.',
+    saveApiKeysButton: 'Salvar Chaves',
 
     // Errors
     unknownError: 'Ocorreu um erro desconhecido.',
