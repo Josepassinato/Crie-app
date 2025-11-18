@@ -138,9 +138,83 @@ const AdminPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* User Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-lg shadow-2xl text-white">
+                    <h3 className="text-lg font-semibold mb-2">Total de Usuários</h3>
+                    <p className="text-4xl font-bold">{totalUsers}</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg shadow-2xl text-white">
+                    <h3 className="text-lg font-semibold mb-2">Tokens Consumidos</h3>
+                    <p className="text-4xl font-bold">{totalTokensUsed}</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500 to-purple-700 p-6 rounded-lg shadow-2xl text-white">
+                    <h3 className="text-lg font-semibold mb-2">Tokens Restantes</h3>
+                    <p className="text-4xl font-bold">{users.reduce((sum, u) => sum + u.tokens, 0)}</p>
+                </div>
+            </div>
+
+            {/* Users Table */}
             <div className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-brand-border">
-                <p>Welcome, Admin! This is where user management and other administrative tasks would be located.</p>
-                {/* Future implementation could include a list of users, token management, etc. */}
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-brand-text">Lista de Usuários</h2>
+                    <button
+                        onClick={fetchUsersData}
+                        className="px-4 py-2 bg-brand-primary text-white rounded-md hover:opacity-90 transition-opacity"
+                    >
+                        🔄 Atualizar
+                    </button>
+                </div>
+                
+                {loading ? (
+                    <div className="text-center py-8">
+                        <p className="text-brand-subtle">Carregando usuários...</p>
+                    </div>
+                ) : users.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-brand-subtle">Nenhum usuário encontrado.</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-brand-soft-bg">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-brand-text">Email</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-brand-text">Tokens Restantes</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-brand-text">Tokens Usados</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-brand-text">Admin</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-brand-text">Data de Cadastro</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-brand-border">
+                                {users.map((user) => {
+                                    const tokensUsed = Math.max(0, 20 - user.tokens);
+                                    return (
+                                        <tr key={user.id} className="hover:bg-brand-hover-bg transition-colors">
+                                            <td className="px-4 py-3 text-sm text-brand-text">{user.email}</td>
+                                            <td className="px-4 py-3 text-sm">
+                                                <span className={`font-semibold ${user.tokens > 10 ? 'text-green-500' : user.tokens > 5 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                                    {user.tokens}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-brand-subtle">{tokensUsed}</td>
+                                            <td className="px-4 py-3 text-sm">
+                                                {user.isAdmin ? (
+                                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">Admin</span>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">Usuário</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-brand-subtle">
+                                                {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
