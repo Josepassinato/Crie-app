@@ -171,7 +171,16 @@ const JingleCreatorForm: React.FC = () => {
                 fun: 'divertida e alegre'
             };
             
-            const prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
+            const languages: Record<string, string> = {
+                'pt-BR': 'em português brasileiro',
+                'en-US': 'in English',
+                'es-ES': 'en español',
+                'fr-FR': 'en français',
+                'de-DE': 'auf Deutsch',
+                'it-IT': 'in italiano'
+            };
+            
+            const prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. ${languages[language]}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
             setJinglePrompt(prompt);
         }
     };
