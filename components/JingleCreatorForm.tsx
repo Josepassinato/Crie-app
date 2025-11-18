@@ -196,6 +196,43 @@ const JingleCreatorForm: React.FC = () => {
         checkStatus();
     };
 
+    const analyzeWebsite = async () => {
+        if (!websiteOrSocial.trim()) {
+            setAnalysisError('Por favor, insira uma URL antes de analisar');
+            return;
+        }
+
+        setAnalyzingWebsite(true);
+        setAnalysisError(null);
+        setWebsiteAnalysis(null);
+
+        try {
+            const response = await fetch('/api/analyze-website', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: websiteOrSocial })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+                setWebsiteAnalysis(data.data);
+                
+                // Auto-update product name if empty
+                if (!productName && data.data.brand_identity) {
+                    const brandName = data.data.brand_identity.split(':')[0].trim();
+                    setProductName(brandName);
+                }
+            } else {
+                setAnalysisError(data.error || 'Erro ao analisar o site');
+            }
+        } catch (err: any) {
+            setAnalysisError('Erro de conexão ao analisar o site');
+        } finally {
+            setAnalyzingWebsite(false);
+        }
+    };
+
     const generateAutoPrompt = () => {
         if (productName && targetAudience) {
             const styles: Record<string, string> = {
@@ -216,8 +253,19 @@ const JingleCreatorForm: React.FC = () => {
             
             let prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. ${languages[language]}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
             
-            // Add website/social media context if provided
-            if (websiteOrSocial.trim()) {
+            // Add website analysis context if available
+            if (websiteAnalysis) {
+                prompt += ` CONTEXTO DA MARCA: ${websiteAnalysis.summary}`;
+                
+                if (websiteAnalysis.differentiators && websiteAnalysis.differentiators.length > 0) {
+                    prompt += ` DIFERENCIAIS: ${websiteAnalysis.differentiators.join(', ')}.`;
+                }
+                
+                if (websiteAnalysis.target_values && websiteAnalysis.target_values.length > 0) {
+                    prompt += ` VALORES: ${websiteAnalysis.target_values.join(', ')}.`;
+                }
+            } else if (websiteOrSocial.trim()) {
+                // Fallback to simple context mention
                 prompt += ` Contexto da marca disponível em: ${websiteOrSocial}. Use este contexto para criar um jingle alinhado com a identidade e valores da marca.`;
             }
             
