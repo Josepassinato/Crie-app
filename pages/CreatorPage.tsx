@@ -10,7 +10,7 @@ import AccountManager from '../components/AccountManager.tsx';
 import HistoryPanel from '../components/HistoryPanel.tsx';
 import SaveAccountModal from '../components/SaveAccountModal.tsx';
 import SpecialCreatorForm from '../components/SpecialCreatorForm.tsx';
-import JingleCreatorForm from './components/JingleCreatorForm.tsx';
+import JingleCreatorForm from '../components/JingleCreatorForm.tsx';
 import { GeneratedHistoryItem, ProductFormData, ContentFormData, Schedule, AppMode } from '../types.ts';
 
 // Copied from AppStateContext to have a reset reference without modifying context file
