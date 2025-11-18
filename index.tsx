@@ -4,8 +4,8 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { LanguageProvider } from './contexts/LanguageContext.tsx';
 import { AccountsProvider } from './contexts/AccountsContext.tsx';
-import { AppStateProvider } from './contexts/AppStateContext.tsx'; // Fix: Correct module import path
-import { AuthProvider } from './lib/AuthContext.tsx';
+import { AppStateProvider } from './contexts/AppStateContext.tsx';
+import { AuthProvider } from './lib/MongoAuthContext.tsx';
 
 console.log("Crie-App: Starting application render process...");
 
