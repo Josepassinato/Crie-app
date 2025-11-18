@@ -8,8 +8,7 @@ import TrafficManagerPage from './pages/TrafficManagerPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import BuyTokensPage from './pages/BuyTokensPage.tsx';
-// Fix: Corrected the import path for AuthContext from './contexts/AuthContext.tsx' to './lib/AuthContext.tsx'.
-import { AuthContext } from './lib/AuthContext.tsx';
+import { AuthContext } from './lib/MongoAuthContext.tsx';
 // Fix: Correct module import path and use useContext for AppStateContext.
 import { AppStateContext } from './contexts/AppStateContext.tsx';
 import InteractionChoicePage from './pages/InteractionChoicePage.tsx';
