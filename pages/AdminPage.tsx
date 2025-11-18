@@ -25,7 +25,36 @@ const AdminPage: React.FC = () => {
     useEffect(() => {
         setStripePublishableKey(localStorage.getItem('stripe_publishable_key') || '');
         setStripeSecretKey(localStorage.getItem('stripe_secret_key') || '');
-    }, []);
+        
+        // Fetch users data
+        if (currentUser?.isAdmin) {
+            fetchUsersData();
+        }
+    }, [currentUser]);
+
+    const fetchUsersData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/admin/users');
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data.users || []);
+                setTotalUsers(data.totalUsers || 0);
+                
+                // Calculate total tokens consumed (assuming initial tokens was 20)
+                const consumed = data.users.reduce((sum: number, user: UserStats) => {
+                    const initialTokens = 20;
+                    const consumed = Math.max(0, initialTokens - user.tokens);
+                    return sum + consumed;
+                }, 0);
+                setTotalTokensUsed(consumed);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSaveStripeKeys = () => {
         localStorage.setItem('stripe_publishable_key', stripePublishableKey);
