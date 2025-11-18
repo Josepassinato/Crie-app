@@ -33,6 +33,10 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
+# Kie.ai Configuration
+KIE_AI_API_KEY = os.getenv("KIE_AI_API_KEY")
+KIE_AI_BASE_URL = "https://api.kie.ai/api/v1"
+
 # Pydantic Models
 class UserSignup(BaseModel):
     email: EmailStr
