@@ -429,34 +429,41 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional."""
         gemini_data = gemini_response.json()
         
         # Extract text from Gemini response
+        import json
+        
         if 'candidates' in gemini_data and len(gemini_data['candidates']) > 0:
-            ai_text = gemini_data['candidates'][0]['content']['parts'][0]['text']
-            
-            # Try to parse as JSON
-            import json
-            # Remove markdown code blocks if present
-            ai_text = re.sub(r'```json\s*|\s*```', '', ai_text).strip()
-            
             try:
-                analysis_data = json.loads(ai_text)
-                
-                return WebsiteAnalysisResponse(
-                    success=True,
-                    data=analysis_data
-                )
-            except json.JSONDecodeError:
-                # If JSON parsing fails, create a basic response
-                return WebsiteAnalysisResponse(
-                    success=True,
-                    data={
-                        "brand_identity": "Website analisado com sucesso",
-                        "differentiators": ["Empresa estabelecida", "Presença online"],
-                        "target_values": ["Qualidade", "Confiança"],
-                        "summary": f"Análise do site {url} realizada. Use o contexto do site para personalizar o jingle."
-                    }
-                )
+                candidate = gemini_data['candidates'][0]
+                if 'content' in candidate and 'parts' in candidate['content']:
+                    ai_text = candidate['content']['parts'][0]['text']
+                    
+                    # Remove markdown code blocks if present
+                    ai_text = re.sub(r'```json\s*|\s*```', '', ai_text).strip()
+                    
+                    try:
+                        analysis_data = json.loads(ai_text)
+                        
+                        return WebsiteAnalysisResponse(
+                            success=True,
+                            data=analysis_data
+                        )
+                    except json.JSONDecodeError as e:
+                        # If JSON parsing fails, create a basic response
+                        return WebsiteAnalysisResponse(
+                            success=True,
+                            data={
+                                "brand_identity": "Website analisado com sucesso",
+                                "differentiators": ["Empresa estabelecida", "Presença online"],
+                                "target_values": ["Qualidade", "Confiança"],
+                                "summary": f"Análise do site {url} realizada. Use o contexto do site para personalizar o jingle."
+                            }
+                        )
+                else:
+                    raise Exception(f"Estrutura de resposta inválida: {gemini_data}")
+            except (KeyError, IndexError) as e:
+                raise Exception(f"Erro ao processar resposta da IA: {str(e)}")
         else:
-            raise Exception("Resposta inválida da API Gemini")
+            raise Exception(f"Resposta inválida da API Gemini: {gemini_data}")
             
     except requests.Timeout:
         return WebsiteAnalysisResponse(
