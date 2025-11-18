@@ -210,6 +210,26 @@ async def get_user(user_id: str):
         "tokens": user.get("tokens", 0)
     }
 
+@app.get("/api/admin/users")
+async def get_all_users():
+    """Get all users - Admin only endpoint"""
+    users_cursor = db.users.find({})
+    users_list = []
+    
+    async for user in users_cursor:
+        users_list.append({
+            "id": user["id"],
+            "email": user["email"],
+            "tokens": user.get("tokens", 0),
+            "isAdmin": user.get("isAdmin", False),
+            "createdAt": user.get("createdAt", datetime.utcnow()).isoformat()
+        })
+    
+    return {
+        "users": users_list,
+        "totalUsers": len(users_list)
+    }
+
 # ========== KIE.AI API ROUTES ==========
 from kie_service import kie_service
 
