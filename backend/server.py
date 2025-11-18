@@ -18,6 +18,18 @@ load_dotenv()
 
 app = FastAPI()
 
+# Startup event to create database indexes
+@app.on_event("startup")
+async def startup_db():
+    """Create database indexes on startup"""
+    try:
+        # Create unique indexes for users collection
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("id", unique=True)
+        print("✅ Database indexes created successfully")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not create indexes: {e}")
+
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
