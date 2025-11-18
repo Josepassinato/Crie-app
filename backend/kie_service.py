@@ -26,7 +26,8 @@ class KieAIService:
         prompt: str,
         custom_mode: bool = False,
         instrumental: bool = False,
-        model: str = "V3_5"
+        model: str = "V3_5",
+        callback_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Generate music using Suno API
@@ -36,6 +37,7 @@ class KieAIService:
             custom_mode: Use custom mode for more control
             instrumental: Generate instrumental only (no vocals)
             model: Model version (V3_5, V4, V5)
+            callback_url: URL to receive completion callback
             
         Returns:
             Dict with task_id and status
@@ -48,6 +50,13 @@ class KieAIService:
             "instrumental": instrumental,
             "model": model
         }
+        
+        # Callback URL is required by kie.ai
+        if callback_url:
+            payload["callBackUrl"] = callback_url
+        else:
+            # Use a placeholder if not provided (polling will be used instead)
+            payload["callBackUrl"] = "https://placeholder.com/callback"
         
         response = requests.post(endpoint, json=payload, headers=self.headers)
         response.raise_for_status()
