@@ -17,11 +17,11 @@ const BuyTokensPage: React.FC<BuyTokensPageProps> = ({ setActivePage }) => {
     const [selectedPackage, setSelectedPackage] = useState({ amount: 0, price: '' });
 
     const packages = [
-        { name: 'STARTER', amount: TOKEN_PACKAGES.STARTER, price: 'R$ 20,00', description: 'Ideal para começar e explorar funcionalidades.', badge: null },
-        { name: 'PRO', amount: TOKEN_PACKAGES.PRO, price: 'R$ 45,00', description: 'Perfeito para usuários regulares e pequenas empresas.', badge: 'Economize 10%' },
-        { name: 'BUSINESS', amount: TOKEN_PACKAGES.BUSINESS, price: 'R$ 99,00', description: 'Melhor valor para usuários avançados e agências.', badge: 'Economize 17%' },
-        { name: 'MEGA', amount: TOKEN_PACKAGES.MEGA, price: 'R$ 220,00', description: 'Para criadores profissionais e alto volume.', badge: 'Economize 27%' },
-        { name: 'ENTERPRISE', amount: TOKEN_PACKAGES.ENTERPRISE, price: 'R$ 650,00', description: 'Solução empresarial com melhor custo-benefício.', badge: 'Economize 35%' },
+        { name: 'STARTER', amount: TOKEN_PACKAGES.STARTER, price: 'R$ 99,00', description: 'Ideal para começar e explorar funcionalidades.', badge: null },
+        { name: 'PRO', amount: TOKEN_PACKAGES.PRO, price: 'R$ 222,00', description: 'Perfeito para usuários regulares e pequenas empresas.', badge: 'Economize 10%' },
+        { name: 'BUSINESS', amount: TOKEN_PACKAGES.BUSINESS, price: 'R$ 489,00', description: 'Melhor valor para usuários avançados e agências.', badge: 'Economize 17%' },
+        { name: 'MEGA', amount: TOKEN_PACKAGES.MEGA, price: 'R$ 1.089,00', description: 'Para criadores profissionais e alto volume.', badge: 'Economize 27%' },
+        { name: 'ENTERPRISE', amount: TOKEN_PACKAGES.ENTERPRISE, price: 'R$ 3.217,00', description: 'Solução empresarial com melhor custo-benefício.', badge: 'Economize 35%' },
     ];
     
     const handleBuyClick = (amount: number, price: string) => {
