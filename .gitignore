@@ -22,7 +22,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment files - only ignore .local files
-# .env files will be committed for deployment
-*.env.local
-*.env.*.local
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Keep example files
+!.env.example
+!backend/.env.example
