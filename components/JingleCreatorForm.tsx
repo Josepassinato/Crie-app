@@ -14,6 +14,11 @@ const JingleCreatorForm: React.FC = () => {
     const [importantInfo, setImportantInfo] = useState('');
     const [instrumental, setInstrumental] = useState(false);
     
+    // Website analysis states
+    const [analyzingWebsite, setAnalyzingWebsite] = useState(false);
+    const [websiteAnalysis, setWebsiteAnalysis] = useState<any>(null);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
+    
     // Check for data from Voice Agent on mount
     React.useEffect(() => {
         const voiceData = sessionStorage.getItem('voiceAgentJingleData');
