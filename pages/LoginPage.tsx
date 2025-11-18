@@ -30,24 +30,8 @@ const LoginPage: React.FC = () => {
         await signup(email, password);
       }
     } catch (err: any) {
-      let friendlyMessage = "Ocorreu um erro inesperado.";
-      switch (err.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-              friendlyMessage = "E-mail ou senha inválidos.";
-              break;
-          case 'auth/email-already-in-use':
-              friendlyMessage = "Já existe uma conta com este e-mail.";
-              break;
-          case 'auth/weak-password':
-              friendlyMessage = "A senha deve ter pelo menos 6 caracteres.";
-              break;
-           case 'auth/invalid-email':
-              friendlyMessage = "O formato do e-mail é inválido.";
-              break;
-      }
-      setError(friendlyMessage);
+      const errorMessage = err.message || "Ocorreu um erro inesperado.";
+      setError(errorMessage);
     } finally {
         setLoading(false);
     }
