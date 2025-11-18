@@ -213,7 +213,9 @@ async def get_user(user_id: str):
 @app.get("/api/admin/users")
 async def get_all_users():
     """Get all users - Admin only endpoint"""
-    users_cursor = db.users.find({})
+    # Optimize query with projection and limit
+    projection = {"_id": 0, "id": 1, "email": 1, "tokens": 1, "role": 1, "createdAt": 1}
+    users_cursor = db.users.find({}, projection).limit(1000)
     users_list = []
     
     async for user in users_cursor:
@@ -221,7 +223,7 @@ async def get_all_users():
             "id": user["id"],
             "email": user["email"],
             "tokens": user.get("tokens", 0),
-            "isAdmin": user.get("isAdmin", False),
+            "isAdmin": user.get("role") == "admin",
             "createdAt": user.get("createdAt", datetime.utcnow()).isoformat()
         })
     
