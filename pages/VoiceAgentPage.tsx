@@ -326,6 +326,43 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                                         });
                                     });
                                 }
+                                else if (fc.name === 'createJingle') {
+                                    // Redirect user to Jingles tab with pre-filled data
+                                    const confirmMessage = `Perfeito! Vou criar o jingle "${fc.args.productName}" para você. Redirecionando para a aba de Jingles...`;
+                                    setTranscript(prev => [...prev, { role: 'model', text: confirmMessage }]);
+                                    currentSessionTranscriptsRef.current.push({ role: 'model', text: confirmMessage });
+                                    
+                                    // Store jingle data in sessionStorage for the Jingles tab to pick up
+                                    sessionStorage.setItem('voiceAgentJingleData', JSON.stringify(fc.args));
+                                    
+                                    sessionPromiseRef.current!.then(session => {
+                                        session.sendToolResponse({
+                                            functionResponses: {
+                                                id: fc.id,
+                                                name: fc.name,
+                                                response: { result: 'Jingle creation initiated. User will be redirected to Jingles tab.' }
+                                            }
+                                        });
+                                    });
+                                }
+                                else if (fc.name === 'createVideoClip') {
+                                    // Store video data for the creator
+                                    const confirmMessage = `Ótimo! Vou criar o videoclipe para você. Preparando...`;
+                                    setTranscript(prev => [...prev, { role: 'model', text: confirmMessage }]);
+                                    currentSessionTranscriptsRef.current.push({ role: 'model', text: confirmMessage });
+                                    
+                                    sessionStorage.setItem('voiceAgentVideoData', JSON.stringify(fc.args));
+                                    
+                                    sessionPromiseRef.current!.then(session => {
+                                        session.sendToolResponse({
+                                            functionResponses: {
+                                                id: fc.id,
+                                                name: fc.name,
+                                                response: { result: 'Video creation initiated.' }
+                                            }
+                                        });
+                                    });
+                                }
                             }
                         }
 
