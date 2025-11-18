@@ -13,6 +13,32 @@ const JingleCreatorForm: React.FC = () => {
     const [importantInfo, setImportantInfo] = useState('');
     const [instrumental, setInstrumental] = useState(false);
     
+    // Check for data from Voice Agent on mount
+    React.useEffect(() => {
+        const voiceData = sessionStorage.getItem('voiceAgentJingleData');
+        if (voiceData) {
+            try {
+                const data = JSON.parse(voiceData);
+                if (data.productName) setProductName(data.productName);
+                if (data.targetAudience) setTargetAudience(data.targetAudience);
+                if (data.musicStyle) setMusicStyle(data.musicStyle);
+                if (data.language) setLanguage(data.language);
+                if (data.importantInfo) setImportantInfo(data.importantInfo);
+                if (data.duration) setDuration(data.duration);
+                
+                // Clear the data after reading
+                sessionStorage.removeItem('voiceAgentJingleData');
+                
+                // Auto-generate prompt with the data
+                setTimeout(() => {
+                    generateAutoPrompt();
+                }, 100);
+            } catch (e) {
+                console.error('Error parsing voice agent data:', e);
+            }
+        }
+    }, []);
+    
     const [generatingMusic, setGeneratingMusic] = useState(false);
     const [generatingVideo, setGeneratingVideo] = useState(false);
     const [musicTaskId, setMusicTaskId] = useState<string | null>(null);
