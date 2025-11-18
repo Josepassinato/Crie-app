@@ -260,12 +260,23 @@ const CreatorPage: React.FC = () => {
                             >
                                 {t('creatorTabSpecial')}
                             </button>
+                            <button
+                                onClick={() => setActiveTab('jingles')}
+                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                    activeTab === 'jingles'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
+                                }`}
+                            >
+                                🎵 Jingles e Videoclipes
+                            </button>
                         </nav>
                     </div>
 
                     {activeTab === 'standard' && renderStandardCreator()}
                     {activeTab === 'personas' && <PersonaCreatorForm />}
                     {activeTab === 'special' && <SpecialCreatorForm />}
+                    {activeTab === 'jingles' && <JingleCreatorForm />}
                 </div>
 
                 <div className="lg:col-span-1 space-y-8">
