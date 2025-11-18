@@ -22,6 +22,7 @@ const JingleCreatorForm: React.FC = () => {
                 const data = JSON.parse(voiceData);
                 if (data.productName) setProductName(data.productName);
                 if (data.targetAudience) setTargetAudience(data.targetAudience);
+                if (data.websiteOrSocial) setWebsiteOrSocial(data.websiteOrSocial);
                 if (data.musicStyle) setMusicStyle(data.musicStyle);
                 if (data.language) setLanguage(data.language);
                 if (data.importantInfo) setImportantInfo(data.importantInfo);
