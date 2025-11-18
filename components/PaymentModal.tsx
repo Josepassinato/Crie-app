@@ -41,9 +41,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess,
         }
 
         try {
-            // URL da sua Firebase Cloud Function. Substitua pelo URL real após o deploy.
-            // Para testar localmente, use o URL fornecido pelo emulador do Firebase.
-            const functionUrl = 'https://us-central1-crie-app-a310b.cloudfunctions.net/createStripeCheckout'; // Exemplo de URL de produção
+            // URL da Firebase Cloud Function configurável via variável de ambiente
+            const functionUrl = import.meta.env.VITE_STRIPE_CHECKOUT_URL || 
+                               'https://us-central1-crie-app-a310b.cloudfunctions.net/createStripeCheckout';
 
             const response = await fetch(functionUrl, {
                 method: 'POST',
