@@ -31,3 +31,11 @@ backend/.env
 # Keep example files
 !.env.example
 !backend/.env.example
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
