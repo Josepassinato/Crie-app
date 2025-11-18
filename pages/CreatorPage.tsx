@@ -279,7 +279,7 @@ const CreatorPage: React.FC = () => {
                     {activeTab === 'jingles' && <JingleCreatorForm />}
                 </div>
 
-                <div className="lg:col-span-1 space-y-8">
+                <div className="hidden lg:block lg:col-span-1 space-y-8">
                     <AccountManager appMode={appMode} />
                     <OutputDisplay
                         generatedContent={generatedContent}
