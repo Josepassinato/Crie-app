@@ -399,28 +399,27 @@ async def analyze_website(request: WebsiteAnalysisRequest):
         
         gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}"
         
-        analysis_prompt = f"""Analise o seguinte conteúdo de um website e extraia informações relevantes para criar um jingle comercial memorável.
+        analysis_prompt = f"""Analise este conteúdo de website e extraia informações para um jingle comercial.
 
-CONTEÚDO DO SITE:
+CONTEÚDO:
 {text}
 
-Retorne APENAS um JSON válido (sem markdown, sem ```json) com a seguinte estrutura:
+Retorne JSON:
 {{
-    "brand_identity": "Descrição curta da identidade da marca (1-2 frases)",
-    "differentiators": ["Diferencial 1", "Diferencial 2", "Diferencial 3"],
-    "target_values": ["Valor 1", "Valor 2", "Valor 3"],
-    "summary": "Resumo executivo ideal para criar um jingle (máximo 3 frases)"
-}}
-
-IMPORTANTE: Retorne APENAS o JSON, sem texto adicional."""
+    "brand_identity": "identidade da marca",
+    "differentiators": ["diferencial1", "diferencial2", "diferencial3"],
+    "target_values": ["valor1", "valor2"],
+    "summary": "resumo em 2 frases"
+}}"""
 
         gemini_payload = {
             "contents": [{
                 "parts": [{"text": analysis_prompt}]
             }],
             "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 1024
+                "temperature": 0.5,
+                "maxOutputTokens": 2048,
+                "responseMimeType": "application/json"
             }
         }
         
