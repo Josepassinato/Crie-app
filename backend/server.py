@@ -53,6 +53,16 @@ class TokenResponse(BaseModel):
 class UserUpdate(BaseModel):
     tokens: Optional[int] = None
 
+# Kie.ai Models
+class MusicGenerateRequest(BaseModel):
+    prompt: str
+    customMode: bool = False
+    instrumental: bool = False
+    model: str = "V3_5"
+    
+class VideoGenerateRequest(BaseModel):
+    taskId: str
+
 # Helper Functions
 def create_access_token(data: dict):
     to_encode = data.copy()
