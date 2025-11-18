@@ -10,7 +10,7 @@ import {
     PersonaCreatorFormData,
     ProductPostContent
 } from '../types.ts';
-import { AuthContext } from '../lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { LanguageContext } from './LanguageContext.tsx';
 import { AccountsContext } from './AccountsContext.tsx';
 import {

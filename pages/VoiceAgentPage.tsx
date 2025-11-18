@@ -6,7 +6,7 @@ import { decode, encode, decodeAudioData, createBlob } from '../lib/audioUtils.t
 import { AppStateContext } from '../contexts/AppStateContext.tsx';
 import { LanguageContext } from '../contexts/LanguageContext.tsx';
 // Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
-import { AuthContext } from '../lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 // FIX: Import AccountsContext to correctly source account-related state.
 import { AccountsContext } from '../contexts/AccountsContext.tsx';
 import { TOKEN_COSTS } from '../lib/tokenCosts.ts';

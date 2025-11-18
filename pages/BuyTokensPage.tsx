@@ -3,7 +3,7 @@ import { TOKEN_PACKAGES } from '../lib/tokenCosts.ts';
 import PaymentModal from '../components/PaymentModal.tsx';
 import { LanguageContext } from '../contexts/LanguageContext.tsx';
 // Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
-import { AuthContext } from '../lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { AppPage } from '../types.ts';
 
 interface BuyTokensPageProps {

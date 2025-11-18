@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 // Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
-import { AuthContext } from '../lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { LanguageContext } from '../contexts/LanguageContext.tsx';
 import { Language, AppPage } from '../types.ts';
 // Fix: Correct module import path and use useContext for AppStateContext.

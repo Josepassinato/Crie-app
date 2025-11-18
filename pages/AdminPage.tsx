@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 // Fix: Corrected the import path for AuthContext from '../contexts/AuthContext.tsx' to '../lib/AuthContext.tsx'.
-import { AuthContext } from '../lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { LanguageContext } from '../contexts/LanguageContext.tsx';
 import ApiKeySelector from '../components/ApiKeySelector.tsx';
 
