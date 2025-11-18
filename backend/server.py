@@ -193,6 +193,99 @@ async def get_user(user_id: str):
         "tokens": user.get("tokens", 0)
     }
 
+# ========== KIE.AI API ROUTES ==========
+from kie_service import kie_service
+
+@app.post("/api/kie/music/generate")
+async def generate_music(
+    prompt: str,
+    customMode: bool = False,
+    instrumental: bool = False,
+    model: str = "V3_5"
+):
+    """Generate music using Suno API via kie.ai"""
+    try:
+        result = kie_service.generate_music(
+            prompt=prompt,
+            custom_mode=customMode,
+            instrumental=instrumental,
+            model=model
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/kie/music/details/{task_id}")
+async def get_music_details(task_id: str):
+    """Get music generation status and result"""
+    try:
+        result = kie_service.get_music_details(task_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/kie/music/extend")
+async def extend_music(
+    audio_url: str,
+    prompt: str,
+    continue_at: int = 0
+):
+    """Extend existing music track"""
+    try:
+        result = kie_service.extend_music(
+            audio_url=audio_url,
+            prompt=prompt,
+            continue_at=continue_at
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/kie/video/generate")
+async def generate_video(
+    prompt: str,
+    image_url: Optional[str] = None,
+    duration: str = "5",
+    resolution: str = "720p",
+    aspect_ratio: str = "16:9",
+    negative_prompt: Optional[str] = None,
+    enable_prompt_expansion: bool = True,
+    seed: Optional[int] = None
+):
+    """Generate video using Wan 2.5 API via kie.ai"""
+    try:
+        result = kie_service.generate_video(
+            prompt=prompt,
+            image_url=image_url,
+            duration=duration,
+            resolution=resolution,
+            aspect_ratio=aspect_ratio,
+            negative_prompt=negative_prompt,
+            enable_prompt_expansion=enable_prompt_expansion,
+            seed=seed
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/kie/video/details/{generation_id}")
+async def get_video_details(generation_id: str):
+    """Get video generation status and result"""
+    try:
+        result = kie_service.get_video_details(generation_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/kie/music-video/details/{task_id}")
+async def get_music_video_details(task_id: str):
+    """Get music video generation details"""
+    try:
+        result = kie_service.get_music_video_details(task_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
