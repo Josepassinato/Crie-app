@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface LandingPageMarketingProps {
   onStart: () => void;
 }
 
 const LandingPageMarketing: React.FC<LandingPageMarketingProps> = ({ onStart }) => {
-    const navigate = useNavigate();
     const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
     const features = [
