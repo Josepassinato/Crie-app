@@ -223,8 +223,8 @@ const JingleCreatorForm: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Music Style */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Music Style and Language */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-2">
                             Estilo Musical
@@ -238,6 +238,23 @@ const JingleCreatorForm: React.FC = () => {
                             <option value="calm">Calmo / Relaxante</option>
                             <option value="epic">Épico / Motivacional</option>
                             <option value="fun">Divertido / Alegre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">
+                            🌍 Idioma do Jingle
+                        </label>
+                        <select
+                            value={language}
+                            onChange={(e) => setLanguage(e.target.value)}
+                            className="w-full px-4 py-2 bg-brand-input-bg border border-brand-border rounded-lg focus:ring-2 focus:ring-brand-primary"
+                        >
+                            <option value="pt-BR">🇧🇷 Português (BR)</option>
+                            <option value="en-US">🇺🇸 English (US)</option>
+                            <option value="es-ES">🇪🇸 Español</option>
+                            <option value="fr-FR">🇫🇷 Français</option>
+                            <option value="de-DE">🇩🇪 Deutsch</option>
+                            <option value="it-IT">🇮🇹 Italiano</option>
                         </select>
                     </div>
                     <div>
