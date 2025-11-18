@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
@@ -9,6 +9,8 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 import uuid
+import requests
+import asyncio
 
 app = FastAPI()
 
