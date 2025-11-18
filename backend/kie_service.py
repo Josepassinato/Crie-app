@@ -64,8 +64,8 @@ class KieAIService:
         Returns:
             Dict with status and audio URL when complete
         """
-        endpoint = f"{self.base_url}/api/v1/details"
-        params = {"taskId": task_id}
+        endpoint = f"{self.base_url}/api/get"
+        params = {"ids": task_id}
         
         response = requests.get(endpoint, params=params, headers=self.headers)
         response.raise_for_status()
