@@ -185,6 +185,71 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                 }
             };
 
+            // Define function for creating jingles
+            const createJingleFunctionDeclaration: FunctionDeclaration = {
+                name: 'createJingle',
+                parameters: {
+                    type: Type.OBJECT,
+                    description: 'Create a commercial jingle with music using AI. Use this when the user wants to create music, jingles, or audio advertisements. Confirm details with the user before calling.',
+                    properties: {
+                        productName: {
+                            type: Type.STRING,
+                            description: 'The name of the product or brand'
+                        },
+                        targetAudience: {
+                            type: Type.STRING,
+                            description: 'The target audience for the jingle (e.g., "Families 25-45 years", "Young professionals")'
+                        },
+                        musicStyle: {
+                            type: Type.STRING,
+                            description: 'The music style: upbeat, calm, epic, or fun',
+                            enum: ['upbeat', 'calm', 'epic', 'fun']
+                        },
+                        language: {
+                            type: Type.STRING,
+                            description: 'The language for the jingle: pt-BR, en-US, es-ES, fr-FR, de-DE, or it-IT',
+                            enum: ['pt-BR', 'en-US', 'es-ES', 'fr-FR', 'de-DE', 'it-IT']
+                        },
+                        importantInfo: {
+                            type: Type.STRING,
+                            description: 'Important information that MUST appear in the jingle (phone, address, slogan, promotion, etc.)'
+                        },
+                        duration: {
+                            type: Type.STRING,
+                            description: 'Duration in seconds: 15, 30, or 60',
+                            enum: ['15', '30', '60']
+                        }
+                    },
+                    required: ['productName', 'targetAudience', 'musicStyle', 'language']
+                }
+            };
+
+            // Define function for creating video clips
+            const createVideoClipFunctionDeclaration: FunctionDeclaration = {
+                name: 'createVideoClip',
+                parameters: {
+                    type: Type.OBJECT,
+                    description: 'Create a video clip using AI. Use this when the user wants to create videos or visual content. Confirm details with the user before calling.',
+                    properties: {
+                        prompt: {
+                            type: Type.STRING,
+                            description: 'Detailed description of the video scene or content to generate'
+                        },
+                        duration: {
+                            type: Type.STRING,
+                            description: 'Video duration: 5 or 10 seconds',
+                            enum: ['5', '10']
+                        },
+                        aspectRatio: {
+                            type: Type.STRING,
+                            description: 'Video aspect ratio: 16:9 (landscape), 9:16 (vertical/stories), or 1:1 (square)',
+                            enum: ['16:9', '9:16', '1:1']
+                        }
+                    },
+                    required: ['prompt']
+                }
+            };
+
             sessionPromiseRef.current = ai.live.connect({
                 model: 'gemini-2.5-flash-native-audio-preview-09-2025',
                 callbacks: {
