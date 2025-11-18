@@ -1,7 +1,7 @@
 // Fix: Centralize token costs for AI actions and purchase packages.
 
 /**
- * Estimated API Costs & Pricing Strategy (with 400% markup)
+ * Estimated API Costs & Pricing Strategy (with 700% markup)
  * 
  * 1. Product Image (gemini-2.5-flash-image): 
  *    - Cost: Complex, depends on input/output size. Estimate ~$0.0025 per image.
