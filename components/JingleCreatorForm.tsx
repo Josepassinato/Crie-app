@@ -181,7 +181,13 @@ const JingleCreatorForm: React.FC = () => {
                 'it-IT': 'in italiano'
             };
             
-            const prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. ${languages[language]}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
+            let prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. ${languages[language]}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
+            
+            // Add important information if provided
+            if (importantInfo.trim()) {
+                prompt += ` IMPORTANTE: Mencionar no jingle: ${importantInfo}`;
+            }
+            
             setJinglePrompt(prompt);
         }
     };
