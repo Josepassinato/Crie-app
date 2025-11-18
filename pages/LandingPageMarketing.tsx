@@ -111,7 +111,7 @@ const LandingPageMarketing: React.FC<LandingPageMarketingProps> = ({ onStart }) 
                             <a href="#depoimentos" className="hover:text-orange-400 transition">Depoimentos</a>
                         </div>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => onStart()}
                             className="px-6 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full font-semibold hover:scale-105 transition-transform"
                         >
                             Entrar
@@ -138,7 +138,7 @@ const LandingPageMarketing: React.FC<LandingPageMarketingProps> = ({ onStart }) 
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => onStart()}
                             className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full text-lg font-bold hover:scale-105 transition-transform shadow-2xl"
                         >
                             Começar Grátis Agora 🚀
@@ -314,7 +314,7 @@ const LandingPageMarketing: React.FC<LandingPageMarketingProps> = ({ onStart }) 
                                 <p className="text-gray-400 text-sm mb-4">{plan.tokens} tokens</p>
                                 <p className="text-xs text-gray-500 mb-6">Ideal para: {plan.ideal}</p>
                                 <button
-                                    onClick={() => navigate('/login')}
+                                    onClick={() => onStart()}
                                     className={`w-full py-2 rounded-lg font-semibold transition ${
                                         plan.highlight
                                             ? 'bg-gradient-to-r from-orange-500 to-yellow-500'
@@ -377,7 +377,7 @@ const LandingPageMarketing: React.FC<LandingPageMarketingProps> = ({ onStart }) 
                             Junte-se a +1.000 empresas que já economizam tempo e dinheiro com IA
                         </p>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => onStart()}
                             className="px-12 py-5 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full text-xl font-bold hover:scale-105 transition-transform shadow-2xl"
                         >
                             Começar Grátis Agora 🚀
