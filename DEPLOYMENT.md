@@ -23,8 +23,8 @@ GEMINI_API_KEY=your_gemini_api_key_here
 #### **Frontend Environment Variables** (Namespace: `frontend`)
 
 ```
-VITE_GEMINI_API_KEY=AIzaSyCiiD9DYRttoQHzSAQ7zZE8mN21TIl5okE
-GEMINI_API_KEY=AIzaSyCiiD9DYRttoQHzSAQ7zZE8mN21TIl5okE
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```
 
