@@ -228,11 +228,11 @@ const CreatorPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                     {/* Creator Tabs */}
-                    <div className="border-b border-brand-border">
-                        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    <div className="border-b border-brand-border overflow-x-auto">
+                        <nav className="-mb-px flex space-x-4 md:space-x-8 min-w-max" aria-label="Tabs">
                             <button
                                 onClick={() => setActiveTab('standard')}
-                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                className={`whitespace-nowrap py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-lg ${
                                     activeTab === 'standard'
                                     ? 'border-brand-primary text-brand-primary'
                                     : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
@@ -242,7 +242,7 @@ const CreatorPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('personas')}
-                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                className={`whitespace-nowrap py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-lg ${
                                     activeTab === 'personas'
                                     ? 'border-brand-primary text-brand-primary'
                                     : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
@@ -252,7 +252,7 @@ const CreatorPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('special')}
-                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                className={`whitespace-nowrap py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-lg ${
                                     activeTab === 'special'
                                     ? 'border-brand-primary text-brand-primary'
                                     : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
@@ -262,13 +262,13 @@ const CreatorPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('jingles')}
-                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg ${
+                                className={`whitespace-nowrap py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-lg ${
                                     activeTab === 'jingles'
                                     ? 'border-brand-primary text-brand-primary'
                                     : 'border-transparent text-brand-subtle hover:text-brand-text hover:border-slate-300'
                                 }`}
                             >
-                                🎵 Jingles e Videoclipes
+                                🎵 Jingles
                             </button>
                         </nav>
                     </div>
