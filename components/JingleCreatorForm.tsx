@@ -321,16 +321,85 @@ const JingleCreatorForm: React.FC = () => {
                     <label className="block text-sm font-medium mb-2">
                         🌐 Site, Instagram ou Rede Social (Opcional)
                     </label>
-                    <input
-                        type="text"
-                        value={websiteOrSocial}
-                        onChange={(e) => setWebsiteOrSocial(e.target.value)}
-                        className="w-full px-4 py-2 bg-brand-input-bg border border-brand-border rounded-lg focus:ring-2 focus:ring-brand-primary"
-                        placeholder="Ex: www.minhaempresa.com.br ou @minhaempresa"
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={websiteOrSocial}
+                            onChange={(e) => {
+                                setWebsiteOrSocial(e.target.value);
+                                setWebsiteAnalysis(null);
+                                setAnalysisError(null);
+                            }}
+                            className="flex-1 px-4 py-2 bg-brand-input-bg border border-brand-border rounded-lg focus:ring-2 focus:ring-brand-primary"
+                            placeholder="Ex: www.minhaempresa.com.br ou @minhaempresa"
+                        />
+                        <button
+                            onClick={analyzeWebsite}
+                            disabled={analyzingWebsite || !websiteOrSocial.trim()}
+                            className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        >
+                            {analyzingWebsite ? '🔍 Analisando...' : '🤖 Analisar Site'}
+                        </button>
+                    </div>
                     <p className="text-xs text-brand-subtle mt-1">
-                        A IA irá analisar o conteúdo para criar um jingle mais personalizado e alinhado com sua marca
+                        Clique em "Analisar Site" para extrair automaticamente os diferenciais do seu negócio
                     </p>
+                    
+                    {/* Analysis Error */}
+                    {analysisError && (
+                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                            ⚠️ {analysisError}
+                        </div>
+                    )}
+                    
+                    {/* Analysis Results */}
+                    {websiteAnalysis && (
+                        <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+                            <h4 className="font-bold text-purple-900 mb-2 flex items-center gap-2">
+                                ✨ Análise do Site Concluída
+                            </h4>
+                            
+                            <div className="space-y-2 text-sm">
+                                {websiteAnalysis.brand_identity && (
+                                    <div>
+                                        <span className="font-semibold text-purple-800">Identidade:</span>
+                                        <p className="text-gray-700">{websiteAnalysis.brand_identity}</p>
+                                    </div>
+                                )}
+                                
+                                {websiteAnalysis.differentiators && websiteAnalysis.differentiators.length > 0 && (
+                                    <div>
+                                        <span className="font-semibold text-purple-800">Diferenciais:</span>
+                                        <ul className="list-disc list-inside text-gray-700 ml-2">
+                                            {websiteAnalysis.differentiators.map((diff: string, idx: number) => (
+                                                <li key={idx}>{diff}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                
+                                {websiteAnalysis.target_values && websiteAnalysis.target_values.length > 0 && (
+                                    <div>
+                                        <span className="font-semibold text-purple-800">Valores:</span>
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {websiteAnalysis.target_values.map((value: string, idx: number) => (
+                                                <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                                    {value}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {websiteAnalysis.summary && (
+                                    <div className="mt-2 pt-2 border-t border-purple-200">
+                                        <span className="font-semibold text-purple-800">Resumo:</span>
+                                        <p className="text-gray-700 italic">{websiteAnalysis.summary}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Music Style and Language */}
