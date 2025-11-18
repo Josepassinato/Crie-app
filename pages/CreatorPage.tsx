@@ -78,7 +78,7 @@ const initialContentFormData: ContentFormData = {
     startImage: null,
 };
 
-type CreatorTab = 'standard' | 'special' | 'personas';
+type CreatorTab = 'standard' | 'special' | 'personas' | 'jingles';
 
 const CreatorPage: React.FC = () => {
     const { t } = useContext(LanguageContext);
