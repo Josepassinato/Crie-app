@@ -280,6 +280,23 @@ const JingleCreatorForm: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Important Info */}
+                <div>
+                    <label className="block text-sm font-medium mb-2">
+                        📌 Informações Importantes (Opcional)
+                    </label>
+                    <input
+                        type="text"
+                        value={importantInfo}
+                        onChange={(e) => setImportantInfo(e.target.value)}
+                        className="w-full px-4 py-2 bg-brand-input-bg border border-brand-border rounded-lg focus:ring-2 focus:ring-brand-primary"
+                        placeholder="Ex: Telefone (11) 9999-9999, Endereço Rua Principal 123, Slogan 'A melhor pizza da cidade'"
+                    />
+                    <p className="text-xs text-brand-subtle mt-1">
+                        Adicione informações que DEVEM aparecer no jingle (telefone, endereço, slogan, promoção, etc)
+                    </p>
+                </div>
+
                 {/* Instrumental Option */}
                 <div className="flex items-center gap-2">
                     <input
