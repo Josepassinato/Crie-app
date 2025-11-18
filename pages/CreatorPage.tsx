@@ -277,6 +277,17 @@ const CreatorPage: React.FC = () => {
                     {activeTab === 'personas' && <PersonaCreatorForm />}
                     {activeTab === 'special' && <SpecialCreatorForm />}
                     {activeTab === 'jingles' && <JingleCreatorForm />}
+                    
+                    {/* Mobile Output Display */}
+                    <div className="lg:hidden">
+                        <OutputDisplay
+                            generatedContent={generatedContent}
+                            isLoading={isLoading}
+                            error={error ? t(error) : null}
+                            appMode={appMode}
+                            outputType={outputType}
+                        />
+                    </div>
                 </div>
 
                 <div className="hidden lg:block lg:col-span-1 space-y-8">
