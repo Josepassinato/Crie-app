@@ -7,7 +7,7 @@ import {
     WhatsappConnectionState
 } from './types.ts';
 // Fix: Corrected the import path for AuthContext from './AuthContext.tsx' to './lib/AuthContext.tsx'.
-import { AuthContext } from './lib/AuthContext.tsx';
+import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { LanguageContext } from './contexts/LanguageContext.tsx';
 import { AccountsContext } from './contexts/AccountsContext.tsx';
 import {
