@@ -47,17 +47,53 @@ const BuyTokensPage: React.FC<BuyTokensPageProps> = ({ setActivePage }) => {
                         Choose a package to recharge your account and continue creating.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                     {packages.map((pkg) => (
-                        <div key={pkg.name} className="bg-brand-surface p-6 rounded-lg shadow-2xl border border-brand-border flex flex-col text-center">
-                            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">{pkg.name}</h2>
-                            <p className="text-4xl font-extrabold my-4 text-brand-text">{pkg.amount} <span className="text-lg font-medium text-brand-subtle">Tokens</span></p>
-                            <p className="text-brand-subtle flex-grow">{pkg.description}</p>
+                        <div key={pkg.name} className={`bg-brand-surface p-6 rounded-lg shadow-2xl border-2 flex flex-col text-center relative ${
+                            pkg.name === 'BUSINESS' ? 'border-brand-primary' : 
+                            pkg.name === 'MEGA' ? 'border-purple-500' :
+                            pkg.name === 'ENTERPRISE' ? 'border-yellow-500' :
+                            'border-brand-border'
+                        }`}>
+                            {pkg.badge && (
+                                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+                                        {pkg.badge}
+                                    </span>
+                                </div>
+                            )}
+                            {pkg.name === 'BUSINESS' && (
+                                <div className="absolute -top-3 -right-3">
+                                    <span className="px-2 py-1 bg-brand-primary text-white text-xs font-bold rounded-full">
+                                        Popular
+                                    </span>
+                                </div>
+                            )}
+                            {pkg.name === 'ENTERPRISE' && (
+                                <div className="absolute -top-3 -right-3">
+                                    <span className="px-2 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full">
+                                        Melhor Valor
+                                    </span>
+                                </div>
+                            )}
+                            <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mt-2">
+                                {pkg.name}
+                            </h2>
+                            <p className="text-3xl md:text-4xl font-extrabold my-4 text-brand-text">
+                                {pkg.amount.toLocaleString('pt-BR')}
+                                <span className="text-sm md:text-lg font-medium text-brand-subtle block mt-1">Tokens</span>
+                            </p>
+                            <p className="text-sm text-brand-subtle flex-grow min-h-[3rem]">{pkg.description}</p>
+                            <div className="mt-2 mb-4">
+                                <p className="text-xs text-brand-subtle">
+                                    R$ {(parseFloat(pkg.price.replace('R$ ', '').replace(',', '.')) / pkg.amount).toFixed(4).replace('.', ',')} por token
+                                </p>
+                            </div>
                             <button
                                 onClick={() => handleBuyClick(pkg.amount, pkg.price)}
-                                className="w-full mt-6 py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none"
+                                className="w-full mt-auto py-3 px-4 border border-transparent rounded-md shadow-sm text-base md:text-lg font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none transition-all hover:scale-105"
                             >
-                                Buy for {pkg.price}
+                                Comprar por {pkg.price}
                             </button>
                         </div>
                     ))}
