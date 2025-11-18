@@ -411,7 +411,7 @@ const VoiceAgentPage: React.FC<VoiceAgentPageProps> = ({ onExit }) => {
                     systemInstruction: initialPrompt,
                     inputAudioTranscription: {},
                     outputAudioTranscription: {},
-                    tools: [{ functionDeclarations: [setCreatorPromptFunctionDeclaration] }],
+                    tools: [{ functionDeclarations: [setCreatorPromptFunctionDeclaration, createJingleFunctionDeclaration, createVideoClipFunctionDeclaration] }],
                 },
             });
         } catch (err: any) {
