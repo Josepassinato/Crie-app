@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import Header from './components/Header.tsx';
 // Fix: Ensure all page components are correctly imported as modules.
 import LandingPage from './pages/LandingPage.tsx';
+import LandingPageMarketing from './pages/LandingPageMarketing.tsx';
 import CreatorPage from './pages/CreatorPage.tsx';
 import AnalyzerPage from './pages/AnalyzerPage.tsx';
 import TrafficManagerPage from './pages/TrafficManagerPage.tsx';
