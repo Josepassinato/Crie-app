@@ -21,7 +21,8 @@ export const AuthContext = createContext<AuthContextType>({
   activateTestMode: () => {},
 });
 
-const API_URL = 'http://localhost:8001/api';
+// Use relative URL to work with preview and production
+const API_URL = '/api';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
