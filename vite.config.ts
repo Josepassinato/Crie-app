@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        allowedHosts: [
+          'abra-aqui.preview.emergentagent.com',
+          '.preview.emergentagent.com',
+          'localhost',
+        ],
         proxy: {
           '/api': {
             target: 'http://localhost:8001',
