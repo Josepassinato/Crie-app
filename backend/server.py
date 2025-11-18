@@ -29,8 +29,9 @@ app.add_middleware(
 
 # MongoDB Connection
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+DB_NAME = os.getenv("DB_NAME", "crie_app")
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.crie_app
+db = client[DB_NAME]
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
