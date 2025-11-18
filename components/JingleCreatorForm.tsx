@@ -211,6 +211,11 @@ const JingleCreatorForm: React.FC = () => {
             
             let prompt = `Jingle comercial ${styles[musicStyle]} para ${productName}, direcionado a ${targetAudience}. ${languages[language]}. Aproximadamente ${duration} segundos. Melodia memorável e cativante.`;
             
+            // Add website/social media context if provided
+            if (websiteOrSocial.trim()) {
+                prompt += ` Contexto da marca disponível em: ${websiteOrSocial}. Use este contexto para criar um jingle alinhado com a identidade e valores da marca.`;
+            }
+            
             // Add important information if provided
             if (importantInfo.trim()) {
                 prompt += ` IMPORTANTE: Mencionar no jingle: ${importantInfo}`;
