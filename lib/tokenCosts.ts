@@ -87,9 +87,9 @@ export const VIDEO_COSTS = {
 };
 
 export const TOKEN_PACKAGES = {
-    STARTER: 200,      // R$ 20,00 => R$ 0.10 per token
-    PRO: 500,          // R$ 45,00 => R$ 0.09 per token
-    BUSINESS: 1200,    // R$ 99,00 => R$ 0.0825 per token
-    MEGA: 3000,        // R$ 220,00 => R$ 0.073 per token (27% savings)
-    ENTERPRISE: 10000, // R$ 650,00 => R$ 0.065 per token (35% savings)
+    STARTER: 200,      // R$ 99,00 => R$ 0.495 per token
+    PRO: 500,          // R$ 222,00 => R$ 0.444 per token (10% savings)
+    BUSINESS: 1200,    // R$ 489,00 => R$ 0.4075 per token (17% savings)
+    MEGA: 3000,        // R$ 1.089,00 => R$ 0.363 per token (27% savings)
+    ENTERPRISE: 10000, // R$ 3.217,00 => R$ 0.3217 per token (35% savings)
 };
