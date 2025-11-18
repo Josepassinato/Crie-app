@@ -470,9 +470,33 @@ export const translations: Record<Language, Record<string, string>> = {
     elevenLabsApiError: 'Falha ao gerar o áudio na ElevenLabs. Verifique sua chave de API e ID da voz, se estiver usando uma conta personalizada.',
   },
   'English': {
-    // English translations would go here...
+    // Landing Page
+    landingPageWelcomeTitle: 'Welcome to Crie-App!',
+    landingPageSubtitle: 'Your ultimate platform for AI-powered marketing creation and management.',
+    landingPageStartButton: 'Get Started',
+    
+    // Header
+    creatorPage: 'Creator',
+    analyzerPage: 'Analyzer',
+    trafficManagerPage: 'Traffic Manager',
+    tokens: 'Tokens',
+    buyMore: 'Buy more',
+
+    // Add more translations as needed...
   },
   'Español': {
-    // Spanish translations would go here...
+    // Landing Page
+    landingPageWelcomeTitle: '¡Bienvenido a Crie-App!',
+    landingPageSubtitle: 'Tu plataforma definitiva para creación y gestión de marketing con IA.',
+    landingPageStartButton: 'Comenzar Ahora',
+    
+    // Header
+    creatorPage: 'Creador',
+    analyzerPage: 'Analizador',
+    trafficManagerPage: 'Gestor de Tráfico',
+    tokens: 'Tokens',
+    buyMore: 'Comprar más',
+
+    // Add more translations as needed...
   },
 };
