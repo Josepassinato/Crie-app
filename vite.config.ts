@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
         allowedHosts: [
-          'abra-aqui.preview.emergentagent.com',
           '.preview.emergentagent.com',
+          '.emergentagent.com',
           'localhost',
         ],
         proxy: {
