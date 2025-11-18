@@ -16,10 +16,13 @@ export const LanguageContext = createContext<LanguageContextType>({
 });
 
 const getInitialLanguage = (): Language => {
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang === 'es') return 'Español';
-    if (browserLang === 'en') return 'English';
-    return 'Português'; // Default to Portuguese if no match
+    // Force Portuguese as default since translations are complete only in Portuguese
+    return 'Português';
+    // Uncomment below to enable automatic language detection
+    // const browserLang = navigator.language.split('-')[0];
+    // if (browserLang === 'es') return 'Español';
+    // if (browserLang === 'en') return 'English';
+    // return 'Português';
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
