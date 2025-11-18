@@ -397,7 +397,7 @@ async def analyze_website(request: WebsiteAnalysisRequest):
         if not gemini_api_key:
             raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada")
         
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
+        gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={gemini_api_key}"
         
         analysis_prompt = f"""Analise o seguinte conteúdo de um website e extraia informações relevantes para criar um jingle comercial memorável.
 
