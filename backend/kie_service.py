@@ -6,6 +6,10 @@ import requests
 import os
 import time
 from typing import Optional, Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 KIE_AI_API_KEY = os.getenv("KIE_AI_API_KEY")
 KIE_AI_BASE_URL = "https://api.kie.ai"
