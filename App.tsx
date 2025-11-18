@@ -64,7 +64,7 @@ const AppContent: React.FC = () => {
 
     if (!currentUser) {
         if (preLoginView === 'landing') {
-            return <LandingPage onStart={() => setPreLoginView('login')} />;
+            return <LandingPageMarketing onStart={() => setPreLoginView('login')} />;
         }
         // Once onStart is called, it switches to the login page
         return <LoginPage />;
