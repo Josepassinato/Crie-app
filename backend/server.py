@@ -11,6 +11,10 @@ from bson import ObjectId
 import uuid
 import requests
 import asyncio
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 
