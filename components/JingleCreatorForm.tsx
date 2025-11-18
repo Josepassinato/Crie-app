@@ -9,6 +9,7 @@ const JingleCreatorForm: React.FC = () => {
     const [targetAudience, setTargetAudience] = useState('');
     const [musicStyle, setMusicStyle] = useState('upbeat');
     const [duration, setDuration] = useState('30');
+    const [language, setLanguage] = useState('pt-BR');
     const [instrumental, setInstrumental] = useState(false);
     
     const [generatingMusic, setGeneratingMusic] = useState(false);
