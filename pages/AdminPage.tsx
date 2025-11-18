@@ -4,11 +4,23 @@ import { AuthContext } from '../lib/MongoAuthContext.tsx';
 import { LanguageContext } from '../contexts/LanguageContext.tsx';
 import ApiKeySelector from '../components/ApiKeySelector.tsx';
 
+interface UserStats {
+    id: string;
+    email: string;
+    tokens: number;
+    isAdmin: boolean;
+    createdAt: string;
+}
+
 const AdminPage: React.FC = () => {
     const { currentUser } = useContext(AuthContext);
     const { t } = useContext(LanguageContext);
     const [stripePublishableKey, setStripePublishableKey] = useState('');
     const [stripeSecretKey, setStripeSecretKey] = useState('');
+    const [users, setUsers] = useState<UserStats[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const [totalTokensUsed, setTotalTokensUsed] = useState(0);
 
     useEffect(() => {
         setStripePublishableKey(localStorage.getItem('stripe_publishable_key') || '');
