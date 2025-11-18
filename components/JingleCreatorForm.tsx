@@ -258,6 +258,23 @@ const JingleCreatorForm: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Website/Social Media */}
+                <div>
+                    <label className="block text-sm font-medium mb-2">
+                        🌐 Site, Instagram ou Rede Social (Opcional)
+                    </label>
+                    <input
+                        type="text"
+                        value={websiteOrSocial}
+                        onChange={(e) => setWebsiteOrSocial(e.target.value)}
+                        className="w-full px-4 py-2 bg-brand-input-bg border border-brand-border rounded-lg focus:ring-2 focus:ring-brand-primary"
+                        placeholder="Ex: www.minhaempresa.com.br ou @minhaempresa"
+                    />
+                    <p className="text-xs text-brand-subtle mt-1">
+                        A IA irá analisar o conteúdo para criar um jingle mais personalizado e alinhado com sua marca
+                    </p>
+                </div>
+
                 {/* Music Style and Language */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
