@@ -15,9 +15,9 @@ Go to your Emergent deployment settings and add these environment variables:
 ```
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=crie_app
-JWT_SECRET_KEY=7b141fa24658fabf9978aef0bd944bc92df6e10cd3a33ebf23176d4e92148e3b
-KIE_AI_API_KEY=9ccaf07fae70958cc45d00847d0a9f5b
-GEMINI_API_KEY=AIzaSyCiiD9DYRttoQHzSAQ7zZE8mN21TIl5okE
+JWT_SECRET_KEY=your_jwt_secret_key_here
+KIE_AI_API_KEY=your_kie_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 #### **Frontend Environment Variables** (Namespace: `frontend`)
