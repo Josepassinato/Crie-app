@@ -1,0 +1,45 @@
+# Core Framework
+fastapi==0.115.0
+uvicorn==0.32.0
+starlette==0.37.2
+
+# Database
+motor==3.6.0
+pymongo==4.9.2
+
+# Authentication & Security
+PyJWT==2.9.0
+python-jose==3.3.0
+bcrypt==4.2.0
+passlib==1.7.4
+cryptography==46.0.3
+
+# Data Validation
+pydantic==2.9.2
+pydantic_core==2.23.4
+email-validator==2.3.0
+
+# HTTP Requests
+requests==2.32.5
+
+# Web Scraping (necessário para análise de sites)
+beautifulsoup4==4.14.2
+html5lib==1.1
+
+# Environment Variables
+python-dotenv==1.2.1
+
+# Server
+python-multipart==0.0.12
+
+# Dependencies
+anyio==4.11.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+dnspython==2.8.0
+h11==0.16.0
+idna==3.11
+sniffio==1.3.1
+soupsieve==2.8
+typing_extensions==4.15.0
+urllib3==2.5.0
