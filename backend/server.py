@@ -39,9 +39,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB Connection
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME = os.getenv("DB_NAME", "crie_app")
+# MongoDB Connection - NO DEFAULTS, must be set!
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+if not MONGO_URL:
+    raise ValueError("MONGO_URL environment variable must be set")
+if not DB_NAME:
+    raise ValueError("DB_NAME environment variable must be set")
+
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
