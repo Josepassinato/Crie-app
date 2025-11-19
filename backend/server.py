@@ -23,12 +23,23 @@ app = FastAPI()
 async def startup_db():
     """Create database indexes on startup"""
     try:
+        # Wait for MongoDB to be ready with timeout
+        await asyncio.wait_for(
+            db.command('ping'),
+            timeout=10.0
+        )
+        print("✅ MongoDB connection established")
+        
         # Create unique indexes for users collection
         await db.users.create_index("email", unique=True)
         await db.users.create_index("id", unique=True)
         print("✅ Database indexes created successfully")
+    except asyncio.TimeoutError:
+        print("❌ ERROR: MongoDB connection timeout - database not available")
+        raise Exception("MongoDB not available within 10 seconds")
     except Exception as e:
-        print(f"⚠️ Warning: Could not create indexes: {e}")
+        print(f"❌ ERROR: Database startup failed: {e}")
+        raise
 
 # CORS Configuration
 app.add_middleware(
